@@ -1,0 +1,31 @@
+# ── 테스트 환경 설정 ──
+# H2 인메모리 DB 사용, Docker 의존 없이 테스트 실행
+
+spring:
+  datasource:
+    url: jdbc:h2:mem:pilates-test;DB_CLOSE_DELAY=-1;MODE=MYSQL
+    username: sa
+    password:
+    driver-class-name: org.h2.Driver
+
+  jpa:
+    hibernate:
+      ddl-auto: create-drop
+    show-sql: true
+    database-platform: org.hibernate.dialect.H2Dialect
+
+  # Redis 자동 설정 제외 (테스트에서는 Redis 불필요)
+  autoconfigure:
+    exclude:
+      - org.springframework.boot.autoconfigure.data.redis.RedisAutoConfiguration
+      - org.springframework.boot.autoconfigure.data.redis.RedisRepositoriesAutoConfiguration
+
+logging:
+  level:
+    root: WARN
+    com.pilates: DEBUG
+
+app:
+  logging:
+    masking:
+      enabled: false

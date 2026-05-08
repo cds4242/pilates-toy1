@@ -1,0 +1,44 @@
+# ── 로컬 개발 환경 설정 ──
+# Docker Compose로 MySQL, Redis 실행 후 사용
+
+spring:
+  # ── MySQL (로컬 Docker) ──
+  datasource:
+    url: jdbc:mysql://localhost:3306/pilates?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=Asia/Seoul&characterEncoding=UTF-8
+    username: pilates
+    password: pilates1234
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    hikari:
+      maximum-pool-size: 10
+      minimum-idle: 5
+      connection-timeout: 3000
+
+  # ── JPA (로컬) ──
+  jpa:
+    hibernate:
+      ddl-auto: update
+    show-sql: true
+
+  # ── Redis (로컬 Docker) ──
+  data:
+    redis:
+      host: localhost
+      port: 6379
+
+  # ── H2 콘솔 비활성화 (MySQL 사용) ──
+  h2:
+    console:
+      enabled: false
+
+# ── 로깅 (로컬: 콘솔 출력, 마스킹 해제) ──
+logging:
+  level:
+    root: INFO
+    com.pilates: DEBUG
+    org.hibernate.SQL: DEBUG
+    org.hibernate.orm.jdbc.bind: TRACE
+
+app:
+  logging:
+    masking:
+      enabled: false

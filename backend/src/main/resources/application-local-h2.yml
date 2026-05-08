@@ -1,0 +1,45 @@
+# ── 로컬 H2 인메모리 환경 설정 ──
+# Docker 없이 개발할 때 사용. MySQL/Redis 의존 없음.
+# 실행: ./gradlew bootRun --args='--spring.profiles.active=local-h2'
+
+spring:
+  # ── H2 인메모리 DB ──
+  datasource:
+    url: jdbc:h2:mem:pilates;DB_CLOSE_DELAY=-1;MODE=MYSQL
+    username: sa
+    password:
+    driver-class-name: org.h2.Driver
+
+  # ── JPA ──
+  jpa:
+    hibernate:
+      ddl-auto: create-drop
+    show-sql: true
+    database-platform: org.hibernate.dialect.H2Dialect
+
+  # ── H2 콘솔 활성화 (/h2-console) ──
+  h2:
+    console:
+      enabled: true
+      path: /h2-console
+      settings:
+        web-allow-others: false
+
+  # ── Redis 비활성화 ──
+  autoconfigure:
+    exclude:
+      - org.springframework.boot.autoconfigure.data.redis.RedisAutoConfiguration
+      - org.springframework.boot.autoconfigure.data.redis.RedisRepositoriesAutoConfiguration
+
+# ── 로깅 (콘솔 출력, 마스킹 해제) ──
+logging:
+  level:
+    root: INFO
+    com.pilates: DEBUG
+    org.hibernate.SQL: DEBUG
+    org.hibernate.orm.jdbc.bind: TRACE
+
+app:
+  logging:
+    masking:
+      enabled: false

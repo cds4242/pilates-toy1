@@ -1,0 +1,40 @@
+# === IDE ===
+.idea/
+.vscode/
+*.iml
+*.iws
+*.ipr
+
+# === Java / Gradle ===
+build/
+.gradle/
+out/
+*.class
+*.war
+# jar는 build/에서 이미 무시. wrapper jar는 커밋해야 하므로 개별 제외 안 함
+
+# === Node / Frontend ===
+node_modules/
+.next/
+.turbo/
+dist/
+
+# === Environment / Secrets ===
+.env
+.env.local
+.env.*.local
+*.key
+*.pem
+application-secret.yml
+
+# === OS ===
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# === Docker ===
+docker-compose.override.yml
+
+# === Logs ===
+*.log
+logs/

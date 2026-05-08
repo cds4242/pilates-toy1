@@ -1,0 +1,46 @@
+version: '3.8'
+
+# 로컬 개발 환경용 Docker Compose
+# 사용법: cd infra && docker-compose up -d
+
+services:
+  mysql:
+    image: mysql:8.0
+    container_name: pilates-mysql
+    restart: unless-stopped
+    environment:
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD:-root1234}
+      MYSQL_DATABASE: ${MYSQL_DATABASE:-pilates}
+      MYSQL_USER: ${MYSQL_USER:-pilates}
+      MYSQL_PASSWORD: ${MYSQL_PASSWORD:-pilates1234}
+      TZ: Asia/Seoul
+    ports:
+      - "${MYSQL_PORT:-3306}:3306"
+    volumes:
+      - mysql-data:/var/lib/mysql
+      - ./mysql/init.sql:/docker-entrypoint-initdb.d/init.sql
+      - ./mysql/my.cnf:/etc/mysql/conf.d/my.cnf
+    command: --character-set-server=utf8mb4 --collation-server=utf8mb4_unicode_ci
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  redis:
+    image: redis:7-alpine
+    container_name: pilates-redis
+    restart: unless-stopped
+    ports:
+      - "${REDIS_PORT:-6379}:6379"
+    volumes:
+      - redis-data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+volumes:
+  mysql-data:
+  redis-data:
