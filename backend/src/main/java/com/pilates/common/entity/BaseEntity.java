@@ -13,6 +13,7 @@ import java.time.LocalDateTime;
 /**
  * JPA 공통 베이스 엔티티.
  * 모든 엔티티가 상속하여 id, 감사(audit) 필드를 자동 관리한다.
+ * Auditing: @CreatedDate / @LastModifiedDate (Spring Data JPA 표준) — @CreationTimestamp 사용 금지.
  */
 @Getter
 @MappedSuperclass

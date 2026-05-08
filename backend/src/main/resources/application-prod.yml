@@ -26,6 +26,10 @@ spring:
       port: ${REDIS_PORT:6379}
       password: ${REDIS_PASSWORD:}
 
+# ── Flyway (운영: migration만, 시드 데이터 포함하지 않음) ──
+  flyway:
+    locations: classpath:db/migration
+
 # ── Swagger UI 비활성화 (운영 환경에서는 API 문서 노출 금지) ──
 springdoc:
   api-docs:

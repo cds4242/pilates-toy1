@@ -10,12 +10,11 @@ spring:
     password:
     driver-class-name: org.h2.Driver
 
-  # ── JPA ──
+  # ── JPA (Flyway가 스키마 관리, ddl-auto 사용 안 함) ──
   jpa:
     hibernate:
-      ddl-auto: create-drop
+      ddl-auto: none
     show-sql: true
-    database-platform: org.hibernate.dialect.H2Dialect
 
   # ── H2 콘솔 활성화 (/h2-console) ──
   h2:
@@ -24,6 +23,11 @@ spring:
       path: /h2-console
       settings:
         web-allow-others: false
+
+  # ── Flyway (H2에서도 migration + 개발 시드 적용) ──
+  flyway:
+    enabled: true
+    locations: classpath:db/migration, classpath:db/seed/dev
 
   # ── Redis 비활성화 ──
   autoconfigure:
