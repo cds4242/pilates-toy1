@@ -18,6 +18,8 @@ import com.pilates.domain.reservation.dto.ReservationResponse;
 import com.pilates.domain.reservation.entity.Reservation;
 import com.pilates.domain.reservation.entity.ReservationStatus;
 import com.pilates.domain.reservation.repository.ReservationRepository;
+import com.pilates.domain.attendance.entity.Attendance;
+import com.pilates.domain.attendance.repository.AttendanceRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -45,6 +47,7 @@ public class ReservationService {
     private final MemberRepository memberRepository;
     private final MembershipRepository membershipRepository;
     private final MembershipLessonTypeRepository membershipLessonTypeRepository;
+    private final AttendanceRepository attendanceRepository;
 
     /**
      * 예약 생성.
@@ -132,6 +135,9 @@ public class ReservationService {
 
         reservationRepository.save(reservation);
 
+        // 출석 PENDING 자동 생성
+        attendanceRepository.save(Attendance.createPending(reservation));
+
         log.info("예약 생성: reservationId={}, memberId={}, classScheduleId={}, membershipId={}",
                 reservation.getId(), memberId, request.classScheduleId(), usableMembership.getId());
 
@@ -165,6 +171,9 @@ public class ReservationService {
         // 취소 처리
         reservation.cancel(reason);
 
+        // 출석 기록 삭제
+        attendanceRepository.deleteByReservationId(reservationId);
+
         // 정기권 복구
         Membership membership = reservation.getMembership();
         LessonType lessonType = reservation.getClassSchedule().getLessonType();
@@ -187,6 +196,7 @@ public class ReservationService {
 
         for (Reservation reservation : confirmedReservations) {
             reservation.cancel(reason);
+            attendanceRepository.deleteByReservationId(reservation.getId());
 
             Membership membership = reservation.getMembership();
             LessonType lessonType = reservation.getClassSchedule().getLessonType();

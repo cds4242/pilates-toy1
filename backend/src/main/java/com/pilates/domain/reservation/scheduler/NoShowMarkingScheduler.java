@@ -1,5 +1,8 @@
 package com.pilates.domain.reservation.scheduler;
 
+import com.pilates.domain.attendance.entity.Attendance;
+import com.pilates.domain.attendance.entity.AttendanceStatus;
+import com.pilates.domain.attendance.repository.AttendanceRepository;
 import com.pilates.domain.reservation.entity.Reservation;
 import com.pilates.domain.reservation.repository.ReservationRepository;
 import lombok.RequiredArgsConstructor;
@@ -11,10 +14,12 @@ import org.springframework.transaction.annotation.Transactional;
 import java.time.LocalDate;
 import java.time.LocalTime;
 import java.util.List;
+import java.util.Optional;
 
 /**
  * 노쇼 자동 처리 스케줄러.
  * 수업 종료 30분 후에도 CONFIRMED 상태인 예약을 NO_SHOW로 전환한다.
+ * Attendance도 함께 NO_SHOW로 마킹 (강사가 이미 출석/지각/결석 마킹한 경우는 건드리지 않음).
  */
 @Slf4j
 @Component
@@ -22,6 +27,7 @@ import java.util.List;
 public class NoShowMarkingScheduler {
 
     private final ReservationRepository reservationRepository;
+    private final AttendanceRepository attendanceRepository;
 
     /**
      * 10분 간격으로 수업 종료 후 30분 이상 경과한 CONFIRMED 예약을 NO_SHOW 처리.
@@ -46,6 +52,20 @@ public class NoShowMarkingScheduler {
 
         for (Reservation reservation : overdueReservations) {
             reservation.markNoShow();
+
+            // Attendance 연동: PENDING이거나 없는 경우만 NO_SHOW 처리
+            Optional<Attendance> attendanceOpt = attendanceRepository.findByReservationId(reservation.getId());
+            if (attendanceOpt.isPresent()) {
+                Attendance attendance = attendanceOpt.get();
+                if (!attendance.isManuallyChecked()) {
+                    attendance.markNoShow();
+                }
+            } else {
+                // Attendance가 없는 경우 (정책 A 이전 데이터 호환)
+                Attendance attendance = Attendance.createPending(reservation);
+                attendance.markNoShow();
+                attendanceRepository.save(attendance);
+            }
         }
 
         log.info("노쇼 자동 처리: {}건", overdueReservations.size());
