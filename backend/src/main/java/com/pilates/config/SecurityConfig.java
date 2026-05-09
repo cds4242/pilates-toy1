@@ -19,6 +19,20 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 /**
  * Spring Security 설정.
  * JWT 기반 인증, 세션 비활성화, CSRF 비활성화.
+ *
+ * ┌─────────────────────────────────┬────────┬────────────┬───────┬─────────────┐
+ * │ 경로                             │ MEMBER │ INSTRUCTOR │ ADMIN │ SUPER_ADMIN │
+ * ├─────────────────────────────────┼────────┼────────────┼───────┼─────────────┤
+ * │ /api/auth/**                    │        permitAll                          │
+ * │ /api/admin/auth/**              │        permitAll                          │
+ * │ /api/health, /api/test/**       │        permitAll                          │
+ * │ /api/instructors/** (공개)       │        permitAll                          │
+ * │ /api/class-schedules/** (공개)   │        permitAll                          │
+ * │ /api/admin/**                   │   X    │     O      │   O   │      O      │
+ * │ /api/instructor/**              │   X    │     O      │   O   │      O      │
+ * │ /api/members/me/**              │   O    │     O      │   O   │      O      │
+ * │ 기타 (인증 필요)                  │   O    │     O      │   O   │      O      │
+ * └─────────────────────────────────┴────────┴────────────┴───────┴─────────────┘
  */
 @Configuration
 @EnableWebSecurity
@@ -58,7 +72,8 @@ public class SecurityConfig {
                         session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers(PUBLIC_URLS).permitAll()
-                        .requestMatchers("/api/instructor/**").hasAnyRole("INSTRUCTOR", "SUPER_ADMIN")
+                        .requestMatchers("/api/instructor/**").hasAnyRole("INSTRUCTOR", "ADMIN", "SUPER_ADMIN")
+                        .requestMatchers("/api/admin/**").hasAnyRole("INSTRUCTOR", "ADMIN", "SUPER_ADMIN")
                         .anyRequest().authenticated()
                 )
                 .headers(headers -> headers
