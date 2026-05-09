@@ -81,10 +81,13 @@ export default function LoginPage() {
         <button onClick={() => { alert("비밀번호 재설정은 SMS 인증 후 가능합니다.\n회원가입 시 등록한 휴대폰 번호로 인증해주세요."); router.push("/signup"); }} className="text-[15px] text-text-body hover:underline">비밀번호 찾기</button>
       </div>
 
-      {/* 관리자 링크 */}
-      <div className="text-center mt-12">
+      {/* 강사/관리자 링크 */}
+      <div className="flex justify-center gap-6 mt-12">
+        <Link href="/instructor-login" className="text-[13px] text-instructor hover:underline">
+          강사 로그인
+        </Link>
         <Link href="/admin-login" className="text-[13px] text-text-sub hover:text-text-body transition-colors">
-          관리자 로그인 →
+          관리자 로그인
         </Link>
       </div>
     </div>
