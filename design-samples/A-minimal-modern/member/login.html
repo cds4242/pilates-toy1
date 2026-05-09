@@ -59,7 +59,8 @@ body {
 .studio-image img {
   width: 100%;
   border-radius: var(--radius-md);
-  display: none;
+  height: 160px;
+  object-fit: cover;
 }
 
 .studio-image-placeholder {
@@ -182,8 +183,8 @@ body {
 <body>
 <div class="mobile-frame">
   <div class="studio-image">
-    <img src="" alt="학원 사진" style="display:none">
-    <div class="studio-image-placeholder">학원 사진 영역</div>
+    <img src="../studio.jpg" alt="학원 사진">
+    <div class="studio-image-placeholder" style="display:none">학원 사진 영역</div>
   </div>
 
   <div class="login-header">

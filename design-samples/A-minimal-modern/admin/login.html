@@ -12,6 +12,8 @@
 body{font-family:'Pretendard',-apple-system,BlinkMacSystemFont,sans-serif;background:var(--color-bg-section);color:var(--color-text-body);-webkit-font-smoothing:antialiased;min-height:100vh;display:flex;align-items:center;justify-content:center;font-size:15px}
 .login-container{display:flex;max-width:900px;width:100%;min-height:500px;background:var(--color-bg);border-radius:var(--radius-md);overflow:hidden;box-shadow:0 4px 24px rgba(0,0,0,.06)}
 .login-hero{flex:1;background:linear-gradient(135deg,#F0A0B5,#D88A9E);padding:60px 40px;display:flex;flex-direction:column;justify-content:center;color:#fff}
+.login-hero .studio-image{border-radius:18px;height:160px;overflow:hidden;margin-bottom:var(--spacing-lg)}
+.login-hero .studio-image img{width:100%;height:100%;object-fit:cover;object-position:center 30%;border-radius:18px}
 .login-hero .studio-image-placeholder{background:rgba(255,255,255,0.15);border-radius:18px;height:160px;display:flex;align-items:center;justify-content:center;color:#fff;font-size:15px;font-weight:600;margin-bottom:var(--spacing-lg)}
 .login-hero h1{font-size:28px;font-weight:700;margin-bottom:var(--spacing-md)}
 .login-hero p{font-size:15px;opacity:.9;line-height:1.6}
@@ -37,7 +39,7 @@ body{font-family:'Pretendard',-apple-system,BlinkMacSystemFont,sans-serif;backgr
 <body>
 <div class="login-container">
   <div class="login-hero">
-    <div class="studio-image-placeholder">학원 사진 영역</div>
+    <div class="studio-image"><img src="../studio3.jpg" alt="학원 사진"></div>
     <h1>필라테스 OO점<br>관리 시스템</h1>
     <p>회원, 강사, 시간표, 매출을<br>한곳에서 효율적으로 관리하세요.</p>
   </div>

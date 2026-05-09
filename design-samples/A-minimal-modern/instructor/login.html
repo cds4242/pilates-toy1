@@ -12,7 +12,7 @@
 body{font-family:'Pretendard',-apple-system,BlinkMacSystemFont,sans-serif;background:var(--color-instructor-bg);color:var(--color-text-body);-webkit-font-smoothing:antialiased;font-size:15px}
 .mobile-frame{max-width:480px;margin:0 auto;min-height:100vh;background:var(--color-bg);display:flex;flex-direction:column;justify-content:center;padding:var(--spacing-lg)}
 .studio-image{margin-bottom:var(--spacing-lg)}
-.studio-image img{width:100%;border-radius:var(--radius-md);display:none}
+.studio-image img{width:100%;border-radius:var(--radius-md);height:160px;object-fit:cover;object-position:center 30%}
 .studio-image-placeholder{background:linear-gradient(135deg,#F0A0B5,#D88A9E);border-radius:18px;height:160px;display:flex;align-items:center;justify-content:center;color:#fff;font-size:15px;font-weight:600}
 .login-header{text-align:center;margin-bottom:var(--spacing-xxl)}
 .logo-badge{display:inline-block;background:var(--color-instructor-accent);color:#fff;font-size:13px;font-weight:600;padding:4px 12px;border-radius:20px;margin-bottom:var(--spacing-md)}
@@ -34,8 +34,8 @@ body{font-family:'Pretendard',-apple-system,BlinkMacSystemFont,sans-serif;backgr
 <body>
 <div class="mobile-frame">
   <div class="studio-image">
-    <img src="" alt="학원 사진" style="display:none">
-    <div class="studio-image-placeholder">학원 사진 영역</div>
+    <img src="../studio2.jpg" alt="학원 사진">
+    <div class="studio-image-placeholder" style="display:none">학원 사진 영역</div>
   </div>
 
   <div class="login-header">
