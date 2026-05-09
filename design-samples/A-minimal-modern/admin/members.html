@@ -7,13 +7,13 @@
 <title>회원 관리 - 관리자</title>
 <link rel="stylesheet" as="style" crossorigin href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css">
 <style>
-:root{--color-primary:#F8C8DC;--color-primary-dark:#F0A8C4;--color-primary-light:#FCE4EC;--color-bg:#FFFFFF;--color-bg-section:#F8F8F8;--color-text-title:#2D2D2D;--color-text-body:#6B6B6B;--color-text-sub:#9B9B9B;--color-border:#EEEEEE;--color-input-border:#DDDDDD;--color-success:#4CAF50;--color-warning:#F4A261;--color-error:#E76F51;--sidebar-width:240px;--radius-sm:8px;--radius-md:12px;--spacing-xs:8px;--spacing-sm:12px;--spacing-md:16px;--spacing-lg:24px;--spacing-xl:32px}
+:root{--color-primary:#F0A0B5;--color-primary-dark:#D88A9E;--color-primary-light:#FAD4DE;--color-bg:#FFFFFF;--color-bg-section:#F8F8F8;--color-text-title:#2D2D2D;--color-text-body:#6B6B6B;--color-text-sub:#9B9B9B;--color-border:#EEEEEE;--color-input-border:#DDDDDD;--color-success:#4CAF50;--color-warning:#F4A261;--color-error:#E76F51;--sidebar-width:240px;--radius-sm:8px;--radius-md:18px;--spacing-xs:8px;--spacing-sm:12px;--spacing-md:16px;--spacing-lg:24px;--spacing-xl:32px}
 *{margin:0;padding:0;box-sizing:border-box}
-body{font-family:'Pretendard',-apple-system,BlinkMacSystemFont,sans-serif;background:var(--color-bg-section);color:var(--color-text-body);-webkit-font-smoothing:antialiased}
+body{font-family:'Pretendard',-apple-system,BlinkMacSystemFont,sans-serif;background:var(--color-bg-section);color:var(--color-text-body);-webkit-font-smoothing:antialiased;font-size:15px}
 .sidebar{position:fixed;top:0;left:0;width:var(--sidebar-width);height:100vh;background:var(--color-bg);border-right:1px solid var(--color-border);display:flex;flex-direction:column;z-index:200;transition:transform .3s}
-.sidebar-logo{padding:24px;font-size:18px;font-weight:700;color:var(--color-text-title);border-bottom:1px solid var(--color-border)}
+.sidebar-logo{padding:24px;font-size:20px;font-weight:700;color:var(--color-text-title);border-bottom:1px solid var(--color-border)}
 .sidebar-nav{flex:1;padding:var(--spacing-md) 0}
-.nav-item{display:flex;align-items:center;gap:var(--spacing-sm);padding:12px 24px;font-size:14px;color:var(--color-text-body);text-decoration:none;transition:all .2s;cursor:pointer}
+.nav-item{display:flex;align-items:center;gap:var(--spacing-sm);padding:12px 24px;font-size:15px;color:var(--color-text-body);text-decoration:none;transition:all .2s;cursor:pointer}
 .nav-item:hover{background:var(--color-bg-section);color:var(--color-text-title)}
 .nav-item.active{background:var(--color-primary-light);color:var(--color-primary-dark);font-weight:600}
 .nav-item svg{width:20px;height:20px;flex-shrink:0}
@@ -29,32 +29,39 @@ body{font-family:'Pretendard',-apple-system,BlinkMacSystemFont,sans-serif;backgr
 .overlay{display:none;position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,.3);z-index:150}
 .overlay.active{display:block}
 .page-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:var(--spacing-lg);flex-wrap:wrap;gap:var(--spacing-md)}
-.page-title{font-size:24px;font-weight:700;color:var(--color-text-title)}
+.page-title{font-size:26px;font-weight:700;color:var(--color-text-title)}
 .page-actions{display:flex;gap:var(--spacing-sm)}
 .btn-sm{padding:10px 16px;border-radius:var(--radius-sm);font-size:13px;font-weight:600;font-family:'Pretendard',sans-serif;cursor:pointer;transition:all .2s}
 .btn-primary-sm{background:var(--color-primary);color:var(--color-text-title);border:none}
 .btn-primary-sm:hover{background:var(--color-primary-dark)}
 .btn-outline-sm{background:var(--color-bg);color:var(--color-text-body);border:1px solid var(--color-border)}
 .btn-outline-sm:hover{border-color:var(--color-primary)}
-/* ── 검색 ── */
+/* -- 검색 -- */
 .search-bar{display:flex;gap:var(--spacing-sm);margin-bottom:var(--spacing-lg);flex-wrap:wrap}
-.search-input{flex:1;min-width:200px;border:1px solid var(--color-input-border);border-radius:var(--radius-sm);padding:10px 14px;font-size:14px;font-family:'Pretendard',sans-serif;outline:none}
+.search-input{flex:1;min-width:200px;border:1px solid var(--color-input-border);border-radius:var(--radius-sm);padding:10px 14px;font-size:15px;font-family:'Pretendard',sans-serif;outline:none}
 .search-input:focus{border-color:var(--color-primary)}
-.filter-select{border:1px solid var(--color-input-border);border-radius:var(--radius-sm);padding:10px 14px;font-size:14px;font-family:'Pretendard',sans-serif;outline:none;background:var(--color-bg);min-width:120px}
-/* ── 테이블 (PC) ── */
+.filter-select{border:1px solid var(--color-input-border);border-radius:var(--radius-sm);padding:10px 14px;font-size:15px;font-family:'Pretendard',sans-serif;outline:none;background:var(--color-bg);min-width:120px}
+/* -- 테이블 (PC) -- */
 .table-wrapper{background:var(--color-bg);border:1px solid var(--color-border);border-radius:var(--radius-md);overflow:hidden}
 table{width:100%;border-collapse:collapse}
 th{text-align:left;padding:14px 16px;font-size:13px;font-weight:600;color:var(--color-text-sub);background:var(--color-bg-section);border-bottom:1px solid var(--color-border)}
-td{padding:14px 16px;font-size:14px;color:var(--color-text-title);border-bottom:1px solid var(--color-border)}
+td{padding:14px 16px;font-size:15px;color:var(--color-text-title);border-bottom:1px solid var(--color-border)}
 tr:last-child td{border-bottom:none}
 tr:hover td{background:var(--color-bg-section)}
-.status-badge{font-size:12px;font-weight:600;padding:3px 8px;border-radius:12px}
+.table-avatar{width:32px;height:32px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700;flex-shrink:0}
+.table-avatar.initial{background:var(--color-primary-light);color:var(--color-primary-dark)}
+.table-avatar.photo{background:linear-gradient(135deg,#F0A0B5,#D88A9E);color:#fff}
+.status-badge{font-size:13px;font-weight:600;padding:3px 8px;border-radius:12px}
 .status-active{background:#E8F5E9;color:var(--color-success)}
 .status-expired{background:#FDECEA;color:var(--color-error)}
 .status-expiring{background:#FFF3E0;color:var(--color-warning)}
-/* ── 카드 (모바일) ── */
+/* -- 카드 (모바일) -- */
 .card-list{display:none;flex-direction:column;gap:var(--spacing-sm)}
-.member-card{background:var(--color-bg);border:1px solid var(--color-border);border-radius:var(--radius-md);padding:16px;display:flex;justify-content:space-between;align-items:center}
+.member-card{background:var(--color-bg);border:1px solid var(--color-border);border-radius:var(--radius-md);padding:16px;display:flex;justify-content:space-between;align-items:center;gap:var(--spacing-sm)}
+.member-card-left{display:flex;align-items:center;gap:var(--spacing-sm);flex:1}
+.member-card-avatar{width:36px;height:36px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:700;flex-shrink:0}
+.member-card-avatar.initial{background:var(--color-primary-light);color:var(--color-primary-dark)}
+.member-card-avatar.photo{background:linear-gradient(135deg,#F0A0B5,#D88A9E);color:#fff}
 .member-card-info{flex:1}
 .member-card-name{font-size:15px;font-weight:600;color:var(--color-text-title)}
 .member-card-detail{font-size:13px;color:var(--color-text-sub);margin-top:4px}
@@ -106,34 +113,34 @@ tr:hover td{background:var(--color-bg-section)}
   <!-- PC 테이블 -->
   <div class="table-wrapper">
     <table>
-      <thead><tr><th>이름</th><th>휴대폰</th><th>정기권</th><th>잔여</th><th>만료일</th><th>출석률</th><th>상태</th></tr></thead>
+      <thead><tr><th>프로필</th><th>이름</th><th>휴대폰</th><th>정기권</th><th>잔여</th><th>만료일</th><th>출석률</th><th>상태</th></tr></thead>
       <tbody>
-        <tr><td>김민지</td><td>010-1234-5678</td><td>12회권</td><td>8/12</td><td>2026.07.30</td><td>92%</td><td><span class="status-badge status-active">활성</span></td></tr>
-        <tr><td>이서연</td><td>010-2345-6789</td><td>8회권</td><td>2/8</td><td>2026.05.20</td><td>88%</td><td><span class="status-badge status-expiring">만료임박</span></td></tr>
-        <tr><td>박소윤</td><td>010-3456-7890</td><td>12회권</td><td>12/12</td><td>2026.09.15</td><td>95%</td><td><span class="status-badge status-active">활성</span></td></tr>
-        <tr><td>최유진</td><td>010-4567-8901</td><td>4회권</td><td>0/4</td><td>2026.04.30</td><td>65%</td><td><span class="status-badge status-expired">만료</span></td></tr>
-        <tr><td>정하윤</td><td>010-5678-9012</td><td>12회권</td><td>5/12</td><td>2026.08.10</td><td>90%</td><td><span class="status-badge status-active">활성</span></td></tr>
-        <tr><td>강하린</td><td>010-6789-0123</td><td>8회권</td><td>1/8</td><td>2026.05.25</td><td>72%</td><td><span class="status-badge status-expiring">만료임박</span></td></tr>
-        <tr><td>오지원</td><td>010-7890-1234</td><td>12회권</td><td>10/12</td><td>2026.10.01</td><td>85%</td><td><span class="status-badge status-active">활성</span></td></tr>
-        <tr><td>윤채원</td><td>010-8901-2345</td><td>-</td><td>-</td><td>-</td><td>-</td><td><span class="status-badge status-expired">만료</span></td></tr>
-        <tr><td>한수빈</td><td>010-9012-3456</td><td>12회권</td><td>11/12</td><td>2026.11.05</td><td>97%</td><td><span class="status-badge status-active">활성</span></td></tr>
-        <tr><td>임지아</td><td>010-0123-4567</td><td>8회권</td><td>3/8</td><td>2026.06.20</td><td>80%</td><td><span class="status-badge status-active">활성</span></td></tr>
+        <tr><td><div class="table-avatar initial">김</div></td><td>김민지</td><td>010-1234-5678</td><td>12회권</td><td>8/12</td><td>2026.07.30</td><td>92%</td><td><span class="status-badge status-active">활성</span></td></tr>
+        <tr><td><div class="table-avatar photo">이</div></td><td>이서연</td><td>010-2345-6789</td><td>8회권</td><td>2/8</td><td>2026.05.20</td><td>88%</td><td><span class="status-badge status-expiring">만료임박</span></td></tr>
+        <tr><td><div class="table-avatar initial">박</div></td><td>박소윤</td><td>010-3456-7890</td><td>12회권</td><td>12/12</td><td>2026.09.15</td><td>95%</td><td><span class="status-badge status-active">활성</span></td></tr>
+        <tr><td><div class="table-avatar photo">최</div></td><td>최유진</td><td>010-4567-8901</td><td>4회권</td><td>0/4</td><td>2026.04.30</td><td>65%</td><td><span class="status-badge status-expired">만료</span></td></tr>
+        <tr><td><div class="table-avatar initial">정</div></td><td>정하윤</td><td>010-5678-9012</td><td>12회권</td><td>5/12</td><td>2026.08.10</td><td>90%</td><td><span class="status-badge status-active">활성</span></td></tr>
+        <tr><td><div class="table-avatar initial">강</div></td><td>강하린</td><td>010-6789-0123</td><td>8회권</td><td>1/8</td><td>2026.05.25</td><td>72%</td><td><span class="status-badge status-expiring">만료임박</span></td></tr>
+        <tr><td><div class="table-avatar photo">오</div></td><td>오지원</td><td>010-7890-1234</td><td>12회권</td><td>10/12</td><td>2026.10.01</td><td>85%</td><td><span class="status-badge status-active">활성</span></td></tr>
+        <tr><td><div class="table-avatar initial">윤</div></td><td>윤채원</td><td>010-8901-2345</td><td>-</td><td>-</td><td>-</td><td>-</td><td><span class="status-badge status-expired">만료</span></td></tr>
+        <tr><td><div class="table-avatar initial">한</div></td><td>한수빈</td><td>010-9012-3456</td><td>12회권</td><td>11/12</td><td>2026.11.05</td><td>97%</td><td><span class="status-badge status-active">활성</span></td></tr>
+        <tr><td><div class="table-avatar photo">임</div></td><td>임지아</td><td>010-0123-4567</td><td>8회권</td><td>3/8</td><td>2026.06.20</td><td>80%</td><td><span class="status-badge status-active">활성</span></td></tr>
       </tbody>
     </table>
   </div>
 
   <!-- 모바일 카드 -->
   <div class="card-list">
-    <div class="member-card"><div class="member-card-info"><div class="member-card-name">김민지</div><div class="member-card-detail">12회권 8/12 | 만료 2026.07.30 | 출석 92%</div></div><span class="status-badge status-active">활성</span></div>
-    <div class="member-card"><div class="member-card-info"><div class="member-card-name">이서연</div><div class="member-card-detail">8회권 2/8 | 만료 2026.05.20 | 출석 88%</div></div><span class="status-badge status-expiring">만료임박</span></div>
-    <div class="member-card"><div class="member-card-info"><div class="member-card-name">박소윤</div><div class="member-card-detail">12회권 12/12 | 만료 2026.09.15 | 출석 95%</div></div><span class="status-badge status-active">활성</span></div>
-    <div class="member-card"><div class="member-card-info"><div class="member-card-name">최유진</div><div class="member-card-detail">4회권 0/4 | 만료 2026.04.30 | 출석 65%</div></div><span class="status-badge status-expired">만료</span></div>
-    <div class="member-card"><div class="member-card-info"><div class="member-card-name">정하윤</div><div class="member-card-detail">12회권 5/12 | 만료 2026.08.10 | 출석 90%</div></div><span class="status-badge status-active">활성</span></div>
-    <div class="member-card"><div class="member-card-info"><div class="member-card-name">강하린</div><div class="member-card-detail">8회권 1/8 | 만료 2026.05.25 | 출석 72%</div></div><span class="status-badge status-expiring">만료임박</span></div>
-    <div class="member-card"><div class="member-card-info"><div class="member-card-name">오지원</div><div class="member-card-detail">12회권 10/12 | 만료 2026.10.01 | 출석 85%</div></div><span class="status-badge status-active">활성</span></div>
-    <div class="member-card"><div class="member-card-info"><div class="member-card-name">윤채원</div><div class="member-card-detail">정기권 없음</div></div><span class="status-badge status-expired">만료</span></div>
-    <div class="member-card"><div class="member-card-info"><div class="member-card-name">한수빈</div><div class="member-card-detail">12회권 11/12 | 만료 2026.11.05 | 출석 97%</div></div><span class="status-badge status-active">활성</span></div>
-    <div class="member-card"><div class="member-card-info"><div class="member-card-name">임지아</div><div class="member-card-detail">8회권 3/8 | 만료 2026.06.20 | 출석 80%</div></div><span class="status-badge status-active">활성</span></div>
+    <div class="member-card"><div class="member-card-left"><div class="member-card-avatar initial">김</div><div class="member-card-info"><div class="member-card-name">김민지</div><div class="member-card-detail">12회권 8/12 | 만료 2026.07.30 | 출석 92%</div></div></div><span class="status-badge status-active">활성</span></div>
+    <div class="member-card"><div class="member-card-left"><div class="member-card-avatar photo">이</div><div class="member-card-info"><div class="member-card-name">이서연</div><div class="member-card-detail">8회권 2/8 | 만료 2026.05.20 | 출석 88%</div></div></div><span class="status-badge status-expiring">만료임박</span></div>
+    <div class="member-card"><div class="member-card-left"><div class="member-card-avatar initial">박</div><div class="member-card-info"><div class="member-card-name">박소윤</div><div class="member-card-detail">12회권 12/12 | 만료 2026.09.15 | 출석 95%</div></div></div><span class="status-badge status-active">활성</span></div>
+    <div class="member-card"><div class="member-card-left"><div class="member-card-avatar photo">최</div><div class="member-card-info"><div class="member-card-name">최유진</div><div class="member-card-detail">4회권 0/4 | 만료 2026.04.30 | 출석 65%</div></div></div><span class="status-badge status-expired">만료</span></div>
+    <div class="member-card"><div class="member-card-left"><div class="member-card-avatar initial">정</div><div class="member-card-info"><div class="member-card-name">정하윤</div><div class="member-card-detail">12회권 5/12 | 만료 2026.08.10 | 출석 90%</div></div></div><span class="status-badge status-active">활성</span></div>
+    <div class="member-card"><div class="member-card-left"><div class="member-card-avatar initial">강</div><div class="member-card-info"><div class="member-card-name">강하린</div><div class="member-card-detail">8회권 1/8 | 만료 2026.05.25 | 출석 72%</div></div></div><span class="status-badge status-expiring">만료임박</span></div>
+    <div class="member-card"><div class="member-card-left"><div class="member-card-avatar photo">오</div><div class="member-card-info"><div class="member-card-name">오지원</div><div class="member-card-detail">12회권 10/12 | 만료 2026.10.01 | 출석 85%</div></div></div><span class="status-badge status-active">활성</span></div>
+    <div class="member-card"><div class="member-card-left"><div class="member-card-avatar initial">윤</div><div class="member-card-info"><div class="member-card-name">윤채원</div><div class="member-card-detail">정기권 없음</div></div></div><span class="status-badge status-expired">만료</span></div>
+    <div class="member-card"><div class="member-card-left"><div class="member-card-avatar initial">한</div><div class="member-card-info"><div class="member-card-name">한수빈</div><div class="member-card-detail">12회권 11/12 | 만료 2026.11.05 | 출석 97%</div></div></div><span class="status-badge status-active">활성</span></div>
+    <div class="member-card"><div class="member-card-left"><div class="member-card-avatar photo">임</div><div class="member-card-info"><div class="member-card-name">임지아</div><div class="member-card-detail">8회권 3/8 | 만료 2026.06.20 | 출석 80%</div></div></div><span class="status-badge status-active">활성</span></div>
   </div>
 </main>
 

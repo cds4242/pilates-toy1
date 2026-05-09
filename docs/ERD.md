@@ -37,6 +37,8 @@ erDiagram
         varchar birth_encrypted "AES 암호화 생년월일"
         enum gender "MALE, FEMALE"
         enum status "ACTIVE, DORMANT, WITHDRAWN"
+        varchar profile_image_url "프로필 사진 URL (R2)"
+        timestamp profile_image_uploaded_at "사진 업로드 시각"
         bigint instructor_id FK "담당 강사 (선택)"
         timestamp created_at
         timestamp updated_at

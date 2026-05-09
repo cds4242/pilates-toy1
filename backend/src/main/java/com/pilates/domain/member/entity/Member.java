@@ -56,6 +56,14 @@ public class Member extends BaseEntity {
     @Column(name = "status", nullable = false, length = 20)
     private MemberStatus status;
 
+    /** 프로필 사진 URL (Cloudflare R2). NULL이면 이니셜 fallback. */
+    @Column(name = "profile_image_url", length = 500)
+    private String profileImageUrl;
+
+    /** 프로필 사진 업로드 시각 */
+    @Column(name = "profile_image_uploaded_at")
+    private java.time.LocalDateTime profileImageUploadedAt;
+
     /** 담당 강사 (선택). 단방향 ManyToOne, LAZY 필수. */
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "instructor_id", foreignKey = @ForeignKey(name = "fk_members_instructor"))
@@ -63,7 +71,8 @@ public class Member extends BaseEntity {
 
     @Builder
     private Member(String publicId, String name, String phoneEncrypted, String phoneHash,
-                   String birthEncrypted, Gender gender, MemberStatus status, Instructor instructor) {
+                   String birthEncrypted, Gender gender, MemberStatus status, Instructor instructor,
+                   String profileImageUrl, java.time.LocalDateTime profileImageUploadedAt) {
         this.publicId = publicId;
         this.name = name;
         this.phoneEncrypted = phoneEncrypted;
@@ -72,6 +81,8 @@ public class Member extends BaseEntity {
         this.gender = gender;
         this.status = status;
         this.instructor = instructor;
+        this.profileImageUrl = profileImageUrl;
+        this.profileImageUploadedAt = profileImageUploadedAt;
     }
 
     // ── 도메인 메서드 (placeholder, 다음 단계에서 구현) ──
