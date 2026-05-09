@@ -308,3 +308,100 @@ sequenceDiagram
 - HOLDING 중 만료: HOLDING 우선 유지 (TODO: 의뢰인 정책 확인)
 
 \* v1에서는 공개 조회 API는 permitAll (인증 불필요)
+
+## 9. attendance 도메인
+
+### 9.1 패키지 구조
+
+```
+domain/attendance/
+├── controller/
+│   ├── InstructorAttendanceController  — 강사 출석 체크 API
+│   ├── MemberAttendanceController      — 회원 본인 이력 API
+│   └── AdminAttendanceController       — 관리자 통계 API
+├── dto/
+│   ├── AttendanceMarkRequest           — 단건 출석 요청
+│   ├── BatchAttendanceRequest          — 일괄 출석 요청
+│   ├── AttendanceResponse              — 출석 응답
+│   ├── AttendanceRateResponse          — 출석률 응답
+│   └── NoShowCountResponse             — 노쇼 카운트 응답
+├── entity/
+│   ├── Attendance                      — 출석 엔티티 (reservation 1:1)
+│   └── AttendanceStatus                — PENDING → ATTENDED/LATE/ABSENT/NO_SHOW
+├── repository/
+│   └── AttendanceRepository            — JPA 쿼리
+└── service/
+    ├── InstructorAttendanceService     — 강사 출석 체크 로직
+    └── MemberAttendanceService         — 이력/출석률 조회
+```
+
+### 9.2 출석 상태 머신
+
+```
+                 ┌─── markAttended(instructorId) ──→ ATTENDED
+                 │
+PENDING ─────────┼─── markLate(instructorId) ──────→ LATE
+  (예약 생성 시)  │
+                 ├─── markAbsent(instructorId) ────→ ABSENT
+                 │
+                 └─── markNoShow() (스케줄러) ─────→ NO_SHOW
+
+* 강사 마킹 간 재변경 허용 (ATTENDED ↔ LATE ↔ ABSENT)
+* 강사가 마킹한 건(ATTENDED/LATE/ABSENT)은 노쇼 스케줄러가 덮어쓰지 않음
+```
+
+### 9.3 출석 체크 시퀀스
+
+```mermaid
+sequenceDiagram
+    participant I as Instructor
+    participant C as InstructorAttendanceController
+    participant S as InstructorAttendanceService
+    participant DB as MySQL
+
+    I->>C: POST /api/instructor/attendances/{reservationId} {status: ATTENDED}
+    C->>S: markAttendance(instructorId, reservationId, status)
+    S->>DB: Attendance 조회 (by reservationId)
+    S->>S: 본인 수업 검증 (instructor.id == instructorId)
+    S->>S: isCheckable 검증 (수업시작 ~ 종료+30분)
+    S->>DB: status 갱신 + checkedAt + checkedBy
+    S-->>I: 200 OK
+```
+
+### 9.4 노쇼 자동 마킹 흐름
+
+```mermaid
+sequenceDiagram
+    participant SCH as NoShowMarkingScheduler
+    participant RR as ReservationRepository
+    participant AR as AttendanceRepository
+    participant DB as MySQL
+
+    SCH->>RR: 종료+30분 경과 CONFIRMED 예약 조회
+    loop 각 예약
+        SCH->>DB: reservation.status → NO_SHOW
+        SCH->>AR: Attendance 조회 (by reservationId)
+        alt PENDING 상태 또는 미존재
+            SCH->>DB: attendance.status → NO_SHOW
+        else 강사 마킹 완료 (ATTENDED/LATE/ABSENT)
+            Note over SCH: 건드리지 않음
+        end
+    end
+```
+
+### 9.5 예약-출석 연동
+- **예약 생성**: `Attendance.createPending(reservation)` 자동 INSERT
+- **예약 취소**: `attendanceRepository.deleteByReservationId()` 삭제
+- **휴강 취소**: 각 예약의 Attendance도 삭제
+
+### 9.6 API 엔드포인트
+
+| Method | Path | Role | 설명 |
+|--------|------|------|------|
+| POST | /api/instructor/attendances/{reservationId} | INSTRUCTOR | 단건 출석 체크 |
+| POST | /api/instructor/class-schedules/{id}/attendances | INSTRUCTOR | 일괄 출석 체크 |
+| GET | /api/instructor/class-schedules/{id}/attendances | INSTRUCTOR | 수업 출석 현황 |
+| GET | /api/members/me/attendances | MEMBER | 내 출석 이력 (페이지네이션) |
+| GET | /api/members/me/attendance-rate | MEMBER | 내 출석률 |
+| GET | /api/admin/members/{id}/attendance-rate | ADMIN | 회원 출석률 |
+| GET | /api/admin/attendances/no-show-counts | ADMIN | 회원별 노쇼 횟수 |
