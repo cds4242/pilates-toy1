@@ -1,5 +1,7 @@
 package com.pilates.config.security;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.pilates.common.response.ApiResponse;
 import com.pilates.common.security.auth.LoginMember;
 import com.pilates.common.security.auth.LoginMemberArgumentResolver;
 import com.pilates.common.security.jwt.JwtAuthenticationException;
@@ -10,6 +12,7 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.http.MediaType;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -34,6 +37,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
     private static final String BEARER_PREFIX = "Bearer ";
 
     private final JwtTokenProvider jwtTokenProvider;
+    private final ObjectMapper objectMapper;
 
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response,
@@ -61,11 +65,20 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                 }
             } catch (JwtAuthenticationException e) {
                 log.debug("JWT 인증 실패: {}", e.getMessage());
-                // 인증 실패 시 SecurityContext를 설정하지 않음 → Spring Security가 401 처리
+                // 토큰이 있었지만 유효하지 않은 경우: 즉시 에러 응답
+                writeErrorResponse(response, e.getErrorCode().getCode(), e.getErrorCode().getMessage());
+                return;
             }
         }
 
         filterChain.doFilter(request, response);
+    }
+
+    private void writeErrorResponse(HttpServletResponse response, String code, String message) throws IOException {
+        response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+        response.setContentType(MediaType.APPLICATION_JSON_VALUE);
+        response.setCharacterEncoding("UTF-8");
+        response.getWriter().write(objectMapper.writeValueAsString(ApiResponse.error(code, message)));
     }
 
     private String extractToken(HttpServletRequest request) {

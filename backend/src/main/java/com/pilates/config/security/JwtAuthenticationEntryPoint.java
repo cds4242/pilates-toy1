@@ -14,7 +14,7 @@ import java.io.IOException;
 
 /**
  * 인증되지 않은 요청에 대한 401 응답 처리.
- * Spring Security 기본 동작(리다이렉트) 대신 JSON ApiResponse를 반환한다.
+ * JWT 필터에서 전달한 구체적 에러 코드가 있으면 사용, 없으면 기본 COMMON_006.
  */
 @Component
 @RequiredArgsConstructor
@@ -29,7 +29,15 @@ public class JwtAuthenticationEntryPoint implements AuthenticationEntryPoint {
         response.setContentType(MediaType.APPLICATION_JSON_VALUE);
         response.setCharacterEncoding("UTF-8");
 
-        ApiResponse<?> body = ApiResponse.error("COMMON_006", "인증이 필요합니다.");
+        String code = (String) request.getAttribute("jwtErrorCode");
+        String message = (String) request.getAttribute("jwtErrorMessage");
+
+        if (code == null) {
+            code = "COMMON_006";
+            message = "인증이 필요합니다.";
+        }
+
+        ApiResponse<?> body = ApiResponse.error(code, message);
         response.getWriter().write(objectMapper.writeValueAsString(body));
     }
 }
