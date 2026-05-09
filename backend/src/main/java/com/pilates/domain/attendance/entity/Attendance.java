@@ -13,6 +13,7 @@ import org.springframework.data.annotation.CreatedDate;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
 import java.time.LocalDateTime;
+import java.time.LocalTime;
 
 /**
  * 출석 기록.
@@ -77,5 +78,65 @@ public class Attendance {
         this.status = status;
         this.checkedAt = checkedAt;
         this.checkedBy = checkedBy;
+    }
+
+    // ── 정적 팩토리 ──
+
+    /** 예약 생성 시 PENDING 상태로 출석 기록 생성 */
+    public static Attendance createPending(Reservation reservation) {
+        return Attendance.builder()
+                .reservation(reservation)
+                .member(reservation.getMember())
+                .classSchedule(reservation.getClassSchedule())
+                .status(AttendanceStatus.PENDING)
+                .build();
+    }
+
+    // ── 도메인 메서드 ──
+
+    /** 출석 마킹 (강사) */
+    public void markAttended(Long checkedBy) {
+        this.status = AttendanceStatus.ATTENDED;
+        this.checkedAt = LocalDateTime.now();
+        this.checkedBy = checkedBy;
+    }
+
+    /** 지각 마킹 (강사) */
+    public void markLate(Long checkedBy) {
+        this.status = AttendanceStatus.LATE;
+        this.checkedAt = LocalDateTime.now();
+        this.checkedBy = checkedBy;
+    }
+
+    /** 결석 마킹 (강사) */
+    public void markAbsent(Long checkedBy) {
+        this.status = AttendanceStatus.ABSENT;
+        this.checkedAt = LocalDateTime.now();
+        this.checkedBy = checkedBy;
+    }
+
+    /** 노쇼 마킹 (스케줄러) */
+    public void markNoShow() {
+        this.status = AttendanceStatus.NO_SHOW;
+    }
+
+    /**
+     * 출석 체크 가능 여부.
+     * 수업 시작 시각 ~ 종료 30분 후 사이만 가능.
+     */
+    public boolean isCheckable(LocalDateTime now) {
+        LocalDateTime classStart = classSchedule.getClassDate()
+                .atTime(classSchedule.getStartTime());
+        LocalDateTime classEndPlus30 = classSchedule.getClassDate()
+                .atTime(classSchedule.getEndTime())
+                .plusMinutes(30);
+        return !now.isBefore(classStart) && !now.isAfter(classEndPlus30);
+    }
+
+    /** 강사가 이미 출석/지각/결석 마킹한 상태인지 */
+    public boolean isManuallyChecked() {
+        return status == AttendanceStatus.ATTENDED
+                || status == AttendanceStatus.LATE
+                || status == AttendanceStatus.ABSENT;
     }
 }

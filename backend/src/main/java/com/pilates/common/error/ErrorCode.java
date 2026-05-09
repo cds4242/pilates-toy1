@@ -118,6 +118,12 @@ public enum ErrorCode {
     RESERVATION_MONTHLY_LIMIT(HttpStatus.BAD_REQUEST, "RES_009", "이번 달 예약 한도를 초과했습니다."),
     RESERVATION_TIME_OVERLAP(HttpStatus.CONFLICT, "RES_010", "같은 시간대에 이미 다른 수업이 예약되어 있습니다."),
 
+    // ── 출석 ──
+    ATTENDANCE_NOT_FOUND(HttpStatus.NOT_FOUND, "ATT_001", "출석 기록을 찾을 수 없습니다."),
+    ATTENDANCE_NOT_CHECKABLE(HttpStatus.BAD_REQUEST, "ATT_002", "출석 체크 가능 시간이 아닙니다."),
+    ATTENDANCE_ALREADY_CHECKED(HttpStatus.BAD_REQUEST, "ATT_003", "이미 출석 체크된 기록입니다."),
+    ATTENDANCE_INVALID_STATUS(HttpStatus.BAD_REQUEST, "ATT_004", "유효하지 않은 출석 상태입니다."),
+
     ;
 
     private final HttpStatus httpStatus;
