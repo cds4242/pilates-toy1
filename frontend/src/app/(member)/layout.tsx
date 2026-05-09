@@ -3,5 +3,9 @@ export default function MemberLayout({
 }: {
   children: React.ReactNode;
 }) {
-  return <>{children}</>;
+  return (
+    <div className="min-h-screen bg-bg-section">
+      {children}
+    </div>
+  );
 }

@@ -14,7 +14,11 @@ import { toast } from "sonner";
 
 export default function MemberHomePage() {
   const router = useRouter();
-  const { user } = useAuthStore();
+  const { user, accessToken } = useAuthStore();
+
+  useEffect(() => {
+    if (!accessToken) router.replace("/login");
+  }, [accessToken, router]);
   const [member, setMember] = useState<Member | null>(null);
   const [memberships, setMemberships] = useState<Membership[]>([]);
   const [reservations, setReservations] = useState<Reservation[]>([]);
