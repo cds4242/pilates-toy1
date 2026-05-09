@@ -38,6 +38,7 @@ public class SecurityConfig {
             "/api/instructors/**",
             "/api/lesson-types/**",
             "/api/class-schedules/**",
+            "/api/membership-passes/**",
             "/actuator/health",
             "/actuator/info",
             "/swagger-ui/**",

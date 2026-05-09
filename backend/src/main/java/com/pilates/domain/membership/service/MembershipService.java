@@ -8,12 +8,11 @@ import com.pilates.domain.classroom.repository.LessonTypeRepository;
 import com.pilates.domain.member.entity.Member;
 import com.pilates.domain.member.repository.MemberRepository;
 import com.pilates.domain.membership.dto.*;
-import com.pilates.domain.membership.entity.Membership;
-import com.pilates.domain.membership.entity.MembershipHolding;
-import com.pilates.domain.membership.entity.MembershipLessonType;
-import com.pilates.domain.membership.entity.MembershipStatus;
+import com.pilates.domain.membership.entity.*;
 import com.pilates.domain.membership.repository.MembershipHoldingRepository;
 import com.pilates.domain.membership.repository.MembershipLessonTypeRepository;
+import com.pilates.domain.membership.repository.MembershipPassLessonTypeRepository;
+import com.pilates.domain.membership.repository.MembershipPassRepository;
 import com.pilates.domain.membership.repository.MembershipRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -36,6 +35,8 @@ public class MembershipService {
     private final MembershipRepository membershipRepository;
     private final MembershipLessonTypeRepository membershipLessonTypeRepository;
     private final MembershipHoldingRepository membershipHoldingRepository;
+    private final MembershipPassRepository membershipPassRepository;
+    private final MembershipPassLessonTypeRepository membershipPassLessonTypeRepository;
     private final MemberRepository memberRepository;
     private final LessonTypeRepository lessonTypeRepository;
     private final EncryptionService encryptionService;
@@ -43,19 +44,66 @@ public class MembershipService {
     /**
      * 정기권 발급.
      * 회원과 수업 유형 존재를 검증한 뒤 정기권을 생성한다.
+     * membershipPassId가 제공되면 정기권 종류 기반으로 발급한다.
      */
     @Transactional
     public MembershipResponse issueMembership(MembershipIssueRequest request) {
         Member member = memberRepository.findById(request.memberId())
                 .orElseThrow(() -> new BusinessException(ErrorCode.MEMBER_NOT_FOUND));
 
+        LocalDate today = LocalDate.now();
+        String publicId = UUID.randomUUID().toString().replace("-", "");
+
+        // 정기권 종류 기반 발급
+        if (request.membershipPassId() != null) {
+            MembershipPass pass = membershipPassRepository.findByIdAndDeletedAtIsNull(request.membershipPassId())
+                    .orElseThrow(() -> new BusinessException(ErrorCode.MEMBERSHIP_PASS_NOT_FOUND));
+
+            Membership membership = Membership.builder()
+                    .publicId(publicId)
+                    .member(member)
+                    .totalCount(pass.isUnlimited() ? 0 : pass.getTotalCount())
+                    .remainingCount(pass.isUnlimited() ? 0 : pass.getTotalCount())
+                    .unlimited(pass.isUnlimited())
+                    .startDate(today)
+                    .endDate(today.plusDays(pass.getValidityDays()))
+                    .price(pass.getPrice())
+                    .status(MembershipStatus.ACTIVE)
+                    .membershipPass(pass)
+                    .build();
+
+            membershipRepository.save(membership);
+
+            // 정기권 종류의 수업 유형 매핑을 복사
+            List<MembershipPassLessonType> passMappings =
+                    membershipPassLessonTypeRepository.findAllByMembershipPassId(pass.getId());
+            List<LessonType> lessonTypes = passMappings.stream()
+                    .map(MembershipPassLessonType::getLessonType)
+                    .toList();
+
+            List<MembershipLessonType> mappings = lessonTypes.stream()
+                    .map(lt -> MembershipLessonType.builder()
+                            .membership(membership)
+                            .lessonType(lt)
+                            .build())
+                    .toList();
+            membershipLessonTypeRepository.saveAll(mappings);
+
+            log.info("정기권 발급 (상품 기반): id={}, memberId={}, passId={}, totalCount={}, validityDays={}",
+                    membership.getId(), request.memberId(), pass.getId(), pass.getTotalCount(), pass.getValidityDays());
+
+            List<String> lessonTypeNames = lessonTypes.stream()
+                    .map(LessonType::getName)
+                    .toList();
+
+            return toResponse(membership, member, lessonTypeNames);
+        }
+
+        // 직접 입력 발급 (기존 방식)
         List<LessonType> lessonTypes = request.lessonTypeIds().stream()
                 .map(id -> lessonTypeRepository.findById(id)
                         .orElseThrow(() -> new BusinessException(ErrorCode.LESSON_TYPE_NOT_FOUND)))
                 .toList();
-
-        LocalDate today = LocalDate.now();
-        String publicId = UUID.randomUUID().toString().replace("-", "");
 
         Membership membership = Membership.builder()
                 .publicId(publicId)
