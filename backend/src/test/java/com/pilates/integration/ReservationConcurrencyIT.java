@@ -54,9 +54,6 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 })
 @AutoConfigureMockMvc
 @ActiveProfiles("test")
-@org.junit.jupiter.api.condition.EnabledIfEnvironmentVariable(
-        named = "CONCURRENCY_TEST_ENABLED", matches = "true",
-        disabledReason = "Docker MySQL + Redis 필요. CONCURRENCY_TEST_ENABLED=true로 활성화.")
 class ReservationConcurrencyIT {
 
     @Autowired private MockMvc mockMvc;
