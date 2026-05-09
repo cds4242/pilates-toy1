@@ -2,6 +2,7 @@ package com.pilates.domain.reservation.service;
 
 import com.pilates.common.error.BusinessException;
 import com.pilates.common.error.ErrorCode;
+import com.pilates.common.security.encryption.EncryptionService;
 import com.pilates.domain.classroom.entity.ClassSchedule;
 import com.pilates.domain.classroom.entity.ClassScheduleStatus;
 import com.pilates.domain.classroom.entity.LessonType;
@@ -20,8 +21,11 @@ import com.pilates.domain.reservation.entity.ReservationStatus;
 import com.pilates.domain.reservation.repository.ReservationRepository;
 import com.pilates.domain.attendance.entity.Attendance;
 import com.pilates.domain.attendance.repository.AttendanceRepository;
+import com.pilates.domain.notification.event.ReservationCancelledEvent;
+import com.pilates.domain.notification.event.ReservationCreatedEvent;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -48,6 +52,8 @@ public class ReservationService {
     private final MembershipRepository membershipRepository;
     private final MembershipLessonTypeRepository membershipLessonTypeRepository;
     private final AttendanceRepository attendanceRepository;
+    private final ApplicationEventPublisher eventPublisher;
+    private final EncryptionService encryptionService;
 
     /**
      * 예약 생성.
@@ -141,6 +147,15 @@ public class ReservationService {
         log.info("예약 생성: reservationId={}, memberId={}, classScheduleId={}, membershipId={}",
                 reservation.getId(), memberId, request.classScheduleId(), usableMembership.getId());
 
+        // 알림 이벤트 발행
+        eventPublisher.publishEvent(new ReservationCreatedEvent(
+                reservation.getId(), memberId, request.classScheduleId(),
+                encryptionService.decrypt(member.getName()),
+                classSchedule.getLessonType().getName(),
+                classSchedule.getInstructor().getName(),
+                classSchedule.getClassDate().toString(),
+                classSchedule.getStartTime().toString()));
+
         return toResponse(reservation, usableMembership);
     }
 
@@ -183,6 +198,14 @@ public class ReservationService {
         reservation.getClassSchedule().decrementCount();
 
         log.info("예약 취소: reservationId={}, memberId={}, reason={}", reservationId, memberId, reason);
+
+        // 알림 이벤트 발행
+        ClassSchedule cs = reservation.getClassSchedule();
+        eventPublisher.publishEvent(new ReservationCancelledEvent(
+                reservationId, memberId,
+                encryptionService.decrypt(reservation.getMember().getName()),
+                cs.getClassDate().toString(),
+                cs.getStartTime().toString()));
     }
 
     /**
