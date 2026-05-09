@@ -1,12 +1,6 @@
 import type { Metadata, Viewport } from "next";
-import { Geist } from "next/font/google";
 import { Providers } from "@/components/providers";
 import "./globals.css";
-
-const geist = Geist({
-  variable: "--font-sans",
-  subsets: ["latin"],
-});
 
 export const metadata: Metadata = {
   title: "Pilates Studio",
@@ -25,7 +19,15 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="ko" className={`${geist.variable} h-full`}>
+    <html lang="ko" className="h-full">
+      <head>
+        <link
+          rel="stylesheet"
+          as="style"
+          crossOrigin="anonymous"
+          href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css"
+        />
+      </head>
       <body className="min-h-full flex flex-col font-sans antialiased">
         <Providers>{children}</Providers>
       </body>
