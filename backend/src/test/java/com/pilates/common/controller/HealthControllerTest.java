@@ -1,10 +1,15 @@
 package com.pilates.common.controller;
 
+import com.pilates.common.security.jwt.JwtTokenProvider;
 import com.pilates.config.SecurityConfig;
+import com.pilates.config.security.CustomAccessDeniedHandler;
+import com.pilates.config.security.JwtAuthenticationEntryPoint;
+import com.pilates.config.security.JwtAuthenticationFilter;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
+import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.context.annotation.Import;
 import org.springframework.test.web.servlet.MockMvc;
 
@@ -13,14 +18,18 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 /**
  * HealthController 단위 테스트.
- * SecurityConfig를 Import하여 /api/health가 permitAll인지 실제로 검증한다.
+ * SecurityConfig + JWT 관련 빈을 모킹하여 /api/health가 permitAll인지 검증한다.
  */
 @WebMvcTest(HealthController.class)
-@Import(SecurityConfig.class)
+@Import({SecurityConfig.class, JwtAuthenticationFilter.class,
+        JwtAuthenticationEntryPoint.class, CustomAccessDeniedHandler.class})
 class HealthControllerTest {
 
     @Autowired
     private MockMvc mockMvc;
+
+    @MockBean
+    private JwtTokenProvider jwtTokenProvider;
 
     @Test
     @DisplayName("GET /api/health → 200 OK, status=UP 반환")
