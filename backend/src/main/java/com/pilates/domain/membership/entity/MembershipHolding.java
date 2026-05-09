@@ -62,4 +62,12 @@ public class MembershipHolding {
         this.reason = reason;
         this.extendedDays = extendedDays;
     }
+
+    /**
+     * 홀딩 해제 시 종료일과 연장 일수를 갱신한다.
+     */
+    public void updateOnRelease(LocalDate actualEndDate, int extendedDays) {
+        this.holdEndDate = actualEndDate;
+        this.extendedDays = extendedDays;
+    }
 }

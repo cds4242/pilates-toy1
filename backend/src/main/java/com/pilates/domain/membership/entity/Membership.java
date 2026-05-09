@@ -85,30 +85,58 @@ public class Membership extends BaseEntity {
         this.status = status;
     }
 
-    // ── 도메인 메서드 (placeholder) ──
+    // ── 도메인 메서드 ──
 
-    /** 횟수 차감 (비관적 락 하에서 호출) */
+    /** 횟수 차감. 무제한권은 차감 X. 잔여 0이면 EXHAUSTED. */
     public void deduct(int count) {
-        // TODO: 잔여 횟수 검증 + 차감 + 소진 시 상태 변경
+        if (this.unlimited) return;
+        if (this.remainingCount < count) {
+            throw new IllegalStateException("잔여 횟수 부족. 잔여=" + this.remainingCount + ", 차감=" + count);
+        }
+        this.remainingCount -= count;
+        if (this.remainingCount == 0) {
+            this.status = MembershipStatus.EXHAUSTED;
+        }
     }
 
-    /** 횟수 복구 (취소 시) */
+    /** 횟수 복구 (예약 취소 시). EXHAUSTED → ACTIVE 전환 가능. */
     public void restore(int count) {
-        // TODO: 복구
+        if (this.unlimited) return;
+        this.remainingCount += count;
+        if (this.status == MembershipStatus.EXHAUSTED && this.remainingCount > 0) {
+            this.status = MembershipStatus.ACTIVE;
+        }
     }
 
-    /** 홀딩 시작 */
+    /** 홀딩 시작. ACTIVE에서만 가능. */
     public void startHolding() {
-        // TODO: 상태 → HOLDING
+        if (this.status != MembershipStatus.ACTIVE) {
+            throw new IllegalStateException("활성 상태만 일시정지 가능. 현재: " + this.status);
+        }
+        this.status = MembershipStatus.HOLDING;
     }
 
-    /** 홀딩 해제 + 유효기간 연장 */
+    /** 홀딩 해제 + 유효기간 연장. */
     public void endHolding(int extendedDays) {
-        // TODO: 상태 → ACTIVE, endDate += extendedDays
+        if (this.status != MembershipStatus.HOLDING) {
+            throw new IllegalStateException("일시정지 상태만 해제 가능. 현재: " + this.status);
+        }
+        this.status = MembershipStatus.ACTIVE;
+        this.endDate = this.endDate.plusDays(extendedDays);
     }
 
-    /** 만료 처리 */
+    /** 만료 처리 (스케줄러). */
     public void expire() {
-        // TODO: 상태 → EXPIRED
+        this.status = MembershipStatus.EXPIRED;
+    }
+
+    /** 사용 가능 여부 (활성 + 유효기간 내). */
+    public boolean isUsable(LocalDate today) {
+        return this.status == MembershipStatus.ACTIVE && !this.endDate.isBefore(today);
+    }
+
+    /** 소진 여부. */
+    public boolean isExhausted() {
+        return this.status == MembershipStatus.EXHAUSTED;
     }
 }

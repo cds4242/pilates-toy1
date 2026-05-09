@@ -77,6 +77,15 @@ public enum ErrorCode {
     CLASS_PAST_MODIFICATION(HttpStatus.BAD_REQUEST, "CLASS_004", "과거 수업은 수정할 수 없습니다."),
     CLASS_TIME_CONFLICT(HttpStatus.CONFLICT, "CLASS_005", "해당 강사의 같은 시간대에 이미 수업이 존재합니다."),
 
+    // ── 정기권 ──
+    MEMBERSHIP_NOT_FOUND(HttpStatus.NOT_FOUND, "MSHIP_001", "정기권을 찾을 수 없습니다."),
+    MEMBERSHIP_NOT_ACTIVE(HttpStatus.BAD_REQUEST, "MSHIP_002", "활성 상태의 정기권이 아닙니다."),
+    MEMBERSHIP_ALREADY_EXPIRED(HttpStatus.BAD_REQUEST, "MSHIP_003", "이미 만료된 정기권입니다."),
+    MEMBERSHIP_ALREADY_EXHAUSTED(HttpStatus.BAD_REQUEST, "MSHIP_004", "이미 소진된 정기권입니다."),
+    MEMBERSHIP_NOT_HOLDING(HttpStatus.BAD_REQUEST, "MSHIP_005", "일시정지 상태가 아닙니다."),
+    MEMBERSHIP_HOLDING_INVALID_PERIOD(HttpStatus.BAD_REQUEST, "MSHIP_006", "일시정지 기간이 올바르지 않습니다."),
+    MEMBERSHIP_INSUFFICIENT_COUNT(HttpStatus.BAD_REQUEST, "MSHIP_007", "잔여 횟수가 부족합니다."),
+
     ;
 
     private final HttpStatus httpStatus;
