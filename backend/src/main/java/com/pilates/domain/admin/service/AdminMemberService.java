@@ -102,11 +102,26 @@ public class AdminMemberService {
                 .map(m -> {
                     List<Membership> memberships = membershipRepository
                             .findAllByMemberIdAndDeletedAtIsNullOrderByCreatedAtDesc(m.getId());
-                    String activeMembership = memberships.stream()
+                    var activeMsOpt = memberships.stream()
                             .filter(ms -> ms.getStatus() == com.pilates.domain.membership.entity.MembershipStatus.ACTIVE)
-                            .findFirst()
+                            .findFirst();
+                    String activeMembership = activeMsOpt
                             .map(ms -> ms.getMembershipPass() != null ? ms.getMembershipPass().getName() : "직접 발급")
                             .orElse(null);
+                    String remainingInfo = activeMsOpt
+                            .map(ms -> ms.isUnlimited() ? "무제한" : ms.getRemainingCount() + "/" + ms.getTotalCount())
+                            .orElse("-");
+                    java.time.LocalDate expiryDate = activeMsOpt
+                            .map(ms -> ms.getEndDate())
+                            .orElse(null);
+                    // 출석률
+                    long totalResolved = attendanceRepository.countResolvedByMemberId(m.getId());
+                    long attended = attendanceRepository.countByMemberIdAndStatusIn(m.getId(),
+                            java.util.List.of(com.pilates.domain.attendance.entity.AttendanceStatus.ATTENDED,
+                                    com.pilates.domain.attendance.entity.AttendanceStatus.LATE));
+                    String attendanceRate = totalResolved > 0
+                            ? Math.round((double) attended / totalResolved * 100) + "%"
+                            : "-";
 
                     return new AdminMemberResponse(
                             m.getId(),
@@ -115,6 +130,9 @@ public class AdminMemberService {
                             m.getGender().name(),
                             m.getStatus().name(),
                             activeMembership,
+                            remainingInfo,
+                            expiryDate,
+                            attendanceRate,
                             m.getCreatedAt()
                     );
                 })

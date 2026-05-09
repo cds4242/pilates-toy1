@@ -78,7 +78,7 @@ export default function LoginPage() {
       {/* 링크 */}
       <div className="flex justify-center gap-6">
         <Link href="/signup" className="text-[15px] text-pilates-dark hover:underline">회원가입</Link>
-        <button onClick={() => { alert("비밀번호 재설정은 SMS 인증 후 가능합니다.\n회원가입 시 등록한 휴대폰 번호로 인증해주세요."); router.push("/signup"); }} className="text-[15px] text-text-body hover:underline">비밀번호 찾기</button>
+        <Link href="/reset-password" className="text-[15px] text-text-body hover:underline">비밀번호 찾기</Link>
       </div>
 
       {/* 강사/관리자 링크 */}

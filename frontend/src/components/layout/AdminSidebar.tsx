@@ -10,8 +10,10 @@ import {
 const items = [
   { href: "/dashboard", icon: LayoutDashboard, label: "대시보드" },
   { href: "/members", icon: Users, label: "회원 관리" },
+  { href: "/instructors", icon: UserCheck, label: "강사 관리" },
   { href: "/classes", icon: Calendar, label: "시간표" },
   { href: "/statistics", icon: BarChart3, label: "통계" },
+  { href: "/settings", icon: Settings, label: "설정" },
 ];
 
 export function AdminSidebar() {

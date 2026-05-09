@@ -9,7 +9,7 @@ import { StatusBadge } from "@/components/design/StatusBadge";
 import { toast } from "sonner";
 
 interface AdminMember {
-  id: number; name: string; phone: string; gender: string; status: string; activeMembership: string | null; createdAt: string;
+  id: number; name: string; phone: string; gender: string; status: string; activeMembership: string | null; remainingInfo: string; expiryDate: string | null; attendanceRate: string; createdAt: string;
 }
 
 export default function AdminMembersPage() {
@@ -33,7 +33,7 @@ export default function AdminMembersPage() {
     finally { setLoading(false); }
   };
 
-  useEffect(() => { load(); }, [page]);
+  useEffect(() => { load(); }, [page, statusFilter]);
   const handleSearch = (e: React.FormEvent) => { e.preventDefault(); setPage(0); load(); };
 
   const handleExcelUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -66,7 +66,7 @@ export default function AdminMembersPage() {
           <input type="text" placeholder="이름 또는 휴대폰 번호 검색" value={search} onChange={(e) => setSearch(e.target.value)}
             className="w-full border border-[#DDDDDD] rounded-[8px] pl-9 pr-3.5 py-2.5 text-[15px] outline-none focus:border-pilates transition-colors" />
         </div>
-        <select value={statusFilter} onChange={(e) => { setStatusFilter(e.target.value); setPage(0); setTimeout(load, 0); }}
+        <select value={statusFilter} onChange={(e) => { setStatusFilter(e.target.value); setPage(0); }}
           className="border border-[#DDDDDD] rounded-[8px] px-3.5 py-2.5 text-[15px] outline-none bg-white min-w-[120px]">
           <option value="">전체</option><option value="ACTIVE">활성</option><option value="WITHDRAWN">탈퇴</option>
         </select>
@@ -77,20 +77,23 @@ export default function AdminMembersPage() {
         <table className="w-full border-collapse">
           <thead>
             <tr className="bg-bg-section border-b border-border">
-              {["프로필","이름","휴대폰","정기권","상태"].map(h=>(
+              {["프로필","이름","휴대폰","정기권","잔여","만료일","출석률","상태"].map(h=>(
                 <th key={h} className="text-left px-4 py-3.5 text-[13px] font-semibold text-text-sub">{h}</th>
               ))}
             </tr>
           </thead>
           <tbody>
-            {loading ? <tr><td colSpan={5} className="text-center py-8 text-text-sub">로딩 중...</td></tr>
-            : members.length === 0 ? <tr><td colSpan={5} className="text-center py-8 text-text-sub">회원이 없습니다</td></tr>
+            {loading ? <tr><td colSpan={8} className="text-center py-8 text-text-sub">로딩 중...</td></tr>
+            : members.length === 0 ? <tr><td colSpan={8} className="text-center py-8 text-text-sub">회원이 없습니다</td></tr>
             : members.map(m=>(
               <tr key={m.id} className="border-b border-border last:border-0 hover:bg-bg-section cursor-pointer transition-colors">
                 <td className="px-4 py-3.5"><div className="w-8 h-8 rounded-full bg-pilates-light flex items-center justify-center text-[13px] font-bold text-pilates-dark">{m.name.charAt(0)}</div></td>
                 <td className="px-4 py-3.5 text-[15px] text-text-title">{m.name}</td>
                 <td className="px-4 py-3.5 text-[15px] text-text-title">{m.phone}</td>
                 <td className="px-4 py-3.5 text-[15px] text-text-body">{m.activeMembership||"-"}</td>
+                <td className="px-4 py-3.5 text-[15px] text-text-body">{m.remainingInfo||"-"}</td>
+                <td className="px-4 py-3.5 text-[15px] text-text-body">{m.expiryDate||"-"}</td>
+                <td className="px-4 py-3.5 text-[15px] text-text-body">{m.attendanceRate||"-"}</td>
                 <td className="px-4 py-3.5"><StatusBadge status={m.status==="ACTIVE"?"active":"expired"} label={m.status==="ACTIVE"?"활성":m.status==="WITHDRAWN"?"탈퇴":"만료"}/></td>
               </tr>
             ))}

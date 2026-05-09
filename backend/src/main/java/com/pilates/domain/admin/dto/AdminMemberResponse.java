@@ -11,6 +11,9 @@ public record AdminMemberResponse(
         String gender,
         String status,
         String activeMembership,
+        String remainingInfo,
+        LocalDate expiryDate,
+        String attendanceRate,
         LocalDateTime createdAt
 ) {
 
