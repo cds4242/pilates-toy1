@@ -19,12 +19,15 @@ export default function AdminMembersPage() {
   const [page, setPage] = useState(0);
   const [loading, setLoading] = useState(true);
   const [showAddModal, setShowAddModal] = useState(false);
+  const [statusFilter, setStatusFilter] = useState("");
   const fileRef = useRef<HTMLInputElement>(null);
 
   const load = async () => {
     setLoading(true);
     try {
-      const res = await api<PageResponse<AdminMember>>("get", "/api/admin/members", { search, page, size: 10 });
+      const params: Record<string, unknown> = { search, page, size: 10 };
+      if (statusFilter) params.status = statusFilter;
+      const res = await api<PageResponse<AdminMember>>("get", "/api/admin/members", params);
       setMembers(res.content); setTotal(res.totalElements);
     } catch { /* empty */ }
     finally { setLoading(false); }
@@ -63,8 +66,9 @@ export default function AdminMembersPage() {
           <input type="text" placeholder="이름 또는 휴대폰 번호 검색" value={search} onChange={(e) => setSearch(e.target.value)}
             className="w-full border border-[#DDDDDD] rounded-[8px] pl-9 pr-3.5 py-2.5 text-[15px] outline-none focus:border-pilates transition-colors" />
         </div>
-        <select className="border border-[#DDDDDD] rounded-[8px] px-3.5 py-2.5 text-[15px] outline-none bg-white min-w-[120px]">
-          <option>정기권 상태</option><option>활성</option><option>만료</option>
+        <select value={statusFilter} onChange={(e) => { setStatusFilter(e.target.value); setPage(0); setTimeout(load, 0); }}
+          className="border border-[#DDDDDD] rounded-[8px] px-3.5 py-2.5 text-[15px] outline-none bg-white min-w-[120px]">
+          <option value="">전체</option><option value="ACTIVE">활성</option><option value="WITHDRAWN">탈퇴</option>
         </select>
       </form>
 

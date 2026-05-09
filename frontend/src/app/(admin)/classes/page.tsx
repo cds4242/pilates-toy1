@@ -43,7 +43,7 @@ export default function AdminClassesPage() {
   useEffect(() => {
     loadSchedules();
     // 강사/수업유형 로드
-    api<{ id: number; name: string }[]>("get", "/api/instructors").then(setInstructors).catch(() => {});
+    api<{ id: number; name: string }[]>("get", "/api/admin/instructors").then(setInstructors).catch(() => {});
     api<{ id: number; name: string; maxCapacity: number }[]>("get", "/api/lesson-types").then(setLessonTypes).catch(() => {});
   }, []);
 

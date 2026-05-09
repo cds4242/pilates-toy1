@@ -83,17 +83,27 @@ export async function api<T>(
   data?: unknown,
   config?: Record<string, unknown>
 ): Promise<T> {
-  const res = await apiClient.request<ApiResponse<T>>({
-    method,
-    url,
-    data: method !== "get" ? data : undefined,
-    params: method === "get" ? data : undefined,
-    ...config,
-  });
-  if (!res.data.success) {
-    throw new Error(res.data.error?.message || "API 오류");
+  try {
+    const res = await apiClient.request<ApiResponse<T>>({
+      method,
+      url,
+      data: method !== "get" ? data : undefined,
+      params: method === "get" ? data : undefined,
+      ...config,
+    });
+    if (!res.data.success) {
+      throw new Error(res.data.error?.message || "API 오류");
+    }
+    return res.data.data;
+  } catch (err: unknown) {
+    // axios 에러에서 한글 메시지 추출
+    if (err && typeof err === "object" && "response" in err) {
+      const axiosErr = err as { response?: { data?: { error?: { message?: string } } } };
+      const msg = axiosErr.response?.data?.error?.message;
+      if (msg) throw new Error(msg);
+    }
+    throw err;
   }
-  return res.data.data;
 }
 
 export default apiClient;
