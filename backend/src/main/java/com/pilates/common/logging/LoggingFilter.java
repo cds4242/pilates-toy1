@@ -57,8 +57,13 @@ public class LoggingFilter extends OncePerRequestFilter {
         }
     }
 
+    /** 비밀번호, 인증번호 등 민감 필드는 마스킹 설정과 무관하게 항상 제거 */
+    private static final java.util.regex.Pattern SENSITIVE_PATTERN =
+            java.util.regex.Pattern.compile("\"(password|passwordHash|code|verifiedToken)\"\\s*:\\s*\"[^\"]*\"");
+
     private void logRequest(ContentCachingRequestWrapper request) {
         String body = getBody(request.getContentAsByteArray());
+        body = SENSITIVE_PATTERN.matcher(body).replaceAll("\"$1\":\"***\"");
         String maskedBody = maskingEnabled ? MaskingUtil.maskAll(body) : body;
 
         log.info("[REQ] {} {} | IP={} | Body={}",

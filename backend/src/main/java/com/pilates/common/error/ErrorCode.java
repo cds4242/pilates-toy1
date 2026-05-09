@@ -42,6 +42,13 @@ public enum ErrorCode {
     SMS_VERIFICATION_REQUIRED(HttpStatus.BAD_REQUEST, "SMS_005", "SMS 인증이 필요합니다."),
     SMS_SERVICE_UNAVAILABLE(HttpStatus.SERVICE_UNAVAILABLE, "SMS_006", "SMS 인증 서비스를 일시적으로 사용할 수 없습니다."),
 
+    // ── 회원 ──
+    MEMBER_ALREADY_EXISTS(HttpStatus.CONFLICT, "MEMBER_001", "이미 가입된 휴대폰 번호입니다."),
+    MEMBER_NOT_FOUND(HttpStatus.NOT_FOUND, "MEMBER_002", "회원을 찾을 수 없습니다."),
+
+    // ── 로그인 ──
+    AUTH_LOGIN_FAILED(HttpStatus.UNAUTHORIZED, "AUTH_010", "휴대폰 번호 또는 비밀번호가 올바르지 않습니다."),
+
     ;
 
     private final HttpStatus httpStatus;

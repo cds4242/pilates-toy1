@@ -65,6 +65,7 @@ public class JwtTokenProvider {
     public String createRefreshToken(Long memberId) {
         Date now = new Date();
         return Jwts.builder()
+                .id(java.util.UUID.randomUUID().toString()) // jti: 매번 고유한 토큰 보장
                 .subject(String.valueOf(memberId))
                 .claim(CLAIM_TYPE, TOKEN_TYPE_REFRESH)
                 .issuedAt(now)

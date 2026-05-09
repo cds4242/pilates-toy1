@@ -56,6 +56,10 @@ public class Member extends BaseEntity {
     @Column(name = "status", nullable = false, length = 20)
     private MemberStatus status;
 
+    /** BCrypt 해시된 비밀번호 */
+    @Column(name = "password_hash", length = 255)
+    private String passwordHash;
+
     /** 프로필 사진 URL (Cloudflare R2). NULL이면 이니셜 fallback. */
     @Column(name = "profile_image_url", length = 500)
     private String profileImageUrl;
@@ -72,7 +76,7 @@ public class Member extends BaseEntity {
     @Builder
     private Member(String publicId, String name, String phoneEncrypted, String phoneHash,
                    String birthEncrypted, Gender gender, MemberStatus status, Instructor instructor,
-                   String profileImageUrl, java.time.LocalDateTime profileImageUploadedAt) {
+                   String passwordHash, String profileImageUrl, java.time.LocalDateTime profileImageUploadedAt) {
         this.publicId = publicId;
         this.name = name;
         this.phoneEncrypted = phoneEncrypted;
@@ -81,6 +85,7 @@ public class Member extends BaseEntity {
         this.gender = gender;
         this.status = status;
         this.instructor = instructor;
+        this.passwordHash = passwordHash;
         this.profileImageUrl = profileImageUrl;
         this.profileImageUploadedAt = profileImageUploadedAt;
     }
