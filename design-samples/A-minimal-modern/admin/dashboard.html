@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="color-scheme" content="light">
+<title>대시보드 - 관리자</title>
+<link rel="stylesheet" as="style" crossorigin href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css">
+<style>
+:root{--color-primary:#F8C8DC;--color-primary-dark:#F0A8C4;--color-primary-light:#FCE4EC;--color-bg:#FFFFFF;--color-bg-section:#F8F8F8;--color-text-title:#2D2D2D;--color-text-body:#6B6B6B;--color-text-sub:#9B9B9B;--color-border:#EEEEEE;--color-success:#4CAF50;--color-warning:#F4A261;--color-error:#E76F51;--sidebar-width:240px;--radius-sm:8px;--radius-md:12px;--spacing-xs:8px;--spacing-sm:12px;--spacing-md:16px;--spacing-lg:24px;--spacing-xl:32px}
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:'Pretendard',-apple-system,BlinkMacSystemFont,sans-serif;background:var(--color-bg-section);color:var(--color-text-body);-webkit-font-smoothing:antialiased}
+/* ── Sidebar ── */
+.sidebar{position:fixed;top:0;left:0;width:var(--sidebar-width);height:100vh;background:var(--color-bg);border-right:1px solid var(--color-border);display:flex;flex-direction:column;z-index:200;transition:transform .3s}
+.sidebar-logo{padding:24px;font-size:18px;font-weight:700;color:var(--color-text-title);border-bottom:1px solid var(--color-border)}
+.sidebar-nav{flex:1;padding:var(--spacing-md) 0;overflow-y:auto}
+.nav-item{display:flex;align-items:center;gap:var(--spacing-sm);padding:12px 24px;font-size:14px;color:var(--color-text-body);text-decoration:none;transition:all .2s;cursor:pointer}
+.nav-item:hover{background:var(--color-bg-section);color:var(--color-text-title)}
+.nav-item.active{background:var(--color-primary-light);color:var(--color-primary-dark);font-weight:600}
+.nav-item svg{width:20px;height:20px;flex-shrink:0}
+.sidebar-footer{padding:var(--spacing-md) 24px;border-top:1px solid var(--color-border);display:flex;align-items:center;gap:var(--spacing-sm)}
+.sidebar-footer-avatar{width:36px;height:36px;border-radius:50%;background:var(--color-primary);display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:700;color:var(--color-text-title);flex-shrink:0}
+.sidebar-footer-info{flex:1}
+.sidebar-footer-name{font-size:13px;font-weight:600;color:var(--color-text-title)}
+.sidebar-footer-role{font-size:11px;color:var(--color-text-sub)}
+/* ── Main ── */
+.main{margin-left:var(--sidebar-width);min-height:100vh;padding:var(--spacing-xl)}
+.mobile-header{display:none;position:sticky;top:0;z-index:100;background:var(--color-bg);padding:16px var(--spacing-lg);border-bottom:1px solid var(--color-border);align-items:center;justify-content:space-between}
+.hamburger{background:none;border:none;cursor:pointer;padding:4px}
+.hamburger svg{width:24px;height:24px;color:var(--color-text-title)}
+.overlay{display:none;position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,.3);z-index:150}
+.overlay.active{display:block}
+.page-title{font-size:24px;font-weight:700;color:var(--color-text-title);margin-bottom:var(--spacing-lg)}
+/* ── KPI Cards ── */
+.kpi-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:var(--spacing-md);margin-bottom:var(--spacing-xl)}
+.kpi-card{background:var(--color-bg);border:1px solid var(--color-border);border-radius:var(--radius-md);padding:20px}
+.kpi-label{font-size:13px;color:var(--color-text-sub);margin-bottom:var(--spacing-xs)}
+.kpi-value{font-size:28px;font-weight:700;color:var(--color-text-title)}
+.kpi-change{font-size:12px;margin-top:4px}
+.kpi-change.up{color:var(--color-success)}
+.kpi-change.down{color:var(--color-error)}
+/* ── Content Grid ── */
+.content-grid{display:grid;grid-template-columns:1fr 1fr;gap:var(--spacing-lg)}
+.content-card{background:var(--color-bg);border:1px solid var(--color-border);border-radius:var(--radius-md);padding:20px}
+.card-title{font-size:16px;font-weight:700;color:var(--color-text-title);margin-bottom:var(--spacing-md)}
+.class-list{display:flex;flex-direction:column;gap:var(--spacing-sm)}
+.class-item{display:flex;justify-content:space-between;align-items:center;padding:10px 0;border-bottom:1px solid var(--color-border)}
+.class-item:last-child{border-bottom:none}
+.class-item-time{font-size:14px;font-weight:600;color:var(--color-text-title)}
+.class-item-info{font-size:13px;color:var(--color-text-body)}
+.class-item-count{font-size:13px;font-weight:600;color:var(--color-text-sub)}
+.alert-list{display:flex;flex-direction:column;gap:var(--spacing-sm)}
+.alert-item{display:flex;gap:var(--spacing-sm);padding:10px 12px;border-radius:var(--radius-sm);background:var(--color-bg-section);font-size:13px;color:var(--color-text-body)}
+.alert-icon{flex-shrink:0;width:20px;height:20px}
+.alert-item.warn{background:#FFF3E0}
+.alert-item.danger{background:#FDECEA}
+/* ── 매출 차트 ── */
+.chart-container{margin-top:var(--spacing-lg);background:var(--color-bg);border:1px solid var(--color-border);border-radius:var(--radius-md);padding:20px}
+.chart-placeholder{display:flex;align-items:flex-end;gap:6px;height:160px;padding-top:20px}
+.chart-bar{flex:1;background:var(--color-primary);border-radius:4px 4px 0 0;transition:height .3s}
+.chart-labels{display:flex;gap:6px;margin-top:var(--spacing-xs)}
+.chart-labels span{flex:1;text-align:center;font-size:10px;color:var(--color-text-sub)}
+@media(max-width:768px){
+  .sidebar{transform:translateX(-100%)}
+  .sidebar.open{transform:translateX(0)}
+  .main{margin-left:0;padding:var(--spacing-lg)}
+  .mobile-header{display:flex}
+  .kpi-grid{grid-template-columns:repeat(2,1fr)}
+  .content-grid{grid-template-columns:1fr}
+}
+</style>
+</head>
+<body>
+<!-- Overlay -->
+<div class="overlay" id="overlay" onclick="toggleSidebar()"></div>
+
+<!-- Sidebar -->
+<aside class="sidebar" id="sidebar">
+  <div class="sidebar-logo">필라테스 OO점</div>
+  <nav class="sidebar-nav">
+    <a class="nav-item active" href="dashboard.html"><svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M3.75 6A2.25 2.25 0 0 1 6 3.75h2.25A2.25 2.25 0 0 1 10.5 6v2.25a2.25 2.25 0 0 1-2.25 2.25H6a2.25 2.25 0 0 1-2.25-2.25V6ZM3.75 15.75A2.25 2.25 0 0 1 6 13.5h2.25a2.25 2.25 0 0 1 2.25 2.25V18a2.25 2.25 0 0 1-2.25 2.25H6A2.25 2.25 0 0 1 3.75 18v-2.25ZM13.5 6a2.25 2.25 0 0 1 2.25-2.25H18A2.25 2.25 0 0 1 20.25 6v2.25A2.25 2.25 0 0 1 18 10.5h-2.25a2.25 2.25 0 0 1-2.25-2.25V6ZM13.5 15.75a2.25 2.25 0 0 1 2.25-2.25H18a2.25 2.25 0 0 1 2.25 2.25V18A2.25 2.25 0 0 1 18 20.25h-2.25a2.25 2.25 0 0 1-2.25-2.25v-2.25Z"/></svg>대시보드</a>
+    <a class="nav-item" href="members.html"><svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M15 19.128a9.38 9.38 0 0 0 2.625.372 9.337 9.337 0 0 0 4.121-.952 4.125 4.125 0 0 0-7.533-2.493M15 19.128v-.003c0-1.113-.285-2.16-.786-3.07M15 19.128v.106A12.318 12.318 0 0 1 8.624 21c-2.331 0-4.512-.645-6.374-1.766l-.001-.109a6.375 6.375 0 0 1 11.964-3.07M12 6.375a3.375 3.375 0 1 1-6.75 0 3.375 3.375 0 0 1 6.75 0Zm8.25 2.25a2.625 2.625 0 1 1-5.25 0 2.625 2.625 0 0 1 5.25 0Z"/></svg>회원 관리</a>
+    <a class="nav-item"><svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M4.26 10.147a60.438 60.438 0 0 0-.491 6.347A48.62 48.62 0 0 1 12 20.904a48.62 48.62 0 0 1 8.232-4.41 60.46 60.46 0 0 0-.491-6.347m-15.482 0a50.636 50.636 0 0 0-2.658-.813A59.906 59.906 0 0 1 12 3.493a59.903 59.903 0 0 1 10.399 5.84c-.896.248-1.783.52-2.658.814m-15.482 0A50.717 50.717 0 0 1 12 13.489a50.702 50.702 0 0 1 7.74-3.342M6.75 15a.75.75 0 1 0 0-1.5.75.75 0 0 0 0 1.5Zm0 0v-3.675A55.378 55.378 0 0 1 12 8.443m-7.007 11.55A5.981 5.981 0 0 0 6.75 15.75v-1.5"/></svg>강사 관리</a>
+    <a class="nav-item"><svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M16.5 6v.75m0 3v.75m0 3v.75m0 3V18m-9-5.25h5.25M7.5 15h3M3.375 5.25c-.621 0-1.125.504-1.125 1.125v3.026a2.999 2.999 0 0 1 0 5.198v3.026c0 .621.504 1.125 1.125 1.125h17.25c.621 0 1.125-.504 1.125-1.125v-3.026a2.999 2.999 0 0 1 0-5.198V6.375c0-.621-.504-1.125-1.125-1.125H3.375Z"/></svg>정기권</a>
+    <a class="nav-item" href="schedule.html"><svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 0 1 2.25-2.25h13.5A2.25 2.25 0 0 1 21 7.5v11.25m-18 0A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75m-18 0v-7.5A2.25 2.25 0 0 1 5.25 9h13.5A2.25 2.25 0 0 1 21 11.25v7.5"/></svg>시간표</a>
+    <a class="nav-item"><svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M3 13.125C3 12.504 3.504 12 4.125 12h2.25c.621 0 1.125.504 1.125 1.125v6.75C7.5 20.496 6.996 21 6.375 21h-2.25A1.125 1.125 0 0 1 3 19.875v-6.75ZM9.75 8.625c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125v11.25c0 .621-.504 1.125-1.125 1.125h-2.25a1.125 1.125 0 0 1-1.125-1.125V8.625ZM16.5 4.125c0-.621.504-1.125 1.125-1.125h2.25C20.496 3 21 3.504 21 4.125v15.75c0 .621-.504 1.125-1.125 1.125h-2.25a1.125 1.125 0 0 1-1.125-1.125V4.125Z"/></svg>통계</a>
+    <a class="nav-item"><svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M9.594 3.94c.09-.542.56-.94 1.11-.94h2.593c.55 0 1.02.398 1.11.94l.213 1.281c.063.374.313.686.645.87.074.04.147.083.22.127.325.196.72.257 1.075.124l1.217-.456a1.125 1.125 0 0 1 1.37.49l1.296 2.247a1.125 1.125 0 0 1-.26 1.431l-1.003.827c-.293.241-.438.613-.43.992a7.723 7.723 0 0 1 0 .255c-.008.378.137.75.43.991l1.004.827c.424.35.534.955.26 1.43l-1.298 2.247a1.125 1.125 0 0 1-1.369.491l-1.217-.456c-.355-.133-.75-.072-1.076.124a6.47 6.47 0 0 1-.22.128c-.331.183-.581.495-.644.869l-.213 1.281c-.09.543-.56.94-1.11.94h-2.594c-.55 0-1.019-.398-1.11-.94l-.213-1.281c-.062-.374-.312-.686-.644-.87a6.52 6.52 0 0 1-.22-.127c-.325-.196-.72-.257-1.076-.124l-1.217.456a1.125 1.125 0 0 1-1.369-.49l-1.297-2.247a1.125 1.125 0 0 1 .26-1.431l1.004-.827c.292-.24.437-.613.43-.991a6.932 6.932 0 0 1 0-.255c.007-.38-.138-.751-.43-.992l-1.004-.827a1.125 1.125 0 0 1-.26-1.43l1.297-2.247a1.125 1.125 0 0 1 1.37-.491l1.216.456c.356.133.751.072 1.076-.124.072-.044.146-.086.22-.128.332-.183.582-.495.644-.869l.214-1.28Z"/><path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z"/></svg>설정</a>
+  </nav>
+  <div class="sidebar-footer">
+    <div class="sidebar-footer-avatar">김</div>
+    <div class="sidebar-footer-info"><div class="sidebar-footer-name">김OO 원장님</div><div class="sidebar-footer-role">관리자</div></div>
+  </div>
+</aside>
+
+<!-- Mobile Header -->
+<div class="mobile-header">
+  <button class="hamburger" onclick="toggleSidebar()"><svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M3.75 6.75h16.5M3.75 12h16.5m-16.5 5.25h16.5"/></svg></button>
+  <span style="font-size:16px;font-weight:700;color:var(--color-text-title)">대시보드</span>
+  <div style="width:24px"></div>
+</div>
+
+<!-- Main -->
+<main class="main">
+  <h1 class="page-title">대시보드</h1>
+
+  <div class="kpi-grid">
+    <div class="kpi-card"><div class="kpi-label">오늘 수업</div><div class="kpi-value">8</div><div class="kpi-change up">+2 vs 어제</div></div>
+    <div class="kpi-card"><div class="kpi-label">오늘 예약</div><div class="kpi-value">52</div><div class="kpi-change up">+8 vs 어제</div></div>
+    <div class="kpi-card"><div class="kpi-label">이번 달 매출</div><div class="kpi-value">820만</div><div class="kpi-change up">+12% vs 전월</div></div>
+    <div class="kpi-card"><div class="kpi-label">활성 회원</div><div class="kpi-value">187</div><div class="kpi-change down">-3 vs 전월</div></div>
+  </div>
+
+  <div class="content-grid">
+    <div class="content-card">
+      <h2 class="card-title">오늘의 수업</h2>
+      <div class="class-list">
+        <div class="class-item"><div><div class="class-item-time">09:00</div><div class="class-item-info">그룹 필라테스 - 박지영</div></div><div class="class-item-count">5/8</div></div>
+        <div class="class-item"><div><div class="class-item-time">10:00</div><div class="class-item-info">듀엣 - 이수진</div></div><div class="class-item-count">1/2</div></div>
+        <div class="class-item"><div><div class="class-item-time">11:00</div><div class="class-item-info">그룹 필라테스 - 박지영</div></div><div class="class-item-count">8/8</div></div>
+        <div class="class-item"><div><div class="class-item-time">14:00</div><div class="class-item-info">개인 - 최재훈</div></div><div class="class-item-count">0/1</div></div>
+        <div class="class-item"><div><div class="class-item-time">19:00</div><div class="class-item-info">그룹 필라테스 - 박지영</div></div><div class="class-item-count">7/8</div></div>
+      </div>
+    </div>
+
+    <div class="content-card">
+      <h2 class="card-title">알림</h2>
+      <div class="alert-list">
+        <div class="alert-item warn"><svg class="alert-icon" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126ZM12 15.75h.007v.008H12v-.008Z"/></svg>이번 주 노쇼 3명 (최유진, 강하린, 오지원)</div>
+        <div class="alert-item danger"><svg class="alert-icon" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z"/></svg>정기권 만료 임박 5명 (7일 이내)</div>
+        <div class="alert-item"><svg class="alert-icon" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M11.25 11.25l.041-.02a.75.75 0 0 1 1.063.852l-.708 2.836a.75.75 0 0 0 1.063.853l.041-.021M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Zm-9-3.75h.008v.008H12V8.25Z"/></svg>신규 가입 2명 (오늘)</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 매출 차트 -->
+  <div class="chart-container">
+    <h2 class="card-title">이번 달 매출 추이</h2>
+    <div class="chart-placeholder">
+      <div class="chart-bar" style="height:40%"></div>
+      <div class="chart-bar" style="height:55%"></div>
+      <div class="chart-bar" style="height:45%"></div>
+      <div class="chart-bar" style="height:70%"></div>
+      <div class="chart-bar" style="height:60%"></div>
+      <div class="chart-bar" style="height:85%"></div>
+      <div class="chart-bar" style="height:75%"></div>
+      <div class="chart-bar" style="height:90%"></div>
+      <div class="chart-bar" style="height:65%"></div>
+    </div>
+    <div class="chart-labels">
+      <span>1일</span><span>2일</span><span>3일</span><span>4일</span><span>5일</span><span>6일</span><span>7일</span><span>8일</span><span>9일</span>
+    </div>
+  </div>
+</main>
+
+<script>
+function toggleSidebar(){
+  document.getElementById('sidebar').classList.toggle('open');
+  document.getElementById('overlay').classList.toggle('active');
+}
+</script>
+</body>
+</html>

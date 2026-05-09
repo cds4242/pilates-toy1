@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="color-scheme" content="light">
+<title>관리자 로그인 - 필라테스 OO점</title>
+<link rel="stylesheet" as="style" crossorigin href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css">
+<style>
+:root{--color-primary:#F8C8DC;--color-primary-dark:#F0A8C4;--color-bg:#FFFFFF;--color-bg-section:#F8F8F8;--color-text-title:#2D2D2D;--color-text-body:#6B6B6B;--color-text-sub:#9B9B9B;--color-border:#EEEEEE;--color-input-border:#DDDDDD;--color-admin-accent:#2D2D2D;--radius-sm:8px;--radius-md:12px;--spacing-md:16px;--spacing-lg:24px;--spacing-xl:32px}
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:'Pretendard',-apple-system,BlinkMacSystemFont,sans-serif;background:var(--color-bg-section);color:var(--color-text-body);-webkit-font-smoothing:antialiased;min-height:100vh;display:flex;align-items:center;justify-content:center}
+.login-container{display:flex;max-width:900px;width:100%;min-height:500px;background:var(--color-bg);border-radius:var(--radius-md);overflow:hidden;box-shadow:0 4px 24px rgba(0,0,0,.06)}
+.login-hero{flex:1;background:linear-gradient(135deg,#F8C8DC,#F0A8C4);padding:60px 40px;display:flex;flex-direction:column;justify-content:center;color:#fff}
+.login-hero h1{font-size:28px;font-weight:700;margin-bottom:var(--spacing-md)}
+.login-hero p{font-size:15px;opacity:.9;line-height:1.6}
+.login-form-side{flex:1;padding:60px 40px;display:flex;flex-direction:column;justify-content:center}
+.form-badge{display:inline-block;background:var(--color-bg-section);color:var(--color-text-body);font-size:12px;font-weight:600;padding:4px 12px;border-radius:20px;margin-bottom:var(--spacing-lg);width:fit-content}
+.form-title{font-size:22px;font-weight:700;color:var(--color-text-title);margin-bottom:var(--spacing-xl)}
+.login-form{display:flex;flex-direction:column;gap:var(--spacing-md)}
+.input-group{display:flex;flex-direction:column;gap:6px}
+.input-group label{font-size:13px;font-weight:600;color:var(--color-text-title)}
+.input-group input{border:1px solid var(--color-input-border);border-radius:var(--radius-sm);padding:14px;font-size:15px;font-family:'Pretendard',sans-serif;color:var(--color-text-title);outline:none;transition:border-color .2s;width:100%}
+.input-group input::placeholder{color:var(--color-text-sub)}
+.input-group input:focus{border-color:var(--color-primary)}
+.btn-admin{background:var(--color-admin-accent);color:#fff;border:none;border-radius:var(--radius-sm);padding:16px;font-size:16px;font-weight:600;font-family:'Pretendard',sans-serif;cursor:pointer;transition:background .2s;width:100%;margin-top:var(--spacing-md)}
+.btn-admin:hover{background:#444}
+@media(max-width:768px){
+  .login-container{flex-direction:column;max-width:480px;margin:var(--spacing-lg)}
+  .login-hero{padding:40px var(--spacing-lg);min-height:auto}
+  .login-hero h1{font-size:22px}
+  .login-form-side{padding:var(--spacing-lg)}
+}
+</style>
+</head>
+<body>
+<div class="login-container">
+  <div class="login-hero">
+    <h1>필라테스 OO점<br>관리 시스템</h1>
+    <p>회원, 강사, 시간표, 매출을<br>한곳에서 효율적으로 관리하세요.</p>
+  </div>
+  <div class="login-form-side">
+    <span class="form-badge">관리자 전용</span>
+    <h2 class="form-title">로그인</h2>
+    <form class="login-form" onsubmit="event.preventDefault();location.href='dashboard.html';">
+      <div class="input-group"><label for="email">이메일</label><input type="email" id="email" placeholder="admin@pilates.com" autocomplete="email"></div>
+      <div class="input-group"><label for="password">비밀번호</label><input type="password" id="password" placeholder="비밀번호" autocomplete="current-password"></div>
+      <div class="input-group"><label for="otp">2FA 인증 코드</label><input type="text" id="otp" placeholder="6자리 코드 입력" maxlength="6" inputmode="numeric"></div>
+      <button type="submit" class="btn-admin">로그인</button>
+    </form>
+  </div>
+</div>
+</body>
+</html>

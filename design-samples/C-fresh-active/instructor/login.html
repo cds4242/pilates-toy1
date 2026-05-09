@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="color-scheme" content="light">
+<title>강사 로그인 - 필라테스 OO점</title>
+<link rel="stylesheet" as="style" crossorigin href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css">
+<style>
+:root {
+  --color-mint: #A8E6CF;
+  --color-mint-dark: #7DD3B0;
+  --color-pink: #FF6B9D;
+  --color-pink-dark: #E8558A;
+  --color-bg: #FFFFFF;
+  --color-bg-section: #F0F0F0;
+  --color-text-title: #2C3E50;
+  --color-text-body: #5A6B7A;
+  --color-text-sub: #95A5B5;
+  --color-border: #E8ECF0;
+  --color-input-border: #D5DBE1;
+  --radius-sm: 12px;
+  --radius-md: 12px;
+  --spacing-xs: 8px;
+  --spacing-sm: 12px;
+  --spacing-md: 16px;
+  --spacing-lg: 24px;
+  --spacing-xl: 32px;
+  --spacing-xxl: 48px;
+}
+
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+body {
+  font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, sans-serif;
+  background: linear-gradient(135deg, var(--color-mint) 0%, #D4F5E6 50%, #FFF0F5 100%);
+  color: var(--color-text-body);
+  -webkit-font-smoothing: antialiased;
+  min-height: 100vh;
+}
+
+.mobile-frame {
+  max-width: 480px;
+  margin: 0 auto;
+  min-height: 100vh;
+  background: var(--color-bg);
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  padding: var(--spacing-lg);
+  box-shadow: 0 0 40px rgba(168, 230, 207, 0.3);
+}
+
+.login-header {
+  text-align: center;
+  margin-bottom: var(--spacing-xxl);
+  padding-top: var(--spacing-xl);
+}
+
+.logo-icon {
+  width: 56px;
+  height: 56px;
+  border-radius: 14px;
+  background: linear-gradient(135deg, var(--color-mint), var(--color-mint-dark));
+  margin: 0 auto var(--spacing-md);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.logo-icon svg {
+  width: 28px;
+  height: 28px;
+  color: #FFFFFF;
+}
+
+.logo-badge {
+  display: inline-block;
+  background: linear-gradient(135deg, var(--color-mint), var(--color-mint-dark));
+  color: #FFFFFF;
+  font-size: 12px;
+  font-weight: 800;
+  padding: 5px 14px;
+  border-radius: 20px;
+  margin-bottom: var(--spacing-sm);
+  letter-spacing: 2px;
+  text-transform: uppercase;
+}
+
+.logo-text {
+  font-size: 26px;
+  font-weight: 900;
+  color: var(--color-text-title);
+  letter-spacing: -1px;
+  margin-bottom: 4px;
+}
+
+.logo-sub {
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--color-mint-dark);
+}
+
+.login-form {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-md);
+  margin-bottom: var(--spacing-lg);
+}
+
+.input-group {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.input-group label {
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--color-text-title);
+}
+
+.input-group input {
+  border: 2px solid var(--color-input-border);
+  border-radius: var(--radius-sm);
+  padding: 14px 16px;
+  font-size: 15px;
+  font-family: 'Pretendard', sans-serif;
+  font-weight: 600;
+  color: var(--color-text-title);
+  outline: none;
+  transition: border-color 0.2s;
+  width: 100%;
+}
+
+.input-group input::placeholder {
+  color: var(--color-text-sub);
+  font-weight: 400;
+}
+
+.input-group input:focus {
+  border-color: var(--color-mint);
+}
+
+.btn-primary {
+  background: linear-gradient(135deg, var(--color-mint), var(--color-mint-dark));
+  color: #FFFFFF;
+  border: none;
+  border-radius: var(--radius-sm);
+  padding: 16px;
+  font-size: 16px;
+  font-weight: 800;
+  font-family: 'Pretendard', sans-serif;
+  cursor: pointer;
+  transition: opacity 0.2s, transform 0.1s;
+  width: 100%;
+  letter-spacing: 0.5px;
+}
+
+.btn-primary:hover {
+  opacity: 0.9;
+}
+
+.btn-primary:active {
+  transform: scale(0.98);
+}
+
+.login-links {
+  display: flex;
+  justify-content: center;
+  gap: var(--spacing-lg);
+  margin-top: var(--spacing-lg);
+}
+
+.login-links a {
+  font-size: 14px;
+  font-weight: 700;
+  text-decoration: none;
+  color: var(--color-text-sub);
+  transition: color 0.2s;
+}
+
+.login-links a:hover {
+  color: var(--color-mint-dark);
+}
+</style>
+</head>
+<body>
+<div class="mobile-frame">
+  <div class="login-header">
+    <div class="logo-icon">
+      <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M4.26 10.147a60.438 60.438 0 0 0-.491 6.347A48.62 48.62 0 0 1 12 20.904a48.62 48.62 0 0 1 8.232-4.41 60.46 60.46 0 0 0-.491-6.347m-15.482 0a50.636 50.636 0 0 0-2.658-.813A59.906 59.906 0 0 1 12 3.493a59.903 59.903 0 0 1 10.399 5.84c-.896.248-1.783.52-2.658.814m-15.482 0A50.717 50.717 0 0 1 12 13.489a50.702 50.702 0 0 1 7.74-3.342M6.75 15a.75.75 0 1 0 0-1.5.75.75 0 0 0 0 1.5Zm0 0v-3.675A55.378 55.378 0 0 1 12 8.443m-7.007 11.55A5.981 5.981 0 0 0 6.75 15.75v-1.5"/></svg>
+    </div>
+    <span class="logo-badge">Instructor</span>
+    <div class="logo-text">필라테스 OO점</div>
+    <div class="logo-sub">강사 로그인</div>
+  </div>
+
+  <form class="login-form" onsubmit="event.preventDefault();location.href='schedule.html';">
+    <div class="input-group"><label for="email">이메일</label><input type="email" id="email" placeholder="instructor@example.com" autocomplete="email"></div>
+    <div class="input-group"><label for="password">비밀번호</label><input type="password" id="password" placeholder="비밀번호를 입력하세요" autocomplete="current-password"></div>
+    <button type="submit" class="btn-primary">로그인</button>
+  </form>
+
+  <div class="login-links"><a href="../member/login.html">회원 로그인으로</a></div>
+</div>
+</body>
+</html>

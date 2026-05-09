@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="color-scheme" content="light">
+<title>시간표 관리 - 관리자</title>
+<link rel="stylesheet" as="style" crossorigin href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css">
+<style>
+:root{--color-primary:#F8C8DC;--color-primary-dark:#F0A8C4;--color-primary-light:#FCE4EC;--color-bg:#FFFFFF;--color-bg-section:#F8F8F8;--color-text-title:#2D2D2D;--color-text-body:#6B6B6B;--color-text-sub:#9B9B9B;--color-border:#EEEEEE;--color-input-border:#DDDDDD;--sidebar-width:240px;--radius-sm:8px;--radius-md:12px;--spacing-xs:8px;--spacing-sm:12px;--spacing-md:16px;--spacing-lg:24px;--spacing-xl:32px}
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:'Pretendard',-apple-system,BlinkMacSystemFont,sans-serif;background:var(--color-bg-section);color:var(--color-text-body);-webkit-font-smoothing:antialiased}
+.sidebar{position:fixed;top:0;left:0;width:var(--sidebar-width);height:100vh;background:var(--color-bg);border-right:1px solid var(--color-border);display:flex;flex-direction:column;z-index:200;transition:transform .3s}
+.sidebar-logo{padding:24px;font-size:18px;font-weight:700;color:var(--color-text-title);border-bottom:1px solid var(--color-border)}
+.sidebar-nav{flex:1;padding:var(--spacing-md) 0}
+.nav-item{display:flex;align-items:center;gap:var(--spacing-sm);padding:12px 24px;font-size:14px;color:var(--color-text-body);text-decoration:none;transition:all .2s;cursor:pointer}
+.nav-item:hover{background:var(--color-bg-section)}
+.nav-item.active{background:var(--color-primary-light);color:var(--color-primary-dark);font-weight:600}
+.nav-item svg{width:20px;height:20px;flex-shrink:0}
+.sidebar-footer{padding:var(--spacing-md) 24px;border-top:1px solid var(--color-border);display:flex;align-items:center;gap:var(--spacing-sm)}
+.sidebar-footer-avatar{width:36px;height:36px;border-radius:50%;background:var(--color-primary);display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:700;color:var(--color-text-title)}
+.sidebar-footer-info{flex:1}
+.sidebar-footer-name{font-size:13px;font-weight:600;color:var(--color-text-title)}
+.sidebar-footer-role{font-size:11px;color:var(--color-text-sub)}
+.main{margin-left:var(--sidebar-width);min-height:100vh;padding:var(--spacing-xl)}
+.mobile-header{display:none;position:sticky;top:0;z-index:100;background:var(--color-bg);padding:16px var(--spacing-lg);border-bottom:1px solid var(--color-border);align-items:center;justify-content:space-between}
+.hamburger{background:none;border:none;cursor:pointer;padding:4px}
+.hamburger svg{width:24px;height:24px;color:var(--color-text-title)}
+.overlay{display:none;position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,.3);z-index:150}
+.overlay.active{display:block}
+.page-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:var(--spacing-lg);flex-wrap:wrap;gap:var(--spacing-md)}
+.page-title{font-size:24px;font-weight:700;color:var(--color-text-title)}
+.btn-sm{padding:10px 16px;border-radius:var(--radius-sm);font-size:13px;font-weight:600;font-family:'Pretendard',sans-serif;cursor:pointer}
+.btn-primary-sm{background:var(--color-primary);color:var(--color-text-title);border:none}
+.btn-primary-sm:hover{background:var(--color-primary-dark)}
+/* ── 주간 캘린더 ── */
+.schedule-layout{display:grid;grid-template-columns:260px 1fr;gap:var(--spacing-lg)}
+.form-panel{background:var(--color-bg);border:1px solid var(--color-border);border-radius:var(--radius-md);padding:20px;height:fit-content}
+.form-panel h3{font-size:16px;font-weight:700;color:var(--color-text-title);margin-bottom:var(--spacing-md)}
+.form-group{margin-bottom:var(--spacing-md)}
+.form-group label{display:block;font-size:13px;font-weight:600;color:var(--color-text-title);margin-bottom:6px}
+.form-group select,.form-group input{width:100%;border:1px solid var(--color-input-border);border-radius:var(--radius-sm);padding:10px 12px;font-size:14px;font-family:'Pretendard',sans-serif;outline:none}
+.form-group select:focus,.form-group input:focus{border-color:var(--color-primary)}
+.calendar-panel{background:var(--color-bg);border:1px solid var(--color-border);border-radius:var(--radius-md);overflow:hidden}
+.cal-header{display:grid;grid-template-columns:60px repeat(7,1fr);background:var(--color-bg-section);border-bottom:1px solid var(--color-border)}
+.cal-header div{padding:12px 8px;text-align:center;font-size:13px;font-weight:600;color:var(--color-text-sub)}
+.cal-body{display:grid;grid-template-columns:60px repeat(7,1fr);max-height:500px;overflow-y:auto}
+.cal-time{padding:8px;text-align:center;font-size:12px;color:var(--color-text-sub);border-right:1px solid var(--color-border);border-bottom:1px solid var(--color-border)}
+.cal-cell{padding:4px;border-right:1px solid var(--color-border);border-bottom:1px solid var(--color-border);min-height:48px;position:relative}
+.cal-cell:last-child{border-right:none}
+.cal-block{font-size:11px;padding:4px 6px;border-radius:4px;background:var(--color-primary-light);color:var(--color-primary-dark);font-weight:600;cursor:pointer;margin-bottom:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.cal-block:hover{background:var(--color-primary);color:#fff}
+/* ── 모바일: 리스트 ── */
+.mobile-schedule{display:none;flex-direction:column;gap:var(--spacing-sm)}
+.mobile-schedule-day{background:var(--color-bg);border:1px solid var(--color-border);border-radius:var(--radius-md);padding:16px}
+.mobile-schedule-day h3{font-size:15px;font-weight:700;color:var(--color-text-title);margin-bottom:var(--spacing-sm)}
+.mobile-class-item{display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--color-border);font-size:13px}
+.mobile-class-item:last-child{border-bottom:none}
+@media(max-width:768px){
+  .sidebar{transform:translateX(-100%)}
+  .sidebar.open{transform:translateX(0)}
+  .main{margin-left:0;padding:var(--spacing-lg)}
+  .mobile-header{display:flex}
+  .schedule-layout{display:none}
+  .mobile-schedule{display:flex}
+}
+</style>
+</head>
+<body>
+<div class="overlay" id="overlay" onclick="toggleSidebar()"></div>
+<aside class="sidebar" id="sidebar">
+  <div class="sidebar-logo">필라테스 OO점</div>
+  <nav class="sidebar-nav">
+    <a class="nav-item" href="dashboard.html"><svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M3.75 6A2.25 2.25 0 0 1 6 3.75h2.25A2.25 2.25 0 0 1 10.5 6v2.25a2.25 2.25 0 0 1-2.25 2.25H6a2.25 2.25 0 0 1-2.25-2.25V6ZM3.75 15.75A2.25 2.25 0 0 1 6 13.5h2.25a2.25 2.25 0 0 1 2.25 2.25V18a2.25 2.25 0 0 1-2.25 2.25H6A2.25 2.25 0 0 1 3.75 18v-2.25ZM13.5 6a2.25 2.25 0 0 1 2.25-2.25H18A2.25 2.25 0 0 1 20.25 6v2.25A2.25 2.25 0 0 1 18 10.5h-2.25a2.25 2.25 0 0 1-2.25-2.25V6ZM13.5 15.75a2.25 2.25 0 0 1 2.25-2.25H18a2.25 2.25 0 0 1 2.25 2.25V18A2.25 2.25 0 0 1 18 20.25h-2.25a2.25 2.25 0 0 1-2.25-2.25v-2.25Z"/></svg>대시보드</a>
+    <a class="nav-item" href="members.html"><svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M15 19.128a9.38 9.38 0 0 0 2.625.372 9.337 9.337 0 0 0 4.121-.952 4.125 4.125 0 0 0-7.533-2.493M15 19.128v-.003c0-1.113-.285-2.16-.786-3.07M15 19.128v.106A12.318 12.318 0 0 1 8.624 21c-2.331 0-4.512-.645-6.374-1.766l-.001-.109a6.375 6.375 0 0 1 11.964-3.07M12 6.375a3.375 3.375 0 1 1-6.75 0 3.375 3.375 0 0 1 6.75 0Zm8.25 2.25a2.625 2.625 0 1 1-5.25 0 2.625 2.625 0 0 1 5.25 0Z"/></svg>회원 관리</a>
+    <a class="nav-item active" href="schedule.html"><svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 0 1 2.25-2.25h13.5A2.25 2.25 0 0 1 21 7.5v11.25m-18 0A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75m-18 0v-7.5A2.25 2.25 0 0 1 5.25 9h13.5A2.25 2.25 0 0 1 21 11.25v7.5"/></svg>시간표</a>
+  </nav>
+  <div class="sidebar-footer"><div class="sidebar-footer-avatar">김</div><div class="sidebar-footer-info"><div class="sidebar-footer-name">김OO 원장님</div><div class="sidebar-footer-role">관리자</div></div></div>
+</aside>
+
+<div class="mobile-header">
+  <button class="hamburger" onclick="toggleSidebar()"><svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M3.75 6.75h16.5M3.75 12h16.5m-16.5 5.25h16.5"/></svg></button>
+  <span style="font-size:16px;font-weight:700;color:var(--color-text-title)">시간표</span>
+  <div style="width:24px"></div>
+</div>
+
+<main class="main">
+  <div class="page-header">
+    <h1 class="page-title">시간표 관리</h1>
+    <button class="btn-sm btn-primary-sm">다음 4주치 자동 생성</button>
+  </div>
+
+  <!-- PC: 좌측 폼 + 우측 캘린더 -->
+  <div class="schedule-layout">
+    <div class="form-panel">
+      <h3>수업 등록</h3>
+      <div class="form-group"><label>강사</label><select><option>박지영</option><option>이수진</option><option>최재훈</option></select></div>
+      <div class="form-group"><label>수업 유형</label><select><option>그룹 필라테스</option><option>듀엣</option><option>개인</option></select></div>
+      <div class="form-group"><label>요일</label><select><option>월요일</option><option>화요일</option><option>수요일</option><option>목요일</option><option>금요일</option><option>토요일</option><option>일요일</option></select></div>
+      <div class="form-group"><label>시작 시간</label><input type="time" value="09:00"></div>
+      <div class="form-group"><label>정원</label><input type="number" value="8" min="1" max="20"></div>
+      <button class="btn-sm btn-primary-sm" style="width:100%;padding:14px">수업 추가</button>
+    </div>
+
+    <div class="calendar-panel">
+      <div class="cal-header">
+        <div></div><div>월</div><div>화</div><div>수</div><div>목</div><div>금</div><div>토</div><div>일</div>
+      </div>
+      <div class="cal-body">
+        <div class="cal-time">09:00</div><div class="cal-cell"><div class="cal-block">그룹-박지영</div></div><div class="cal-cell"></div><div class="cal-cell"><div class="cal-block">그룹-박지영</div></div><div class="cal-cell"></div><div class="cal-cell"><div class="cal-block">그룹-박지영</div></div><div class="cal-cell"><div class="cal-block">그룹-박지영</div></div><div class="cal-cell"></div>
+        <div class="cal-time">10:00</div><div class="cal-cell"><div class="cal-block">듀엣-이수진</div></div><div class="cal-cell"><div class="cal-block">듀엣-이수진</div></div><div class="cal-cell"></div><div class="cal-cell"><div class="cal-block">듀엣-이수진</div></div><div class="cal-cell"><div class="cal-block">듀엣-이수진</div></div><div class="cal-cell"></div><div class="cal-cell"></div>
+        <div class="cal-time">11:00</div><div class="cal-cell"><div class="cal-block">그룹-박지영</div></div><div class="cal-cell"></div><div class="cal-cell"><div class="cal-block">그룹-박지영</div></div><div class="cal-cell"></div><div class="cal-cell"><div class="cal-block">그룹-박지영</div></div><div class="cal-cell"><div class="cal-block">그룹-박지영</div></div><div class="cal-cell"></div>
+        <div class="cal-time">14:00</div><div class="cal-cell"><div class="cal-block">개인-최재훈</div></div><div class="cal-cell"><div class="cal-block">개인-최재훈</div></div><div class="cal-cell"><div class="cal-block">개인-최재훈</div></div><div class="cal-cell"><div class="cal-block">개인-최재훈</div></div><div class="cal-cell"><div class="cal-block">개인-최재훈</div></div><div class="cal-cell"></div><div class="cal-cell"></div>
+        <div class="cal-time">19:00</div><div class="cal-cell"><div class="cal-block">그룹-박지영</div></div><div class="cal-cell"><div class="cal-block">그룹-박지영</div></div><div class="cal-cell"><div class="cal-block">그룹-박지영</div></div><div class="cal-cell"><div class="cal-block">그룹-박지영</div></div><div class="cal-cell"><div class="cal-block">그룹-박지영</div></div><div class="cal-cell"></div><div class="cal-cell"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 모바일: 리스트 -->
+  <div class="mobile-schedule">
+    <div class="mobile-schedule-day"><h3>월요일</h3><div class="mobile-class-item"><span>09:00 그룹 필라테스</span><span>박지영 (8명)</span></div><div class="mobile-class-item"><span>10:00 듀엣</span><span>이수진 (2명)</span></div><div class="mobile-class-item"><span>11:00 그룹 필라테스</span><span>박지영 (8명)</span></div><div class="mobile-class-item"><span>14:00 개인</span><span>최재훈 (1명)</span></div><div class="mobile-class-item"><span>19:00 그룹 필라테스</span><span>박지영 (8명)</span></div></div>
+    <div class="mobile-schedule-day"><h3>화요일</h3><div class="mobile-class-item"><span>10:00 듀엣</span><span>이수진 (2명)</span></div><div class="mobile-class-item"><span>14:00 개인</span><span>최재훈 (1명)</span></div><div class="mobile-class-item"><span>19:00 그룹 필라테스</span><span>박지영 (8명)</span></div></div>
+    <div class="mobile-schedule-day"><h3>수요일</h3><div class="mobile-class-item"><span>09:00 그룹 필라테스</span><span>박지영 (8명)</span></div><div class="mobile-class-item"><span>11:00 그룹 필라테스</span><span>박지영 (8명)</span></div><div class="mobile-class-item"><span>14:00 개인</span><span>최재훈 (1명)</span></div><div class="mobile-class-item"><span>19:00 그룹 필라테스</span><span>박지영 (8명)</span></div></div>
+  </div>
+</main>
+
+<script>function toggleSidebar(){document.getElementById('sidebar').classList.toggle('open');document.getElementById('overlay').classList.toggle('active');}</script>
+</body>
+</html>

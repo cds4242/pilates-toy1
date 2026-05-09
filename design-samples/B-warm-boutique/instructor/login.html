@@ -1,0 +1,214 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="color-scheme" content="light">
+<title>강사 로그인 - 필라테스 OO점</title>
+<link rel="stylesheet" as="style" crossorigin href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css">
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700&display=swap" rel="stylesheet">
+<style>
+:root {
+  --color-primary: #E8A4A4;
+  --color-primary-dark: #D48A8A;
+  --color-primary-light: #F5E6D3;
+  --color-accent: #D4B896;
+  --color-bg: #FFFBF7;
+  --color-bg-card: #FFFFFF;
+  --color-text-title: #3A3A3A;
+  --color-text-body: #6B6B6B;
+  --color-text-sub: #A0A0A0;
+  --color-border: #EDE4DA;
+  --color-input-border: #DDD5CB;
+  --color-instructor-accent: #8B7355;
+  --color-instructor-accent-dark: #73603F;
+  --color-instructor-bg: #F5EDE3;
+  --radius-sm: 12px;
+  --radius-md: 16px;
+  --radius-full: 24px;
+  --spacing-xs: 8px;
+  --spacing-sm: 12px;
+  --spacing-md: 16px;
+  --spacing-lg: 24px;
+  --spacing-xl: 32px;
+  --spacing-xxl: 48px;
+}
+
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+body {
+  font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, sans-serif;
+  background: var(--color-instructor-bg);
+  color: var(--color-text-body);
+  -webkit-font-smoothing: antialiased;
+}
+
+.mobile-frame {
+  max-width: 480px;
+  margin: 0 auto;
+  min-height: 100vh;
+  background: var(--color-bg);
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  padding: var(--spacing-lg);
+  box-shadow: 0 0 40px rgba(139, 115, 85, 0.08);
+}
+
+.login-header {
+  text-align: center;
+  margin-bottom: var(--spacing-xxl);
+  padding-top: var(--spacing-xxl);
+}
+
+.logo-deco {
+  width: 64px;
+  height: 2px;
+  background: var(--color-instructor-accent);
+  margin: 0 auto var(--spacing-lg);
+}
+
+.logo-badge {
+  display: inline-block;
+  font-family: 'Playfair Display', serif;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--color-instructor-accent);
+  letter-spacing: 3px;
+  text-transform: uppercase;
+  margin-bottom: var(--spacing-md);
+}
+
+.logo-text {
+  font-family: 'Playfair Display', serif;
+  font-size: 28px;
+  font-weight: 700;
+  color: var(--color-text-title);
+  letter-spacing: -0.5px;
+  margin-bottom: var(--spacing-xs);
+}
+
+.logo-sub {
+  font-size: 13px;
+  color: var(--color-text-sub);
+  letter-spacing: 2px;
+}
+
+.login-form {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-md);
+  margin-bottom: var(--spacing-lg);
+}
+
+.input-group {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.input-group label {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--color-text-sub);
+  letter-spacing: 1px;
+  text-transform: uppercase;
+}
+
+.input-group input {
+  border: 1px solid var(--color-input-border);
+  border-radius: var(--radius-sm);
+  padding: 16px;
+  font-size: 15px;
+  font-family: 'Pretendard', sans-serif;
+  color: var(--color-text-title);
+  background: var(--color-bg-card);
+  outline: none;
+  transition: border-color 0.3s, box-shadow 0.3s;
+  width: 100%;
+}
+
+.input-group input::placeholder {
+  color: var(--color-text-sub);
+}
+
+.input-group input:focus {
+  border-color: var(--color-instructor-accent);
+  box-shadow: 0 0 0 3px rgba(139, 115, 85, 0.12);
+}
+
+.btn-primary {
+  background: transparent;
+  color: var(--color-instructor-accent);
+  border: 2px solid var(--color-instructor-accent);
+  border-radius: var(--radius-full);
+  padding: 16px;
+  font-size: 15px;
+  font-weight: 600;
+  font-family: 'Pretendard', sans-serif;
+  cursor: pointer;
+  transition: all 0.3s;
+  width: 100%;
+  letter-spacing: 1px;
+}
+
+.btn-primary:hover {
+  background: var(--color-instructor-accent);
+  color: #FFFFFF;
+}
+
+.login-links {
+  display: flex;
+  justify-content: center;
+  gap: var(--spacing-xl);
+  margin-top: var(--spacing-lg);
+}
+
+.login-links a {
+  font-size: 13px;
+  text-decoration: none;
+  color: var(--color-text-sub);
+  transition: color 0.2s;
+}
+
+.login-links a:hover {
+  color: var(--color-instructor-accent);
+}
+
+.bottom-deco {
+  width: 40px;
+  height: 2px;
+  background: var(--color-instructor-accent);
+  margin: var(--spacing-xxl) auto 0;
+}
+</style>
+</head>
+<body>
+<div class="mobile-frame">
+  <div class="login-header">
+    <div class="logo-deco"></div>
+    <div class="logo-badge">Instructor</div>
+    <div class="logo-text">필라테스 OO점</div>
+    <div class="logo-sub">강사 로그인</div>
+  </div>
+
+  <form class="login-form" onsubmit="event.preventDefault();location.href='schedule.html';">
+    <div class="input-group">
+      <label for="email">이메일</label>
+      <input type="email" id="email" placeholder="instructor@example.com" autocomplete="email">
+    </div>
+    <div class="input-group">
+      <label for="password">비밀번호</label>
+      <input type="password" id="password" placeholder="비밀번호를 입력하세요" autocomplete="current-password">
+    </div>
+    <button type="submit" class="btn-primary">로그인</button>
+  </form>
+
+  <div class="login-links">
+    <a href="../member/login.html">회원 로그인으로</a>
+  </div>
+
+  <div class="bottom-deco"></div>
+</div>
+</body>
+</html>

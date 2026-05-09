@@ -1,0 +1,323 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="color-scheme" content="light">
+<title>수업 예약 - 필라테스 OO점</title>
+<link rel="stylesheet" as="style" crossorigin href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css">
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700&display=swap" rel="stylesheet">
+<style>
+:root {
+  --color-primary: #E8A4A4;
+  --color-primary-dark: #D48A8A;
+  --color-primary-light: #F5E6D3;
+  --color-accent: #D4B896;
+  --color-bg: #FFFBF7;
+  --color-bg-card: #FFFFFF;
+  --color-text-title: #3A3A3A;
+  --color-text-body: #6B6B6B;
+  --color-text-sub: #A0A0A0;
+  --color-border: #EDE4DA;
+  --color-success: #7CB68E;
+  --color-error: #D4686A;
+  --radius-sm: 12px;
+  --radius-md: 16px;
+  --radius-full: 24px;
+  --spacing-xs: 8px;
+  --spacing-sm: 12px;
+  --spacing-md: 16px;
+  --spacing-lg: 24px;
+}
+
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+body {
+  font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, sans-serif;
+  background: var(--color-bg);
+  color: var(--color-text-body);
+  -webkit-font-smoothing: antialiased;
+}
+
+.mobile-frame {
+  max-width: 480px;
+  margin: 0 auto;
+  min-height: 100vh;
+  background: var(--color-bg);
+}
+
+.header {
+  position: sticky; top: 0; z-index: 100;
+  background: var(--color-bg);
+  padding: 16px var(--spacing-lg);
+  display: flex; align-items: center; gap: var(--spacing-md);
+  border-bottom: 1px solid var(--color-border);
+}
+
+.header-back {
+  cursor: pointer; color: var(--color-text-title);
+  display: flex; align-items: center;
+  background: none; border: none; padding: 0;
+}
+
+.header-back svg { width: 24px; height: 24px; }
+
+.header-title {
+  font-family: 'Playfair Display', serif;
+  font-size: 18px; font-weight: 700;
+  color: var(--color-text-title);
+}
+
+/* ── 날짜 선택 ── */
+.date-selector {
+  display: flex; gap: var(--spacing-xs);
+  padding: var(--spacing-md) var(--spacing-lg);
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
+}
+.date-selector::-webkit-scrollbar { display: none; }
+
+.date-item {
+  flex-shrink: 0; width: 56px;
+  padding: 12px 0; text-align: center;
+  border-radius: var(--radius-md);
+  cursor: pointer; transition: all 0.3s;
+  border: 1px solid var(--color-border);
+  background: var(--color-bg-card);
+}
+
+.date-item.active {
+  background: var(--color-primary-light);
+  border-color: var(--color-accent);
+}
+
+.date-item-day { font-size: 12px; color: var(--color-text-sub); margin-bottom: 4px; }
+.date-item.active .date-item-day { color: var(--color-accent); }
+.date-item-date { font-size: 16px; font-weight: 700; color: var(--color-text-title); }
+.date-item-weekday { font-size: 11px; color: var(--color-text-sub); margin-top: 2px; }
+.date-item.active .date-item-weekday { color: var(--color-accent); }
+
+/* ── 시간표 ── */
+.timetable {
+  padding: 0 var(--spacing-lg) var(--spacing-lg);
+  display: flex; flex-direction: column; gap: var(--spacing-sm);
+}
+
+.class-card {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 18px 20px;
+  background: var(--color-bg-card);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  box-shadow: 0 2px 10px rgba(212, 184, 150, 0.08);
+  transition: opacity 0.2s;
+}
+
+.class-card.disabled { opacity: 0.45; }
+
+.class-info { flex: 1; }
+.class-time { font-size: 15px; font-weight: 600; color: var(--color-text-title); margin-bottom: 2px; }
+.class-name { font-size: 14px; color: var(--color-text-body); }
+.class-meta { display: flex; gap: var(--spacing-sm); margin-top: 4px; font-size: 12px; color: var(--color-text-sub); }
+.class-slots { display: flex; align-items: center; gap: 4px; }
+.class-slots svg { width: 14px; height: 14px; }
+
+.btn-reserve {
+  background: transparent;
+  color: var(--color-primary-dark);
+  border: 1.5px solid var(--color-primary);
+  border-radius: var(--radius-full);
+  padding: 8px 18px;
+  font-size: 13px; font-weight: 600;
+  font-family: 'Pretendard', sans-serif;
+  cursor: pointer;
+  transition: all 0.3s;
+  flex-shrink: 0; margin-left: var(--spacing-md);
+}
+
+.btn-reserve:hover {
+  background: var(--color-primary);
+  color: #FFFFFF;
+}
+
+.btn-closed {
+  background: var(--color-bg);
+  color: var(--color-text-sub);
+  border: 1.5px solid var(--color-border);
+  border-radius: var(--radius-full);
+  padding: 8px 18px;
+  font-size: 13px; font-weight: 600;
+  font-family: 'Pretendard', sans-serif;
+  cursor: not-allowed;
+  flex-shrink: 0; margin-left: var(--spacing-md);
+}
+
+/* ── 모달 ── */
+.modal-overlay {
+  display: none; position: fixed;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background: rgba(58, 58, 58, 0.35);
+  z-index: 200;
+  justify-content: center; align-items: flex-end;
+}
+.modal-overlay.active { display: flex; }
+
+.modal {
+  background: var(--color-bg);
+  border-radius: 20px 20px 0 0;
+  width: 100%; max-width: 480px;
+  padding: var(--spacing-lg);
+  animation: slideUp 0.3s ease;
+}
+
+@keyframes slideUp {
+  from { transform: translateY(100%); }
+  to { transform: translateY(0); }
+}
+
+.modal-title {
+  font-family: 'Playfair Display', serif;
+  font-size: 20px; font-weight: 700;
+  color: var(--color-text-title);
+  margin-bottom: var(--spacing-lg);
+}
+
+.modal-detail {
+  display: flex; flex-direction: column; gap: var(--spacing-sm);
+  margin-bottom: var(--spacing-lg);
+}
+
+.modal-row { display: flex; justify-content: space-between; font-size: 14px; }
+.modal-row-label { color: var(--color-text-sub); }
+.modal-row-value { color: var(--color-text-title); font-weight: 600; }
+
+.modal-notice {
+  background: var(--color-primary-light);
+  border-radius: var(--radius-sm);
+  padding: var(--spacing-sm) var(--spacing-md);
+  font-size: 13px; color: var(--color-text-body);
+  margin-bottom: var(--spacing-lg);
+  border-left: 3px solid var(--color-accent);
+}
+
+.modal-buttons { display: flex; gap: var(--spacing-sm); }
+
+.btn-cancel {
+  flex: 1; background: var(--color-bg-card);
+  color: var(--color-text-body);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-full);
+  padding: 14px; font-size: 15px; font-weight: 600;
+  font-family: 'Pretendard', sans-serif; cursor: pointer;
+}
+
+.btn-confirm {
+  flex: 1; background: var(--color-primary);
+  color: #FFFFFF;
+  border: none;
+  border-radius: var(--radius-full);
+  padding: 14px; font-size: 15px; font-weight: 600;
+  font-family: 'Pretendard', sans-serif; cursor: pointer;
+  transition: background 0.2s;
+}
+
+.btn-confirm:hover { background: var(--color-primary-dark); }
+</style>
+</head>
+<body>
+<div class="mobile-frame">
+  <header class="header">
+    <button class="header-back" onclick="history.back()">
+      <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M15.75 19.5 8.25 12l7.5-7.5"/></svg>
+    </button>
+    <h1 class="header-title">수업 예약</h1>
+  </header>
+
+  <div class="date-selector">
+    <div class="date-item" onclick="selectDate(this)"><div class="date-item-day">5월</div><div class="date-item-date">9</div><div class="date-item-weekday">토</div></div>
+    <div class="date-item active" onclick="selectDate(this)"><div class="date-item-day">5월</div><div class="date-item-date">10</div><div class="date-item-weekday">일</div></div>
+    <div class="date-item" onclick="selectDate(this)"><div class="date-item-day">5월</div><div class="date-item-date">11</div><div class="date-item-weekday">월</div></div>
+    <div class="date-item" onclick="selectDate(this)"><div class="date-item-day">5월</div><div class="date-item-date">12</div><div class="date-item-weekday">화</div></div>
+    <div class="date-item" onclick="selectDate(this)"><div class="date-item-day">5월</div><div class="date-item-date">13</div><div class="date-item-weekday">수</div></div>
+    <div class="date-item" onclick="selectDate(this)"><div class="date-item-day">5월</div><div class="date-item-date">14</div><div class="date-item-weekday">목</div></div>
+    <div class="date-item" onclick="selectDate(this)"><div class="date-item-day">5월</div><div class="date-item-date">15</div><div class="date-item-weekday">금</div></div>
+  </div>
+
+  <div class="timetable">
+    <div class="class-card">
+      <div class="class-info">
+        <div class="class-time">09:00 - 09:50</div>
+        <div class="class-name">그룹 필라테스</div>
+        <div class="class-meta"><span>박지영 강사</span><span class="class-slots"><svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M15 19.128a9.38 9.38 0 0 0 2.625.372 9.337 9.337 0 0 0 4.121-.952 4.125 4.125 0 0 0-7.533-2.493M15 19.128v-.003c0-1.113-.285-2.16-.786-3.07M15 19.128v.106A12.318 12.318 0 0 1 8.624 21c-2.331 0-4.512-.645-6.374-1.766l-.001-.109a6.375 6.375 0 0 1 11.964-3.07M12 6.375a3.375 3.375 0 1 1-6.75 0 3.375 3.375 0 0 1 6.75 0Zm8.25 2.25a2.625 2.625 0 1 1-5.25 0 2.625 2.625 0 0 1 5.25 0Z"/></svg>5/8</span></div>
+      </div>
+      <button class="btn-reserve" onclick="openModal('09:00 - 09:50','그룹 필라테스','박지영')">예약</button>
+    </div>
+    <div class="class-card">
+      <div class="class-info">
+        <div class="class-time">10:00 - 10:50</div>
+        <div class="class-name">듀엣</div>
+        <div class="class-meta"><span>이수진 강사</span><span class="class-slots"><svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M15 19.128a9.38 9.38 0 0 0 2.625.372 9.337 9.337 0 0 0 4.121-.952 4.125 4.125 0 0 0-7.533-2.493M15 19.128v-.003c0-1.113-.285-2.16-.786-3.07M15 19.128v.106A12.318 12.318 0 0 1 8.624 21c-2.331 0-4.512-.645-6.374-1.766l-.001-.109a6.375 6.375 0 0 1 11.964-3.07M12 6.375a3.375 3.375 0 1 1-6.75 0 3.375 3.375 0 0 1 6.75 0Zm8.25 2.25a2.625 2.625 0 1 1-5.25 0 2.625 2.625 0 0 1 5.25 0Z"/></svg>1/2</span></div>
+      </div>
+      <button class="btn-reserve" onclick="openModal('10:00 - 10:50','듀엣','이수진')">예약</button>
+    </div>
+    <div class="class-card disabled">
+      <div class="class-info">
+        <div class="class-time">11:00 - 11:50</div>
+        <div class="class-name">그룹 필라테스</div>
+        <div class="class-meta"><span>박지영 강사</span><span class="class-slots"><svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M15 19.128a9.38 9.38 0 0 0 2.625.372 9.337 9.337 0 0 0 4.121-.952 4.125 4.125 0 0 0-7.533-2.493M15 19.128v-.003c0-1.113-.285-2.16-.786-3.07M15 19.128v.106A12.318 12.318 0 0 1 8.624 21c-2.331 0-4.512-.645-6.374-1.766l-.001-.109a6.375 6.375 0 0 1 11.964-3.07M12 6.375a3.375 3.375 0 1 1-6.75 0 3.375 3.375 0 0 1 6.75 0Zm8.25 2.25a2.625 2.625 0 1 1-5.25 0 2.625 2.625 0 0 1 5.25 0Z"/></svg>8/8</span></div>
+      </div>
+      <button class="btn-closed">마감</button>
+    </div>
+    <div class="class-card">
+      <div class="class-info">
+        <div class="class-time">14:00 - 14:50</div>
+        <div class="class-name">개인</div>
+        <div class="class-meta"><span>최재훈 강사</span><span class="class-slots"><svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M15 19.128a9.38 9.38 0 0 0 2.625.372 9.337 9.337 0 0 0 4.121-.952 4.125 4.125 0 0 0-7.533-2.493M15 19.128v-.003c0-1.113-.285-2.16-.786-3.07M15 19.128v.106A12.318 12.318 0 0 1 8.624 21c-2.331 0-4.512-.645-6.374-1.766l-.001-.109a6.375 6.375 0 0 1 11.964-3.07M12 6.375a3.375 3.375 0 1 1-6.75 0 3.375 3.375 0 0 1 6.75 0Zm8.25 2.25a2.625 2.625 0 1 1-5.25 0 2.625 2.625 0 0 1 5.25 0Z"/></svg>0/1</span></div>
+      </div>
+      <button class="btn-reserve" onclick="openModal('14:00 - 14:50','개인','최재훈')">예약</button>
+    </div>
+    <div class="class-card">
+      <div class="class-info">
+        <div class="class-time">19:00 - 19:50</div>
+        <div class="class-name">그룹 필라테스</div>
+        <div class="class-meta"><span>박지영 강사</span><span class="class-slots"><svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M15 19.128a9.38 9.38 0 0 0 2.625.372 9.337 9.337 0 0 0 4.121-.952 4.125 4.125 0 0 0-7.533-2.493M15 19.128v-.003c0-1.113-.285-2.16-.786-3.07M15 19.128v.106A12.318 12.318 0 0 1 8.624 21c-2.331 0-4.512-.645-6.374-1.766l-.001-.109a6.375 6.375 0 0 1 11.964-3.07M12 6.375a3.375 3.375 0 1 1-6.75 0 3.375 3.375 0 0 1 6.75 0Zm8.25 2.25a2.625 2.625 0 1 1-5.25 0 2.625 2.625 0 0 1 5.25 0Z"/></svg>7/8</span></div>
+      </div>
+      <button class="btn-reserve" onclick="openModal('19:00 - 19:50','그룹 필라테스','박지영')">예약</button>
+    </div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="reserveModal">
+  <div class="modal">
+    <h2 class="modal-title">예약 확인</h2>
+    <div class="modal-detail">
+      <div class="modal-row"><span class="modal-row-label">시간</span><span class="modal-row-value" id="modalTime"></span></div>
+      <div class="modal-row"><span class="modal-row-label">수업</span><span class="modal-row-value" id="modalClass"></span></div>
+      <div class="modal-row"><span class="modal-row-label">강사</span><span class="modal-row-value" id="modalInstructor"></span></div>
+      <div class="modal-row"><span class="modal-row-label">사용 정기권</span><span class="modal-row-value">12회권 (잔여 8회)</span></div>
+    </div>
+    <div class="modal-notice">예약 시 정기권 1회가 차감됩니다.</div>
+    <div class="modal-buttons">
+      <button class="btn-cancel" onclick="closeModal()">취소</button>
+      <button class="btn-confirm" onclick="closeModal()">예약 확정</button>
+    </div>
+  </div>
+</div>
+
+<script>
+function selectDate(el) {
+  document.querySelectorAll('.date-item').forEach(function(i){i.classList.remove('active');});
+  el.classList.add('active');
+}
+function openModal(time,cls,inst) {
+  document.getElementById('modalTime').textContent=time;
+  document.getElementById('modalClass').textContent=cls;
+  document.getElementById('modalInstructor').textContent=inst+' 강사';
+  document.getElementById('reserveModal').classList.add('active');
+}
+function closeModal() { document.getElementById('reserveModal').classList.remove('active'); }
+document.getElementById('reserveModal').addEventListener('click',function(e){ if(e.target===this) closeModal(); });
+</script>
+</body>
+</html>

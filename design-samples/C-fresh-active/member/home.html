@@ -1,0 +1,286 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="color-scheme" content="light">
+<title>홈 - 필라테스 OO점</title>
+<link rel="stylesheet" as="style" crossorigin href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css">
+<style>
+:root {
+  --color-mint: #A8E6CF;
+  --color-mint-dark: #7DD3B0;
+  --color-pink: #FF6B9D;
+  --color-pink-dark: #E8558A;
+  --color-bg: #FFFFFF;
+  --color-bg-section: #F0F0F0;
+  --color-text-title: #2C3E50;
+  --color-text-body: #5A6B7A;
+  --color-text-sub: #95A5B5;
+  --color-border: #E8ECF0;
+  --color-success: #4CAF50;
+  --color-error: #E74C3C;
+  --radius-sm: 12px;
+  --radius-md: 12px;
+  --spacing-xs: 8px;
+  --spacing-sm: 12px;
+  --spacing-md: 16px;
+  --spacing-lg: 24px;
+  --spacing-xl: 32px;
+}
+
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+body {
+  font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, sans-serif;
+  background: var(--color-bg-section);
+  color: var(--color-text-body);
+  -webkit-font-smoothing: antialiased;
+}
+
+.mobile-frame {
+  max-width: 480px; margin: 0 auto;
+  min-height: 100vh; background: var(--color-bg);
+  position: relative; padding-bottom: 80px;
+}
+
+.header {
+  position: sticky; top: 0; z-index: 100;
+  background: var(--color-bg);
+  padding: 16px var(--spacing-lg);
+  display: flex; justify-content: space-between; align-items: center;
+  border-bottom: 2px solid var(--color-border);
+}
+
+.header-logo {
+  font-size: 18px; font-weight: 900;
+  color: var(--color-text-title);
+  letter-spacing: -0.5px;
+}
+
+.header-bell { position: relative; cursor: pointer; }
+.header-bell svg { width: 24px; height: 24px; color: var(--color-text-title); }
+.bell-badge {
+  position: absolute; top: -4px; right: -4px;
+  width: 16px; height: 16px;
+  background: var(--color-pink); color: #fff;
+  font-size: 10px; font-weight: 800;
+  border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+}
+
+.content {
+  padding: var(--spacing-lg);
+  display: flex; flex-direction: column; gap: var(--spacing-lg);
+}
+
+.greeting {
+  font-size: 22px; font-weight: 900;
+  color: var(--color-text-title);
+  letter-spacing: -0.5px;
+}
+
+.date-text { font-size: 13px; font-weight: 600; color: var(--color-text-sub); margin-top: 4px; }
+
+/* ── 정기권 카드 ── */
+.pass-card {
+  background: linear-gradient(135deg, var(--color-mint), var(--color-pink));
+  border-radius: var(--radius-md);
+  padding: 24px;
+  color: #FFFFFF;
+  position: relative;
+  overflow: hidden;
+}
+
+.pass-card::after {
+  content: '';
+  position: absolute;
+  top: -30px; right: -30px;
+  width: 100px; height: 100px;
+  border-radius: 50%;
+  background: rgba(255,255,255,0.15);
+}
+
+.pass-name {
+  font-size: 14px; font-weight: 700;
+  opacity: 0.9;
+  margin-bottom: var(--spacing-xs);
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+.pass-remaining {
+  display: flex; align-items: baseline; gap: 4px;
+  margin-bottom: var(--spacing-sm);
+}
+
+.pass-remaining-number { font-size: 42px; font-weight: 900; }
+.pass-remaining-unit { font-size: 16px; font-weight: 700; opacity: 0.9; }
+
+.progress-bar {
+  height: 8px; background: rgba(255,255,255,0.3);
+  border-radius: 4px; overflow: hidden;
+  margin-bottom: var(--spacing-sm);
+}
+
+.progress-fill { height: 100%; background: #FFFFFF; border-radius: 4px; }
+
+.pass-expiry { font-size: 13px; font-weight: 600; opacity: 0.85; }
+
+/* ── 다음 예약 ── */
+.section-header {
+  display: flex; justify-content: space-between; align-items: center;
+  margin-bottom: var(--spacing-sm);
+}
+
+.section-title { font-size: 18px; font-weight: 800; color: var(--color-text-title); }
+
+.section-link {
+  font-size: 13px; font-weight: 700;
+  color: var(--color-pink);
+  text-decoration: none;
+}
+
+.reservation-list {
+  display: flex; flex-direction: column; gap: var(--spacing-sm);
+}
+
+.reservation-card {
+  display: flex; background: var(--color-bg);
+  border: 2px solid var(--color-border);
+  border-radius: var(--radius-md);
+  overflow: hidden;
+  transition: border-color 0.2s;
+}
+
+.reservation-card:hover { border-color: var(--color-mint); }
+
+.reservation-accent {
+  width: 5px;
+  background: linear-gradient(180deg, var(--color-mint), var(--color-pink));
+  flex-shrink: 0;
+}
+
+.reservation-info { padding: 14px 16px; flex: 1; }
+
+.reservation-datetime {
+  font-size: 15px; font-weight: 800;
+  color: var(--color-text-title);
+  margin-bottom: 2px;
+}
+
+.reservation-class { font-size: 13px; font-weight: 600; color: var(--color-text-body); }
+.reservation-instructor { font-size: 12px; font-weight: 600; color: var(--color-text-sub); margin-top: 2px; }
+
+/* ── CTA ── */
+.btn-primary {
+  background: linear-gradient(135deg, var(--color-mint), var(--color-pink));
+  color: #FFFFFF; border: none;
+  border-radius: var(--radius-sm);
+  padding: 16px; font-size: 16px; font-weight: 800;
+  font-family: 'Pretendard', sans-serif;
+  cursor: pointer;
+  transition: opacity 0.2s, transform 0.1s;
+  width: 100%;
+  text-align: center; text-decoration: none;
+  display: block;
+}
+
+.btn-primary:hover { opacity: 0.9; }
+.btn-primary:active { transform: scale(0.98); }
+
+/* ── 탭바 ── */
+.tab-bar {
+  position: fixed; bottom: 0;
+  left: 50%; transform: translateX(-50%);
+  width: 100%; max-width: 480px;
+  background: var(--color-bg);
+  border-top: 2px solid var(--color-border);
+  display: flex; z-index: 100;
+  padding-bottom: env(safe-area-inset-bottom, 0);
+}
+
+.tab-item {
+  flex: 1; display: flex; flex-direction: column; align-items: center;
+  gap: 4px; padding: 10px 0;
+  text-decoration: none;
+  font-size: 11px; font-weight: 700;
+  color: var(--color-text-sub);
+  transition: color 0.2s;
+}
+
+.tab-item.active { color: var(--color-pink); }
+.tab-item svg { width: 22px; height: 22px; }
+</style>
+</head>
+<body>
+<div class="mobile-frame">
+  <header class="header">
+    <div class="header-logo">필라테스 OO점</div>
+    <div class="header-bell">
+      <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M14.857 17.082a23.848 23.848 0 0 0 5.454-1.31A8.967 8.967 0 0 1 18 9.75V9A6 6 0 0 0 6 9v.75a8.967 8.967 0 0 1-2.312 6.022c1.733.64 3.56 1.085 5.455 1.31m5.714 0a24.255 24.255 0 0 1-5.714 0m5.714 0a3 3 0 1 1-5.714 0"/></svg>
+      <span class="bell-badge">1</span>
+    </div>
+  </header>
+
+  <main class="content">
+    <div>
+      <div class="greeting">안녕하세요, 김민지님 👋</div>
+      <div class="date-text">오늘은 2026년 5월 9일 (토)</div>
+    </div>
+
+    <div class="pass-card">
+      <div class="pass-name">12회권</div>
+      <div class="pass-remaining">
+        <span class="pass-remaining-number">8</span>
+        <span class="pass-remaining-unit">회 남음</span>
+      </div>
+      <div class="progress-bar"><div class="progress-fill" style="width:67%;"></div></div>
+      <div class="pass-expiry">2026.07.30 만료 (D-82)</div>
+    </div>
+
+    <section>
+      <div class="section-header">
+        <h2 class="section-title">다음 예약</h2>
+        <a href="reservation.html" class="section-link">전체 보기 ></a>
+      </div>
+      <div class="reservation-list">
+        <div class="reservation-card">
+          <div class="reservation-accent"></div>
+          <div class="reservation-info">
+            <div class="reservation-datetime">5/10 (일) 19:00</div>
+            <div class="reservation-class">그룹 필라테스</div>
+            <div class="reservation-instructor">박지영 강사</div>
+          </div>
+        </div>
+        <div class="reservation-card">
+          <div class="reservation-accent"></div>
+          <div class="reservation-info">
+            <div class="reservation-datetime">5/13 (수) 19:00</div>
+            <div class="reservation-class">그룹 필라테스</div>
+            <div class="reservation-instructor">박지영 강사</div>
+          </div>
+        </div>
+        <div class="reservation-card">
+          <div class="reservation-accent"></div>
+          <div class="reservation-info">
+            <div class="reservation-datetime">5/15 (금) 10:00</div>
+            <div class="reservation-class">듀엣</div>
+            <div class="reservation-instructor">이수진 강사</div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <a href="reservation.html" class="btn-primary">수업 예약하기</a>
+  </main>
+
+  <nav class="tab-bar">
+    <a href="home.html" class="tab-item active"><svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="m2.25 12 8.954-8.955a1.126 1.126 0 0 1 1.591 0L21.75 12M4.5 9.75v10.125c0 .621.504 1.125 1.125 1.125H9.75v-4.875c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125V21h4.125c.621 0 1.125-.504 1.125-1.125V9.75M8.25 21h8.25"/></svg><span>홈</span></a>
+    <a href="reservation.html" class="tab-item"><svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 0 1 2.25-2.25h13.5A2.25 2.25 0 0 1 21 7.5v11.25m-18 0A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75m-18 0v-7.5A2.25 2.25 0 0 1 5.25 9h13.5A2.25 2.25 0 0 1 21 11.25v7.5"/></svg><span>예약</span></a>
+    <a href="#" class="tab-item"><svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M16.5 6v.75m0 3v.75m0 3v.75m0 3V18m-9-5.25h5.25M7.5 15h3M3.375 5.25c-.621 0-1.125.504-1.125 1.125v3.026a2.999 2.999 0 0 1 0 5.198v3.026c0 .621.504 1.125 1.125 1.125h17.25c.621 0 1.125-.504 1.125-1.125v-3.026a2.999 2.999 0 0 1 0-5.198V6.375c0-.621-.504-1.125-1.125-1.125H3.375Z"/></svg><span>정기권</span></a>
+    <a href="mypage.html" class="tab-item"><svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M15.75 6a3.75 3.75 0 1 1-7.5 0 3.75 3.75 0 0 1 7.5 0ZM4.501 20.118a7.5 7.5 0 0 1 14.998 0A17.933 17.933 0 0 1 12 21.75c-2.676 0-5.216-.584-7.499-1.632Z"/></svg><span>마이</span></a>
+  </nav>
+</div>
+</body>
+</html>

@@ -1,0 +1,250 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="color-scheme" content="light">
+<title>오늘의 수업 - 강사</title>
+<link rel="stylesheet" as="style" crossorigin href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css">
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700&display=swap" rel="stylesheet">
+<style>
+:root {
+  --color-primary: #E8A4A4;
+  --color-primary-dark: #D48A8A;
+  --color-primary-light: #F5E6D3;
+  --color-accent: #D4B896;
+  --color-bg: #FFFBF7;
+  --color-bg-card: #FFFFFF;
+  --color-text-title: #3A3A3A;
+  --color-text-body: #6B6B6B;
+  --color-text-sub: #A0A0A0;
+  --color-border: #EDE4DA;
+  --color-instructor-accent: #8B7355;
+  --color-instructor-accent-dark: #73603F;
+  --radius-sm: 12px;
+  --radius-md: 16px;
+  --radius-full: 24px;
+  --spacing-xs: 8px;
+  --spacing-sm: 12px;
+  --spacing-md: 16px;
+  --spacing-lg: 24px;
+}
+
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+body {
+  font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, sans-serif;
+  background: var(--color-bg);
+  color: var(--color-text-body);
+  -webkit-font-smoothing: antialiased;
+}
+
+.mobile-frame {
+  max-width: 480px;
+  margin: 0 auto;
+  min-height: 100vh;
+  background: var(--color-bg);
+}
+
+.header {
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  background: var(--color-bg);
+  padding: 16px var(--spacing-lg);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-bottom: 1px solid var(--color-border);
+}
+
+.header-title {
+  font-family: 'Playfair Display', serif;
+  font-size: 18px;
+  font-weight: 700;
+  color: var(--color-text-title);
+}
+
+.header-logout {
+  font-size: 13px;
+  color: var(--color-text-sub);
+  text-decoration: none;
+  cursor: pointer;
+  transition: color 0.2s;
+}
+
+.header-logout:hover {
+  color: var(--color-instructor-accent);
+}
+
+.tabs {
+  display: flex;
+  border-bottom: 1px solid var(--color-border);
+  padding: 0 var(--spacing-lg);
+  background: var(--color-bg);
+}
+
+.tab {
+  flex: 1;
+  text-align: center;
+  padding: 14px 0;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--color-text-sub);
+  cursor: pointer;
+  border-bottom: 2px solid transparent;
+  transition: all 0.3s;
+}
+
+.tab.active {
+  color: var(--color-instructor-accent);
+  border-bottom-color: var(--color-instructor-accent);
+}
+
+.tab:hover:not(.active) {
+  color: var(--color-text-body);
+}
+
+.content {
+  padding: var(--spacing-lg);
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-md);
+}
+
+.class-card {
+  background: var(--color-bg-card);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-sm);
+  box-shadow: 0 2px 12px rgba(139, 115, 85, 0.06);
+  transition: box-shadow 0.3s;
+}
+
+.class-card:hover {
+  box-shadow: 0 4px 20px rgba(139, 115, 85, 0.1);
+}
+
+.class-card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.class-time {
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--color-text-title);
+}
+
+.class-badge {
+  font-size: 12px;
+  font-weight: 600;
+  padding: 4px 12px;
+  border-radius: var(--radius-full);
+  background: var(--color-primary-light);
+  color: var(--color-instructor-accent);
+}
+
+.class-name {
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--color-text-title);
+}
+
+.class-meta {
+  display: flex;
+  gap: var(--spacing-md);
+  font-size: 13px;
+  color: var(--color-text-sub);
+}
+
+.class-meta svg {
+  width: 16px;
+  height: 16px;
+  vertical-align: middle;
+  margin-right: 2px;
+}
+
+.btn-attendance {
+  background: transparent;
+  color: var(--color-instructor-accent);
+  border: 2px solid var(--color-instructor-accent);
+  border-radius: var(--radius-full);
+  padding: 12px;
+  font-size: 14px;
+  font-weight: 600;
+  font-family: 'Pretendard', sans-serif;
+  cursor: pointer;
+  transition: all 0.3s;
+  width: 100%;
+}
+
+.btn-attendance:hover {
+  background: var(--color-instructor-accent);
+  color: #FFFFFF;
+}
+</style>
+</head>
+<body>
+<div class="mobile-frame">
+  <header class="header">
+    <h1 class="header-title">박지영 강사님</h1>
+    <a class="header-logout" href="login.html">로그아웃</a>
+  </header>
+
+  <div class="tabs">
+    <div class="tab active" onclick="switchTab(this)">오늘</div>
+    <div class="tab" onclick="switchTab(this)">내일</div>
+    <div class="tab" onclick="switchTab(this)">이번 주</div>
+  </div>
+
+  <main class="content">
+    <div class="class-card">
+      <div class="class-card-header">
+        <span class="class-time">09:00 - 09:50</span>
+        <span class="class-badge">그룹</span>
+      </div>
+      <div class="class-name">그룹 필라테스</div>
+      <div class="class-meta">
+        <span><svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M15 19.128a9.38 9.38 0 0 0 2.625.372 9.337 9.337 0 0 0 4.121-.952 4.125 4.125 0 0 0-7.533-2.493M15 19.128v-.003c0-1.113-.285-2.16-.786-3.07M15 19.128v.106A12.318 12.318 0 0 1 8.624 21c-2.331 0-4.512-.645-6.374-1.766l-.001-.109a6.375 6.375 0 0 1 11.964-3.07M12 6.375a3.375 3.375 0 1 1-6.75 0 3.375 3.375 0 0 1 6.75 0Zm8.25 2.25a2.625 2.625 0 1 1-5.25 0 2.625 2.625 0 0 1 5.25 0Z"/></svg>5/8명</span>
+        <span>스튜디오 A</span>
+      </div>
+      <a href="attendance.html" style="text-decoration:none"><button class="btn-attendance">출석 체크</button></a>
+    </div>
+
+    <div class="class-card">
+      <div class="class-card-header">
+        <span class="class-time">11:00 - 11:50</span>
+        <span class="class-badge">그룹</span>
+      </div>
+      <div class="class-name">그룹 필라테스</div>
+      <div class="class-meta">
+        <span><svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M15 19.128a9.38 9.38 0 0 0 2.625.372 9.337 9.337 0 0 0 4.121-.952 4.125 4.125 0 0 0-7.533-2.493M15 19.128v-.003c0-1.113-.285-2.16-.786-3.07M15 19.128v.106A12.318 12.318 0 0 1 8.624 21c-2.331 0-4.512-.645-6.374-1.766l-.001-.109a6.375 6.375 0 0 1 11.964-3.07M12 6.375a3.375 3.375 0 1 1-6.75 0 3.375 3.375 0 0 1 6.75 0Zm8.25 2.25a2.625 2.625 0 1 1-5.25 0 2.625 2.625 0 0 1 5.25 0Z"/></svg>8/8명</span>
+        <span>스튜디오 A</span>
+      </div>
+      <a href="attendance.html" style="text-decoration:none"><button class="btn-attendance">출석 체크</button></a>
+    </div>
+
+    <div class="class-card">
+      <div class="class-card-header">
+        <span class="class-time">19:00 - 19:50</span>
+        <span class="class-badge">그룹</span>
+      </div>
+      <div class="class-name">그룹 필라테스</div>
+      <div class="class-meta">
+        <span><svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M15 19.128a9.38 9.38 0 0 0 2.625.372 9.337 9.337 0 0 0 4.121-.952 4.125 4.125 0 0 0-7.533-2.493M15 19.128v-.003c0-1.113-.285-2.16-.786-3.07M15 19.128v.106A12.318 12.318 0 0 1 8.624 21c-2.331 0-4.512-.645-6.374-1.766l-.001-.109a6.375 6.375 0 0 1 11.964-3.07M12 6.375a3.375 3.375 0 1 1-6.75 0 3.375 3.375 0 0 1 6.75 0Zm8.25 2.25a2.625 2.625 0 1 1-5.25 0 2.625 2.625 0 0 1 5.25 0Z"/></svg>7/8명</span>
+        <span>스튜디오 A</span>
+      </div>
+      <a href="attendance.html" style="text-decoration:none"><button class="btn-attendance">출석 체크</button></a>
+    </div>
+  </main>
+</div>
+<script>
+function switchTab(el){document.querySelectorAll('.tab').forEach(function(t){t.classList.remove('active')});el.classList.add('active')}
+</script>
+</body>
+</html>
