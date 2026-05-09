@@ -238,24 +238,32 @@ public class DemoSeedRunner implements ApplicationRunner {
             Member m = members.get(i);
             if (m.getStatus() == MemberStatus.WITHDRAWN) continue;
 
-            MembershipPass pass = passes.get(random.nextInt(passes.size()));
+            MembershipPass pass = passes.get(i % passes.size());
             int totalCount = pass.getTotalCount() != null ? pass.getTotalCount() : 30;
-            int remaining = Math.max(1, random.nextInt(totalCount + 1));
-            LocalDate startDate = LocalDate.now().minusDays(random.nextInt(60));
+            // 대부분 활성: startDate = 최근, endDate = 미래
+            LocalDate startDate = LocalDate.now().minusDays(random.nextInt(20));
             LocalDate endDate = startDate.plusDays(pass.getValidityDays());
-            MembershipStatus status = endDate.isBefore(LocalDate.now()) ? MembershipStatus.EXPIRED
-                    : remaining == 0 ? MembershipStatus.EXHAUSTED : MembershipStatus.ACTIVE;
+            int remaining = Math.max(2, totalCount - random.nextInt(totalCount / 2 + 1));
+            MembershipStatus status = MembershipStatus.ACTIVE;
 
-            // 만료 임박 5건
-            if (i >= 20 && i < 25) {
-                endDate = LocalDate.now().plusDays(random.nextInt(7));
-                status = MembershipStatus.ACTIVE;
-                remaining = random.nextInt(3) + 1;
+            // 5건 만료 처리
+            if (i >= 23 && i < 25) {
+                startDate = LocalDate.now().minusDays(100);
+                endDate = LocalDate.now().minusDays(10);
+                remaining = 0;
+                status = MembershipStatus.EXPIRED;
             }
-            // 잔여 1회 이하 5건
+            // 만료 임박 5건 (D-0 ~ D-6)
+            if (i >= 15 && i < 20) {
+                startDate = LocalDate.now().minusDays(pass.getValidityDays() - random.nextInt(7));
+                endDate = LocalDate.now().plusDays(random.nextInt(7));
+                remaining = random.nextInt(3) + 2;
+                status = MembershipStatus.ACTIVE;
+            }
+            // 잔여 1회 이하 3건
             if (i >= 25 && i < 28) {
-                remaining = random.nextInt(2);
-                status = remaining == 0 ? MembershipStatus.EXHAUSTED : MembershipStatus.ACTIVE;
+                remaining = 1;
+                status = MembershipStatus.ACTIVE;
                 endDate = LocalDate.now().plusDays(30);
             }
 
