@@ -87,3 +87,17 @@ java -jar build/libs/pilates-studio-0.0.1-SNAPSHOT.jar \
 | `REDIS_PASSWORD` | Redis 비밀번호 |
 | `JWT_SECRET` | JWT 서명 키 (최소 32자) |
 | `CORS_ALLOWED_ORIGINS` | CORS 허용 도메인 |
+
+## 권한 시스템
+
+4개 역할로 API 접근을 분리한다.
+
+| 역할 | 로그인 경로 | 접근 가능 API |
+|------|------------|--------------|
+| MEMBER | `POST /api/auth/login` | `/api/members/me/**`, `/api/reservations/**` |
+| INSTRUCTOR | `POST /api/admin/auth/login` | `/api/instructor/**`, `/api/admin/**` |
+| ADMIN | `POST /api/admin/auth/login` | `/api/admin/**` |
+| SUPER_ADMIN | `POST /api/admin/auth/login` | `/api/admin/**` |
+
+- 자세한 권한 매트릭스: `docs/ARCHITECTURE.md` 7장 참고
+- 테스트 시 토큰 발급: `AuthTestHelper` 활용 (`src/test/java/.../integration/support/`)
