@@ -73,9 +73,9 @@ dependencies {
     testRuntimeOnly("org.junit.platform:junit-platform-launcher")
 
     // ── Testcontainers ──
-    testImplementation("org.testcontainers:testcontainers:1.19.8")
-    testImplementation("org.testcontainers:junit-jupiter:1.19.8")
-    testImplementation("org.testcontainers:mysql:1.19.8")
+    testImplementation("org.testcontainers:testcontainers:1.20.4")
+    testImplementation("org.testcontainers:junit-jupiter:1.20.4")
+    testImplementation("org.testcontainers:mysql:1.20.4")
 }
 
 tasks.withType<Test> {
