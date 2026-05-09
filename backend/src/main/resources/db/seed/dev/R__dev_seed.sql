@@ -85,7 +85,19 @@ INSERT INTO holidays (holiday_date, name) VALUES
     ('2026-10-03', '개천절')
 ON DUPLICATE KEY UPDATE name = VALUES(name);
 
--- ── 개발용 정기권-수업 유형 매핑 예시 ──
--- 실제 정기권 데이터가 있어야 하므로 주석 처리. 도메인 개발 후 활성화.
+-- ── 개발용 정기권 (회원 가입 후 사용 가능) ──
+-- 회원이 존재하는 경우에만 삽입. 개발 테스트 시 회원 가입 후 아래 쿼리를 직접 실행하거나,
+-- Admin API(POST /api/admin/memberships)로 발급한다.
+-- 예시: 12회권, 그룹+듀엣, 480000원, 2026-01-15 ~ 2026-07-30
+--
+-- INSERT INTO memberships (public_id, member_id, total_count, remaining_count, is_unlimited, start_date, end_date, price, status)
+-- VALUES ('dev_membership_001', (SELECT id FROM members WHERE deleted_at IS NULL LIMIT 1),
+--         12, 8, 0, '2026-01-15', '2026-07-30', 480000, 'ACTIVE')
+-- ON DUPLICATE KEY UPDATE status = VALUES(status);
+--
 -- INSERT INTO membership_lesson_types (membership_id, lesson_type_id) VALUES
---     (1, 3);  -- 예: 1번 정기권 → 그룹 수업
+--     ((SELECT id FROM memberships WHERE public_id = 'dev_membership_001'),
+--      (SELECT id FROM lesson_types WHERE name = '그룹')),
+--     ((SELECT id FROM memberships WHERE public_id = 'dev_membership_001'),
+--      (SELECT id FROM lesson_types WHERE name = '듀엣'))
+-- ON DUPLICATE KEY UPDATE lesson_type_id = VALUES(lesson_type_id);

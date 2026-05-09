@@ -263,3 +263,48 @@ sequenceDiagram
 | /api/class-schedules/** | O | O | O | O* |
 
 \* v1에서는 공개 조회 API는 permitAll (인증 불필요)
+
+## 6. 정기권(Membership) 도메인
+
+### 6.1 상태 머신
+
+```mermaid
+stateDiagram-v2
+    [*] --> ACTIVE: 발급
+    ACTIVE --> HOLDING: 일시정지
+    ACTIVE --> EXHAUSTED: 잔여 0
+    ACTIVE --> EXPIRED: 만료 (스케줄러)
+    HOLDING --> ACTIVE: 해제 (endDate += 일시정지 일수)
+    EXHAUSTED --> ACTIVE: 복구 (예약 취소 시)
+```
+
+### 6.2 발급 시퀀스
+
+```mermaid
+sequenceDiagram
+    participant A as Admin
+    participant C as AdminMembershipController
+    participant S as MembershipService
+    participant DB as MySQL
+
+    A->>C: POST /api/admin/memberships {memberId, totalCount, price, validityDays, lessonTypeIds}
+    C->>S: issueMembership(request)
+    S->>DB: Member 존재 확인
+    S->>DB: LessonType 존재 확인
+    S->>DB: INSERT membership (publicId=UUID, start=today, end=today+days, status=ACTIVE)
+    S->>DB: INSERT membership_lesson_types (매핑)
+    S-->>A: 200 {membership 상세}
+```
+
+### 6.3 차감/복구 정책
+- **차감**: `Membership.deduct(count)` — 비관적 락 하에서 호출 (STEP 8 reservation)
+- **무제한권**: 차감 없음, 월 한도는 Service 레벨 카운팅
+- **복구**: `Membership.restore(count)` — 예약 취소 시 (STEP 8)
+- **소진**: 잔여 0이면 자동 EXHAUSTED, 복구 시 ACTIVE 복귀
+
+### 6.4 만료 스케줄러
+- 매일 새벽 4시 실행
+- end_date < today AND status NOT IN (EXPIRED, EXHAUSTED, HOLDING)
+- HOLDING 중 만료: HOLDING 우선 유지 (TODO: 의뢰인 정책 확인)
+
+\* v1에서는 공개 조회 API는 permitAll (인증 불필요)
