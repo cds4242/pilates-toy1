@@ -30,4 +30,6 @@ public interface MembershipRepository extends JpaRepository<Membership, Long> {
     @Lock(LockModeType.PESSIMISTIC_WRITE)
     @Query("SELECT m FROM Membership m WHERE m.id = :id AND m.deletedAt IS NULL")
     Optional<Membership> findByIdForUpdate(@Param("id") Long id);
+
+    List<Membership> findAllByEndDateAndStatusAndDeletedAtIsNull(LocalDate endDate, MembershipStatus status);
 }
