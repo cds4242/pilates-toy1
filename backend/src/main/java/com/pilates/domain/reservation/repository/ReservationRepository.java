@@ -38,4 +38,16 @@ public interface ReservationRepository extends JpaRepository<Reservation, Long> 
             "AND r.status = 'CONFIRMED' AND r.deletedAt IS NULL")
     List<Reservation> findOverdueConfirmedReservations(@Param("date") LocalDate date,
                                                         @Param("time") LocalTime time);
+
+    /** 시간 겹침 예약 조회 (같은 회원, 같은 날짜, CONFIRMED, 시간 겹침) */
+    @Query("SELECT r FROM Reservation r JOIN FETCH r.classSchedule cs " +
+            "WHERE r.member.id = :memberId " +
+            "AND cs.classDate = :classDate " +
+            "AND r.status = 'CONFIRMED' " +
+            "AND r.deletedAt IS NULL " +
+            "AND cs.startTime < :endTime AND cs.endTime > :startTime")
+    List<Reservation> findOverlappingReservations(@Param("memberId") Long memberId,
+                                                    @Param("classDate") LocalDate classDate,
+                                                    @Param("startTime") LocalTime startTime,
+                                                    @Param("endTime") LocalTime endTime);
 }

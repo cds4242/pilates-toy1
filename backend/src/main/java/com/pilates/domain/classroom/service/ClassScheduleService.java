@@ -2,7 +2,9 @@ package com.pilates.domain.classroom.service;
 
 import com.pilates.common.error.BusinessException;
 import com.pilates.common.error.ErrorCode;
+import com.pilates.common.security.encryption.EncryptionService;
 import com.pilates.domain.classroom.dto.ClassScheduleCreateRequest;
+import com.pilates.domain.classroom.dto.ClassScheduleDetailResponse;
 import com.pilates.domain.classroom.dto.ClassScheduleResponse;
 import com.pilates.domain.classroom.entity.ClassSchedule;
 import com.pilates.domain.classroom.entity.ClassScheduleStatus;
@@ -11,6 +13,8 @@ import com.pilates.domain.classroom.repository.ClassScheduleRepository;
 import com.pilates.domain.classroom.repository.LessonTypeRepository;
 import com.pilates.domain.instructor.entity.Instructor;
 import com.pilates.domain.instructor.repository.InstructorRepository;
+import com.pilates.domain.reservation.dto.ReservedMemberInfo;
+import com.pilates.domain.reservation.entity.Reservation;
 import com.pilates.domain.reservation.entity.ReservationStatus;
 import com.pilates.domain.reservation.repository.ReservationRepository;
 import com.pilates.domain.reservation.service.ReservationService;
@@ -38,17 +42,20 @@ public class ClassScheduleService {
     private final LessonTypeRepository lessonTypeRepository;
     private final ReservationService reservationService;
     private final ReservationRepository reservationRepository;
+    private final EncryptionService encryptionService;
 
     public ClassScheduleService(ClassScheduleRepository classScheduleRepository,
                                  InstructorRepository instructorRepository,
                                  LessonTypeRepository lessonTypeRepository,
                                  @Lazy ReservationService reservationService,
-                                 ReservationRepository reservationRepository) {
+                                 ReservationRepository reservationRepository,
+                                 EncryptionService encryptionService) {
         this.classScheduleRepository = classScheduleRepository;
         this.instructorRepository = instructorRepository;
         this.lessonTypeRepository = lessonTypeRepository;
         this.reservationService = reservationService;
         this.reservationRepository = reservationRepository;
+        this.encryptionService = encryptionService;
     }
 
     /**
@@ -183,15 +190,28 @@ public class ClassScheduleService {
 
     /**
      * 강사 본인 수업 상세 조회. 본인 담당이 아니면 예외.
+     * 예약자 리스트(CONFIRMED, NO_SHOW)를 포함하여 반환한다.
      */
     @Transactional(readOnly = true)
-    public ClassScheduleResponse getDetailForInstructor(Long instructorId, Long classScheduleId) {
+    public ClassScheduleDetailResponse getDetailForInstructor(Long instructorId, Long classScheduleId) {
         ClassSchedule cs = findById(classScheduleId);
         if (!cs.getInstructor().getId().equals(instructorId)) {
             throw new BusinessException(ErrorCode.CLASS_NOT_FOUND);
         }
-        // TODO [STEP 8 reservation]: 예약자 리스트를 응답에 포함
-        return toResponse(cs);
+
+        List<Reservation> reservations = reservationRepository.findAllByClassScheduleIdAndStatusIn(
+                classScheduleId, List.of(ReservationStatus.CONFIRMED, ReservationStatus.NO_SHOW));
+
+        List<ReservedMemberInfo> reservedMembers = reservations.stream()
+                .map(r -> new ReservedMemberInfo(
+                        r.getMember().getId(),
+                        encryptionService.decrypt(r.getMember().getName()),
+                        r.getMember().getProfileImageUrl(),
+                        r.getStatus().name()
+                ))
+                .toList();
+
+        return toDetailResponse(cs, reservedMembers);
     }
 
     // ── private ──
@@ -216,6 +236,24 @@ public class ClassScheduleService {
                 cs.getStatus().name(),
                 cs.isReservable(),
                 null
+        );
+    }
+
+    private ClassScheduleDetailResponse toDetailResponse(ClassSchedule cs, List<ReservedMemberInfo> reservations) {
+        return new ClassScheduleDetailResponse(
+                cs.getId(),
+                cs.getClassDate(),
+                cs.getStartTime(),
+                cs.getEndTime(),
+                cs.getInstructor().getId(),
+                cs.getInstructor().getName(),
+                cs.getLessonType().getId(),
+                cs.getLessonType().getName(),
+                cs.getMaxCapacity(),
+                cs.getCurrentCount(),
+                cs.getStatus().name(),
+                cs.isReservable(),
+                reservations
         );
     }
 

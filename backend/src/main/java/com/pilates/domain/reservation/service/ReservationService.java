@@ -72,6 +72,13 @@ public class ReservationService {
             throw new BusinessException(ErrorCode.RESERVATION_DUPLICATE);
         }
 
+        // 2-1. 동일 시간대 다른 수업 겹침 검증
+        if (!reservationRepository.findOverlappingReservations(
+                memberId, classSchedule.getClassDate(),
+                classSchedule.getStartTime(), classSchedule.getEndTime()).isEmpty()) {
+            throw new BusinessException(ErrorCode.RESERVATION_TIME_OVERLAP);
+        }
+
         // 3. 정원 검증
         long confirmedCount = reservationRepository.findAllByClassScheduleIdAndStatusIn(
                 request.classScheduleId(), List.of(ReservationStatus.CONFIRMED)).size();

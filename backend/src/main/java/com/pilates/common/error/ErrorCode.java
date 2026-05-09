@@ -116,6 +116,7 @@ public enum ErrorCode {
     RESERVATION_NOT_OWNED(HttpStatus.FORBIDDEN, "RES_007", "본인의 예약이 아닙니다."),
     RESERVATION_ALREADY_CANCELLED(HttpStatus.BAD_REQUEST, "RES_008", "이미 취소된 예약입니다."),
     RESERVATION_MONTHLY_LIMIT(HttpStatus.BAD_REQUEST, "RES_009", "이번 달 예약 한도를 초과했습니다."),
+    RESERVATION_TIME_OVERLAP(HttpStatus.CONFLICT, "RES_010", "같은 시간대에 이미 다른 수업이 예약되어 있습니다."),
 
     ;
 

@@ -3,6 +3,7 @@ package com.pilates.domain.classroom.controller;
 import com.pilates.common.response.ApiResponse;
 import com.pilates.common.security.auth.LoginMember;
 import com.pilates.common.security.auth.LoginMemberAnnotation;
+import com.pilates.domain.classroom.dto.ClassScheduleDetailResponse;
 import com.pilates.domain.classroom.dto.ClassScheduleResponse;
 import com.pilates.domain.classroom.service.ClassScheduleService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -58,8 +59,7 @@ public class InstructorClassScheduleController {
             @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "404", description = "수업 없음 또는 권한 없음")
     })
     @GetMapping("/{id}")
-    // TODO [STEP 8 reservation]: 예약자 리스트를 응답에 포함 (출석 체크 화면용)
-    public ApiResponse<ClassScheduleResponse> getMyClassDetail(
+    public ApiResponse<ClassScheduleDetailResponse> getMyClassDetail(
             @LoginMemberAnnotation LoginMember loginMember,
             @PathVariable Long id) {
         return ApiResponse.success(
