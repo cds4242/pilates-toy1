@@ -14,12 +14,16 @@ import com.pilates.domain.membership.repository.MembershipLessonTypeRepository;
 import com.pilates.domain.membership.repository.MembershipPassLessonTypeRepository;
 import com.pilates.domain.membership.repository.MembershipPassRepository;
 import com.pilates.domain.membership.repository.MembershipRepository;
+import com.pilates.domain.reservation.entity.ReservationStatus;
+import com.pilates.domain.reservation.repository.ReservationRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.YearMonth;
 import java.time.temporal.ChronoUnit;
 import java.util.List;
 import java.util.UUID;
@@ -40,6 +44,7 @@ public class MembershipService {
     private final MemberRepository memberRepository;
     private final LessonTypeRepository lessonTypeRepository;
     private final EncryptionService encryptionService;
+    private final ReservationRepository reservationRepository;
 
     /**
      * 정기권 발급.
@@ -253,6 +258,17 @@ public class MembershipService {
                 .stream()
                 .map(this::toHoldingResponse)
                 .toList();
+    }
+
+    /**
+     * 월별 사용 횟수 조회 (무제한권 월 한도 체크용).
+     */
+    @Transactional(readOnly = true)
+    public long countMonthlyUsage(Long memberId, YearMonth yearMonth) {
+        LocalDateTime from = yearMonth.atDay(1).atStartOfDay();
+        LocalDateTime to = yearMonth.atEndOfMonth().atTime(23, 59, 59);
+        return reservationRepository.countByMemberIdAndStatusInAndCreatedAtBetween(
+                memberId, List.of(ReservationStatus.CONFIRMED, ReservationStatus.NO_SHOW), from, to);
     }
 
     // ── private ──

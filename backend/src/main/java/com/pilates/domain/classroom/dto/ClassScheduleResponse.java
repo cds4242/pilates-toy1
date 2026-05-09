@@ -45,6 +45,9 @@ public record ClassScheduleResponse(
         String status,
 
         @Schema(description = "예약 가능 여부")
-        boolean reservable
+        boolean reservable,
+
+        @Schema(description = "본인 예약 상태 (RESERVED/NOT_RESERVED/FULL, 비로그인 시 null)")
+        String myReservationStatus
 ) {
 }

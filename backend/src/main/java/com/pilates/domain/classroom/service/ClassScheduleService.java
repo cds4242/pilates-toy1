@@ -11,25 +11,45 @@ import com.pilates.domain.classroom.repository.ClassScheduleRepository;
 import com.pilates.domain.classroom.repository.LessonTypeRepository;
 import com.pilates.domain.instructor.entity.Instructor;
 import com.pilates.domain.instructor.repository.InstructorRepository;
+import com.pilates.domain.reservation.entity.ReservationStatus;
+import com.pilates.domain.reservation.repository.ReservationRepository;
+import com.pilates.domain.reservation.service.ReservationService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 /**
  * 수업 시간표 도메인 서비스.
  */
 @Slf4j
 @Service
-@RequiredArgsConstructor
 public class ClassScheduleService {
 
     private final ClassScheduleRepository classScheduleRepository;
     private final InstructorRepository instructorRepository;
     private final LessonTypeRepository lessonTypeRepository;
+    private final ReservationService reservationService;
+    private final ReservationRepository reservationRepository;
+
+    public ClassScheduleService(ClassScheduleRepository classScheduleRepository,
+                                 InstructorRepository instructorRepository,
+                                 LessonTypeRepository lessonTypeRepository,
+                                 @Lazy ReservationService reservationService,
+                                 ReservationRepository reservationRepository) {
+        this.classScheduleRepository = classScheduleRepository;
+        this.instructorRepository = instructorRepository;
+        this.lessonTypeRepository = lessonTypeRepository;
+        this.reservationService = reservationService;
+        this.reservationRepository = reservationRepository;
+    }
 
     /**
      * 수업 단건 생성 (ad-hoc).
@@ -79,10 +99,7 @@ public class ClassScheduleService {
         }
 
         schedule.cancel();
-        // TODO [STEP 8 reservation]: 휴강 처리 시 다음 작업 연결 필요
-        // 1. 해당 수업의 모든 예약 → status=CANCELLED, cancel_reason="강사 휴강"
-        // 2. 각 예약에 사용된 정기권 → remaining_count + 1 (자동 복구)
-        // 3. 알림 발송 X (의뢰인 정책: 관리자 직접 통보)
+        reservationService.cancelAllByClassSchedule(id, "강사 휴강");
         log.info("수업 취소: id={}, date={}", id, schedule.getClassDate());
     }
 
@@ -114,6 +131,32 @@ public class ClassScheduleService {
                 .findAllByClassDateBetweenAndStatusNot(from, to, ClassScheduleStatus.CANCELLED)
                 .stream()
                 .map(this::toResponse)
+                .toList();
+    }
+
+    /**
+     * 날짜 범위별 수업 목록 조회 + 본인 예약 상태 포함 (회원용).
+     */
+    @Transactional(readOnly = true)
+    public List<ClassScheduleResponse> listByDateRangeWithMyStatus(LocalDate from, LocalDate to, Long memberId) {
+        List<ClassSchedule> schedules = classScheduleRepository
+                .findAllByClassDateBetweenAndStatusNot(from, to, ClassScheduleStatus.CANCELLED);
+
+        if (schedules.isEmpty()) {
+            return List.of();
+        }
+
+        // 배치 쿼리: 해당 수업들에 대한 회원의 예약 조회
+        List<Long> scheduleIds = schedules.stream().map(ClassSchedule::getId).toList();
+        Set<Long> reservedScheduleIds = reservationRepository
+                .findAllByClassScheduleIdInAndMemberIdAndStatusIn(
+                        scheduleIds, memberId, List.of(ReservationStatus.CONFIRMED))
+                .stream()
+                .map(r -> r.getClassSchedule().getId())
+                .collect(Collectors.toSet());
+
+        return schedules.stream()
+                .map(cs -> toResponseWithMyStatus(cs, reservedScheduleIds))
                 .toList();
     }
 
@@ -171,7 +214,35 @@ public class ClassScheduleService {
                 cs.getMaxCapacity(),
                 cs.getCurrentCount(),
                 cs.getStatus().name(),
-                cs.isReservable()
+                cs.isReservable(),
+                null
+        );
+    }
+
+    private ClassScheduleResponse toResponseWithMyStatus(ClassSchedule cs, Set<Long> reservedScheduleIds) {
+        String myStatus;
+        if (reservedScheduleIds.contains(cs.getId())) {
+            myStatus = "RESERVED";
+        } else if (cs.getCurrentCount() >= cs.getMaxCapacity()) {
+            myStatus = "FULL";
+        } else {
+            myStatus = "NOT_RESERVED";
+        }
+
+        return new ClassScheduleResponse(
+                cs.getId(),
+                cs.getClassDate(),
+                cs.getStartTime(),
+                cs.getEndTime(),
+                cs.getInstructor().getId(),
+                cs.getInstructor().getName(),
+                cs.getLessonType().getId(),
+                cs.getLessonType().getName(),
+                cs.getMaxCapacity(),
+                cs.getCurrentCount(),
+                cs.getStatus().name(),
+                cs.isReservable(),
+                myStatus
         );
     }
 }
