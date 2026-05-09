@@ -121,3 +121,12 @@ INSERT IGNORE INTO membership_pass_lesson_types (membership_pass_id, lesson_type
 SELECT mp.id, lt.id FROM membership_pass mp, lesson_types lt WHERE mp.public_id = 'pass_unlimited' AND lt.name = '그룹';
 INSERT IGNORE INTO membership_pass_lesson_types (membership_pass_id, lesson_type_id)
 SELECT mp.id, lt.id FROM membership_pass mp, lesson_types lt WHERE mp.public_id = 'pass_10_private' AND lt.name = '개인';
+
+-- ── 알림 템플릿 5종 ──
+INSERT INTO notification_templates (code, title, body, channel, is_active) VALUES
+    ('RESERVATION_CONFIRM', '예약 확인', '[필라테스 OO점] {memberName}님, {date} {time} {className} 예약이 완료되었습니다.', 'ALIMTALK', TRUE),
+    ('RESERVATION_CANCEL', '예약 취소', '[필라테스 OO점] {memberName}님, {date} {time} 예약이 취소되었습니다.', 'ALIMTALK', TRUE),
+    ('REMINDER_1HOUR', '수업 1시간 전 리마인드', '[필라테스 OO점] {memberName}님, {time} {className} 수업이 1시간 후 시작됩니다.', 'ALIMTALK', TRUE),
+    ('NEW_RESERVATION', '강사 새 예약 알림', '[필라테스 OO점] {instructorName} 강사님, {memberName}님이 {date} {time} 수업을 예약했습니다.', 'ALIMTALK', TRUE),
+    ('MEMBERSHIP_EXPIRING', '정기권 만료 알림', '[필라테스 OO점] {memberName}님, 정기권이 {days}일 후 만료됩니다.', 'ALIMTALK', TRUE)
+ON DUPLICATE KEY UPDATE title = title;
