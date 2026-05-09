@@ -40,6 +40,7 @@ public class SecurityConfig {
             "/api/class-schedules/**",
             "/api/membership-passes/**",
             "/api/payments/confirm",
+            "/api/webhooks/**",
             "/actuator/health",
             "/actuator/info",
             "/swagger-ui/**",

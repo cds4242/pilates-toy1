@@ -102,6 +102,10 @@ public enum ErrorCode {
     PAYMENT_NOT_REFUNDABLE(HttpStatus.BAD_REQUEST, "PAY_006", "환불 가능한 상태가 아닙니다."),
     PAYMENT_REFUND_EXCEEDED(HttpStatus.BAD_REQUEST, "PAY_007", "환불 금액이 환불 가능 금액을 초과합니다."),
 
+    // ── 웹훅 ──
+    WEBHOOK_SIGNATURE_INVALID(HttpStatus.UNAUTHORIZED, "HOOK_001", "웹훅 시그니처가 유효하지 않습니다."),
+    WEBHOOK_DUPLICATE_EVENT(HttpStatus.OK, "HOOK_002", "이미 처리된 웹훅 이벤트입니다."),
+
     ;
 
     private final HttpStatus httpStatus;
