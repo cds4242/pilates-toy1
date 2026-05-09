@@ -11,7 +11,9 @@ const apiClient = axios.create({
 
 // 요청 인터셉터: Authorization 헤더
 apiClient.interceptors.request.use((config) => {
-  if (typeof window !== "undefined") {
+  // 로그인/인증 API는 토큰 불필요
+  const isAuthUrl = config.url?.includes("/auth/login") || config.url?.includes("/auth/signup") || config.url?.includes("/auth/sms");
+  if (typeof window !== "undefined" && !isAuthUrl) {
     const stored = localStorage.getItem("auth-storage");
     if (stored) {
       try {

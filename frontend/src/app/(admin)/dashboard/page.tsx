@@ -83,21 +83,40 @@ export default function AdminDashboardPage() {
 
       {/* 매출 추이 */}
       <div className="mt-6 rounded-[18px] border border-[var(--color-border)] bg-white p-5">
-        <h2 className="text-[18px] font-bold text-[var(--color-text-title)] mb-4">이번 주 매출 추이</h2>
-        {data?.thisWeekRevenue.breakdown && data.thisWeekRevenue.breakdown.length > 0 ? (
-          <div className="flex items-end gap-2 h-[120px]">
-            {data.thisWeekRevenue.breakdown.map((d, i) => {
-              const max = Math.max(...data.thisWeekRevenue.breakdown.map((b) => Number(b.amount)), 1);
-              const h = (Number(d.amount) / max) * 100;
-              return (
-                <div key={i} className="flex-1 flex flex-col items-center gap-1">
-                  <div className="w-full rounded-t-[4px] bg-[var(--color-pilates)] min-h-[2px]" style={{ height: `${h}%` }} />
-                  <span className="text-[10px] text-[var(--color-text-sub)]">{d.date.slice(5)}</span>
-                </div>
-              );
-            })}
-          </div>
-        ) : (
+        <div className="flex items-center justify-between mb-4">
+          <h2 className="text-[18px] font-bold text-[var(--color-text-title)]">이번 주 매출 추이</h2>
+          <span className="text-[13px] text-[var(--color-text-sub)]">총 {Number(data?.thisWeekRevenue.total ?? 0).toLocaleString()}원</span>
+        </div>
+        {data?.thisWeekRevenue.breakdown && data.thisWeekRevenue.breakdown.length > 0 ? (() => {
+          const breakdown = data.thisWeekRevenue.breakdown;
+          const max = Math.max(...breakdown.map((b) => Number(b.amount)), 1);
+          const chartHeight = 160;
+          return (
+            <div className="flex items-end gap-3" style={{ height: chartHeight }}>
+              {breakdown.map((d, i) => {
+                const amt = Number(d.amount);
+                const barH = Math.max(4, (amt / max) * (chartHeight - 30));
+                return (
+                  <div key={i} className="flex-1 flex flex-col items-center justify-end gap-1 group relative" style={{ height: chartHeight }}>
+                    {/* 호버 툴팁 */}
+                    <div className="absolute -top-1 opacity-0 group-hover:opacity-100 transition-opacity bg-text-title text-white text-[11px] px-2 py-1 rounded-[6px] whitespace-nowrap z-10">
+                      {amt.toLocaleString()}원
+                    </div>
+                    {/* 금액 라벨 */}
+                    {amt > 0 && <span className="text-[10px] font-semibold text-[var(--color-text-body)] mb-0.5">{amt >= 10000 ? `${Math.round(amt/10000)}만` : amt.toLocaleString()}</span>}
+                    {/* 바 */}
+                    <div
+                      className="w-full rounded-t-[4px] bg-[var(--color-pilates)] hover:bg-[var(--color-pilates-dark)] transition-colors cursor-pointer"
+                      style={{ height: barH }}
+                    />
+                    {/* 날짜 */}
+                    <span className="text-[10px] text-[var(--color-text-sub)] mt-1">{d.date.slice(5)}</span>
+                  </div>
+                );
+              })}
+            </div>
+          );
+        })() : (
           <p className="text-[15px] text-[var(--color-text-sub)] py-4">매출 데이터가 없습니다</p>
         )}
       </div>
