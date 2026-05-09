@@ -47,13 +47,25 @@ public class Instructor extends BaseEntity {
         this.profileImageUrl = profileImageUrl;
     }
 
-    /** 강사 정보 수정 */
+    /** 강사 정보 수정. null이 아닌 필드만 업데이트. */
     public void updateInfo(String name, String phone, String profileImageUrl) {
-        // TODO: 다음 단계
+        if (name != null && !name.isBlank()) this.name = name;
+        if (phone != null) this.phone = phone;
+        if (profileImageUrl != null) this.profileImageUrl = profileImageUrl;
     }
 
-    /** 상태 변경 */
-    public void changeStatus(InstructorStatus newStatus) {
-        this.status = newStatus;
+    /** 비활성화 */
+    public void deactivate() {
+        this.status = InstructorStatus.INACTIVE;
+    }
+
+    /** 활성화 */
+    public void activate() {
+        this.status = InstructorStatus.ACTIVE;
+    }
+
+    /** 활성 상태인지 */
+    public boolean isActive() {
+        return this.status == InstructorStatus.ACTIVE;
     }
 }

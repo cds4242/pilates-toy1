@@ -108,25 +108,63 @@ public class ClassSchedule {
         this.status = status;
     }
 
-    // ── 도메인 메서드 (placeholder) ──
+    // ── 도메인 메서드 ──
 
-    /** 예약 인원 증가 */
+    /** 고정 스케줄 기반 수업 생성 (팩토리) */
+    public static ClassSchedule createFromFixed(FixedSchedule fixed, LocalDate classDate) {
+        return ClassSchedule.builder()
+                .instructor(fixed.getInstructor())
+                .lessonType(fixed.getLessonType())
+                .fixedSchedule(fixed)
+                .classDate(classDate)
+                .startTime(fixed.getStartTime())
+                .endTime(fixed.getEndTime())
+                .maxCapacity(fixed.getLessonType().getMaxCapacity())
+                .status(ClassScheduleStatus.SCHEDULED)
+                .build();
+    }
+
+    /** 예약 인원 증가. 정원 초과 시 IllegalStateException. */
     public void incrementCount() {
-        // TODO: maxCapacity 초과 검증
+        if (this.currentCount >= this.maxCapacity) {
+            throw new IllegalStateException("정원이 가득 찼습니다.");
+        }
+        this.currentCount++;
     }
 
-    /** 예약 인원 감소 */
+    /** 예약 인원 감소. 0 미만 방지. */
     public void decrementCount() {
-        // TODO: 0 미만 방지
+        if (this.currentCount <= 0) {
+            throw new IllegalStateException("예약 인원이 0입니다.");
+        }
+        this.currentCount--;
     }
 
-    /** 수업 취소 */
+    /** 수업 취소 (휴강). SCHEDULED 상태에서만 가능. */
     public void cancel() {
-        // TODO: 상태 전이 검증
+        if (this.status != ClassScheduleStatus.SCHEDULED) {
+            throw new IllegalStateException("예정 상태의 수업만 취소할 수 있습니다. 현재: " + this.status);
+        }
+        this.status = ClassScheduleStatus.CANCELLED;
     }
 
-    /** 수업 완료 */
+    /** 수업 완료 처리. SCHEDULED 상태에서만 가능. */
     public void complete() {
-        // TODO: 상태 전이 검증
+        if (this.status != ClassScheduleStatus.SCHEDULED) {
+            throw new IllegalStateException("예정 상태의 수업만 완료할 수 있습니다. 현재: " + this.status);
+        }
+        this.status = ClassScheduleStatus.COMPLETED;
+    }
+
+    /** 예약 가능 여부 */
+    public boolean isReservable() {
+        return this.status == ClassScheduleStatus.SCHEDULED
+                && this.currentCount < this.maxCapacity
+                && !this.classDate.isBefore(LocalDate.now());
+    }
+
+    /** 취소 가능 여부 */
+    public boolean isCancellable() {
+        return this.status == ClassScheduleStatus.SCHEDULED;
     }
 }

@@ -78,4 +78,19 @@ public class FixedSchedule {
         this.endTime = endTime;
         this.active = active;
     }
+
+    /** 고정 스케줄 정보 수정 */
+    public void updateInfo(Instructor instructor, LessonType lessonType,
+                           DayOfWeek dayOfWeek, LocalTime startTime, LocalTime endTime) {
+        if (instructor != null) this.instructor = instructor;
+        if (lessonType != null) this.lessonType = lessonType;
+        if (dayOfWeek != null) this.dayOfWeek = dayOfWeek;
+        if (startTime != null) this.startTime = startTime;
+        if (endTime != null) this.endTime = endTime;
+    }
+
+    /** 비활성화 */
+    public void deactivate() {
+        this.active = false;
+    }
 }

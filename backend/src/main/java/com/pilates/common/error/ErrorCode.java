@@ -55,6 +55,27 @@ public enum ErrorCode {
     PROFILE_IMAGE_INVALID_TYPE(HttpStatus.BAD_REQUEST, "IMG_003", "JPG, PNG, WebP 형식만 지원합니다."),
     PROFILE_IMAGE_UPLOAD_FAILED(HttpStatus.INTERNAL_SERVER_ERROR, "IMG_004", "이미지 업로드에 실패했습니다."),
 
+    // ── 강사 ──
+    INSTRUCTOR_NOT_FOUND(HttpStatus.NOT_FOUND, "INST_001", "강사를 찾을 수 없습니다."),
+    INSTRUCTOR_ALREADY_INACTIVE(HttpStatus.BAD_REQUEST, "INST_002", "이미 비활성 상태인 강사입니다."),
+    INSTRUCTOR_ALREADY_ACTIVE(HttpStatus.BAD_REQUEST, "INST_003", "이미 활성 상태인 강사입니다."),
+    INSTRUCTOR_TIME_OVERLAP(HttpStatus.BAD_REQUEST, "INST_004", "근무 가능 시간이 겹칩니다."),
+
+    // ── 수업 유형 ──
+    LESSON_TYPE_NOT_FOUND(HttpStatus.NOT_FOUND, "LESSON_001", "수업 유형을 찾을 수 없습니다."),
+    LESSON_TYPE_DUPLICATE_NAME(HttpStatus.CONFLICT, "LESSON_002", "같은 이름의 수업 유형이 있습니다."),
+
+    // ── 고정 스케줄 ──
+    FIXED_SCHEDULE_NOT_FOUND(HttpStatus.NOT_FOUND, "FIXED_001", "고정 스케줄을 찾을 수 없습니다."),
+    FIXED_SCHEDULE_TIME_CONFLICT(HttpStatus.CONFLICT, "FIXED_002", "같은 강사의 시간이 겹칩니다."),
+    FIXED_SCHEDULE_OUT_OF_AVAILABLE(HttpStatus.BAD_REQUEST, "FIXED_003", "강사 근무 가능 시간 외입니다."),
+
+    // ── 수업 시간표 ──
+    CLASS_NOT_FOUND(HttpStatus.NOT_FOUND, "CLASS_001", "수업을 찾을 수 없습니다."),
+    CLASS_ALREADY_CANCELLED(HttpStatus.BAD_REQUEST, "CLASS_002", "이미 취소된 수업입니다."),
+    CLASS_ALREADY_COMPLETED(HttpStatus.BAD_REQUEST, "CLASS_003", "이미 완료된 수업입니다."),
+    CLASS_PAST_MODIFICATION(HttpStatus.BAD_REQUEST, "CLASS_004", "과거 수업은 수정할 수 없습니다."),
+
     ;
 
     private final HttpStatus httpStatus;

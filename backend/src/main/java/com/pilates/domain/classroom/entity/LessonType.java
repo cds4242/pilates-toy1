@@ -72,4 +72,17 @@ public class LessonType {
         this.deductionCount = deductionCount != null ? deductionCount : 1;
         this.active = active;
     }
+
+    /** 수업 유형 정보 수정. null이 아닌 필드만 업데이트. */
+    public void updateInfo(String name, Integer maxCapacity, Integer durationMinutes, Integer deductionCount) {
+        if (name != null && !name.isBlank()) this.name = name;
+        if (maxCapacity != null) this.maxCapacity = maxCapacity;
+        if (durationMinutes != null) this.durationMinutes = durationMinutes;
+        if (deductionCount != null) this.deductionCount = deductionCount;
+    }
+
+    /** 비활성화 */
+    public void deactivate() {
+        this.active = false;
+    }
 }
