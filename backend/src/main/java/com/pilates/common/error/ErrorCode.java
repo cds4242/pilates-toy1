@@ -40,6 +40,7 @@ public enum ErrorCode {
     SMS_CODE_EXPIRED(HttpStatus.BAD_REQUEST, "SMS_003", "인증번호가 만료되었습니다. 다시 요청해주세요."),
     SMS_CODE_MISMATCH(HttpStatus.BAD_REQUEST, "SMS_004", "인증번호가 일치하지 않습니다."),
     SMS_VERIFICATION_REQUIRED(HttpStatus.BAD_REQUEST, "SMS_005", "SMS 인증이 필요합니다."),
+    SMS_SERVICE_UNAVAILABLE(HttpStatus.SERVICE_UNAVAILABLE, "SMS_006", "SMS 인증 서비스를 일시적으로 사용할 수 없습니다."),
 
     ;
 

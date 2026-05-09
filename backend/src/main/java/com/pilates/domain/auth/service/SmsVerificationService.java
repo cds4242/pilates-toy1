@@ -5,6 +5,7 @@ import com.pilates.common.error.ErrorCode;
 import com.pilates.common.sms.SmsService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.redis.RedisConnectionFailureException;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Service;
 
@@ -48,25 +49,32 @@ public class SmsVerificationService {
      * @param phoneNumber 정규화된 전화번호 (01012345678)
      */
     public void sendVerificationCode(String phoneNumber) {
-        checkRateLimit(phoneNumber);
+        try {
+            checkRateLimit(phoneNumber);
 
-        String code = generateCode();
+            String code = generateCode();
 
-        // Redis에 인증번호 저장 (기존 코드 덮어쓰기)
-        redisTemplate.opsForValue().set(KEY_CODE + phoneNumber, code, CODE_TTL);
+            // Redis에 인증번호 저장 (기존 코드 덮어쓰기)
+            redisTemplate.opsForValue().set(KEY_CODE + phoneNumber, code, CODE_TTL);
 
-        // 1분 Rate Limit 카운터 설정
-        redisTemplate.opsForValue().set(KEY_RATE + phoneNumber, "1", RATE_LIMIT_TTL);
+            // 1분 Rate Limit 카운터 설정
+            redisTemplate.opsForValue().set(KEY_RATE + phoneNumber, "1", RATE_LIMIT_TTL);
 
-        // 일일 카운터 증가
-        String dailyKey = KEY_DAILY + phoneNumber;
-        Long count = redisTemplate.opsForValue().increment(dailyKey);
-        if (count != null && count == 1) {
-            redisTemplate.expire(dailyKey, DAILY_LIMIT_TTL);
+            // 일일 카운터 증가
+            String dailyKey = KEY_DAILY + phoneNumber;
+            Long count = redisTemplate.opsForValue().increment(dailyKey);
+            if (count != null && count == 1) {
+                redisTemplate.expire(dailyKey, DAILY_LIMIT_TTL);
+            }
+
+            // SMS 발송
+            smsService.send(phoneNumber, "[필라테스] 인증번호: " + code + " (5분 이내 입력)");
+        } catch (BusinessException e) {
+            throw e;
+        } catch (RedisConnectionFailureException e) {
+            log.error("Redis 연결 실패: SMS 인증 서비스 불가", e);
+            throw new BusinessException(ErrorCode.SMS_SERVICE_UNAVAILABLE);
         }
-
-        // SMS 발송
-        smsService.send(phoneNumber, "[필라테스] 인증번호: " + code + " (5분 이내 입력)");
     }
 
     /**
@@ -76,23 +84,30 @@ public class SmsVerificationService {
      * @return 인증 성공 시 verifiedToken (UUID), 회원가입 API에서 사용
      */
     public String verifyCode(String phoneNumber, String code) {
-        String storedCode = redisTemplate.opsForValue().get(KEY_CODE + phoneNumber);
+        try {
+            String storedCode = redisTemplate.opsForValue().get(KEY_CODE + phoneNumber);
 
-        if (storedCode == null) {
-            throw new BusinessException(ErrorCode.SMS_CODE_EXPIRED);
+            if (storedCode == null) {
+                throw new BusinessException(ErrorCode.SMS_CODE_EXPIRED);
+            }
+
+            if (!storedCode.equals(code)) {
+                throw new BusinessException(ErrorCode.SMS_CODE_MISMATCH);
+            }
+
+            // 인증 성공: 코드 삭제 + verifiedToken 발급
+            redisTemplate.delete(KEY_CODE + phoneNumber);
+
+            String verifiedToken = UUID.randomUUID().toString().replace("-", "");
+            redisTemplate.opsForValue().set(KEY_VERIFIED + verifiedToken, phoneNumber, VERIFIED_TTL);
+
+            return verifiedToken;
+        } catch (BusinessException e) {
+            throw e;
+        } catch (RedisConnectionFailureException e) {
+            log.error("Redis 연결 실패: SMS 인증 검증 불가", e);
+            throw new BusinessException(ErrorCode.SMS_SERVICE_UNAVAILABLE);
         }
-
-        if (!storedCode.equals(code)) {
-            throw new BusinessException(ErrorCode.SMS_CODE_MISMATCH);
-        }
-
-        // 인증 성공: 코드 삭제 + verifiedToken 발급
-        redisTemplate.delete(KEY_CODE + phoneNumber);
-
-        String verifiedToken = UUID.randomUUID().toString().replace("-", "");
-        redisTemplate.opsForValue().set(KEY_VERIFIED + verifiedToken, phoneNumber, VERIFIED_TTL);
-
-        return verifiedToken;
     }
 
     /**
@@ -102,14 +117,21 @@ public class SmsVerificationService {
      * @return 인증된 전화번호
      */
     public String getVerifiedPhoneNumber(String verifiedToken) {
-        String phoneNumber = redisTemplate.opsForValue().get(KEY_VERIFIED + verifiedToken);
+        try {
+            String phoneNumber = redisTemplate.opsForValue().get(KEY_VERIFIED + verifiedToken);
 
-        if (phoneNumber == null) {
-            throw new BusinessException(ErrorCode.SMS_VERIFICATION_REQUIRED);
+            if (phoneNumber == null) {
+                throw new BusinessException(ErrorCode.SMS_VERIFICATION_REQUIRED);
+            }
+
+            redisTemplate.delete(KEY_VERIFIED + verifiedToken);
+            return phoneNumber;
+        } catch (BusinessException e) {
+            throw e;
+        } catch (RedisConnectionFailureException e) {
+            log.error("Redis 연결 실패: SMS 인증 토큰 조회 불가", e);
+            throw new BusinessException(ErrorCode.SMS_SERVICE_UNAVAILABLE);
         }
-
-        redisTemplate.delete(KEY_VERIFIED + verifiedToken);
-        return phoneNumber;
     }
 
     private void checkRateLimit(String phoneNumber) {
