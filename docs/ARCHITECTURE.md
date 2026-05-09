@@ -507,8 +507,10 @@ sequenceDiagram
     RS->>EP: publishEvent(ReservationCreatedEvent)
     Note over RS: 트랜잭션 커밋
     EP->>NL: @TransactionalEventListener(AFTER_COMMIT)
-    NL->>NS: createNotificationByMemberId()
-    NS->>DB: INSERT notification (PENDING)
+    NL->>NS: createNotificationForMember(memberId)
+    NS->>DB: INSERT notification (PENDING, recipientType=MEMBER)
+    NL->>NS: createNotificationForInstructor(instructorId)
+    NS->>DB: INSERT notification (PENDING, recipientType=INSTRUCTOR)
     NL->>NS: send(notificationId) [@Async]
 
     alt 알림톡 성공
@@ -543,7 +545,25 @@ sequenceDiagram
 | GET | /api/admin/notifications/statistics | - | O |
 | POST | /api/admin/notifications/{id}/resend | - | O |
 
-### 10.5 의뢰인 정책
+### 10.5 Recipient 일반화 패턴
+
+notifications 테이블은 `recipient_type` + `recipient_id`로 다중 수신자를 지원한다.
+
+| recipientType | recipientId 참조 | phone 조회 |
+|---------------|-----------------|------------|
+| MEMBER | members.id | encryptionService.decrypt(member.phoneEncrypted) |
+| INSTRUCTOR | instructors.id | encryptionService.decrypt(instructor.phoneEncrypted) |
+
+- `Notification.createForMember()` / `Notification.createForInstructor()` 팩토리 사용
+- `NotificationService.resolvePhone()` — recipientType 분기로 phone 복호화
+- 권한 검증: recipientType + recipientId 일치 확인 (회원이 강사 알림 조회 불가)
+
+### 10.6 강사 phone 암호화 (STEP 5 보강)
+
+V10 마이그레이션으로 instructors 테이블에 `phone_encrypted` (AES-256) + `phone_hash` (SHA-256) 추가.
+회원 phone과 동일한 암호화 패턴 적용. 기존 phone 컬럼은 점진 제거 예정.
+
+### 10.7 의뢰인 정책
 
 - **휴강 처리 시 알림 X**: `cancelAllByClassSchedule`은 이벤트를 발행하지 않음
 - **알림톡 실패 → SMS 자동 폴백**: Mock에서는 `FAIL_` prefix로 실패 시뮬레이션
