@@ -7,6 +7,7 @@ package com.pilates.domain.notification.event;
 public record ReservationCreatedEvent(
         Long reservationId,
         Long memberId,
+        Long instructorId,
         Long classScheduleId,
         String memberName,
         String className,

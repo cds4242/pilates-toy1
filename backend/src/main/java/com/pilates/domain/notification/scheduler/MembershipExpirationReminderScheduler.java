@@ -45,7 +45,8 @@ public class MembershipExpirationReminderScheduler {
         for (Membership membership : expiringMemberships) {
             // 이미 알림 발송된 건 제외
             String templateCode = "MEMBERSHIP_EXPIRING_" + membership.getId();
-            List<Notification> existing = notificationRepository.findRecentByMemberAndType(
+            List<Notification> existing = notificationRepository.findRecentByRecipientAndType(
+                    com.pilates.domain.notification.entity.RecipientType.MEMBER,
                     membership.getMember().getId(), NotificationType.MEMBERSHIP_EXPIRING,
                     templateCode, LocalDateTime.now().minusDays(7));
             if (!existing.isEmpty()) {
@@ -55,8 +56,8 @@ public class MembershipExpirationReminderScheduler {
             String memberName = encryptionService.decrypt(membership.getMember().getName());
             String content = String.format("[필라테스 OO점] %s님, 정기권이 3일 후 만료됩니다.", memberName);
 
-            Notification notification = notificationService.createNotification(
-                    membership.getMember(), NotificationType.MEMBERSHIP_EXPIRING,
+            Notification notification = notificationService.createNotificationForMember(
+                    membership.getMember().getId(), NotificationType.MEMBERSHIP_EXPIRING,
                     templateCode, content, LocalDateTime.now());
             notificationService.send(notification.getId());
             sentCount++;

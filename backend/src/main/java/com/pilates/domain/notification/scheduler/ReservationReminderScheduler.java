@@ -65,7 +65,8 @@ public class ReservationReminderScheduler {
             for (Reservation reservation : confirmedReservations) {
                 // 이미 리마인드 발송된 건 제외
                 String templateCode = "REMINDER_1HOUR_" + cs.getId() + "_" + reservation.getMember().getId();
-                List<Notification> existing = notificationRepository.findRecentByMemberAndType(
+                List<Notification> existing = notificationRepository.findRecentByRecipientAndType(
+                        com.pilates.domain.notification.entity.RecipientType.MEMBER,
                         reservation.getMember().getId(), NotificationType.REMINDER_1HOUR,
                         templateCode, LocalDateTime.now().minusHours(2));
                 if (!existing.isEmpty()) {
@@ -76,8 +77,8 @@ public class ReservationReminderScheduler {
                 String content = String.format("[필라테스 OO점] %s님, %s %s 수업이 1시간 후 시작됩니다.",
                         memberName, cs.getStartTime(), cs.getLessonType().getName());
 
-                Notification notification = notificationService.createNotification(
-                        reservation.getMember(), NotificationType.REMINDER_1HOUR,
+                Notification notification = notificationService.createNotificationForMember(
+                        reservation.getMember().getId(), NotificationType.REMINDER_1HOUR,
                         templateCode, content, LocalDateTime.now());
                 notificationService.send(notification.getId());
                 sentCount++;

@@ -24,13 +24,14 @@ public class NotificationEventListener {
 
     @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
     public void handleReservationCreated(ReservationCreatedEvent event) {
-        log.info("예약 생성 알림 이벤트: reservationId={}, memberId={}", event.reservationId(), event.memberId());
+        log.info("예약 생성 알림 이벤트: reservationId={}, memberId={}, instructorId={}",
+                event.reservationId(), event.memberId(), event.instructorId());
 
         try {
             // 1. 회원에게 예약 확인 알림
             String confirmContent = String.format("[필라테스 OO점] %s님, %s %s %s 예약이 완료되었습니다.",
                     event.memberName(), event.classDate(), event.classTime(), event.className());
-            Notification confirmNotif = notificationService.createNotificationByMemberId(
+            Notification confirmNotif = notificationService.createNotificationForMember(
                     event.memberId(), NotificationType.RESERVATION_CONFIRM,
                     "RESERVATION_CONFIRM", confirmContent, LocalDateTime.now());
             notificationService.send(confirmNotif.getId());
@@ -38,8 +39,8 @@ public class NotificationEventListener {
             // 2. 강사에게 새 예약 알림
             String instructorContent = String.format("[필라테스 OO점] %s 강사님, %s님이 %s %s 수업을 예약했습니다.",
                     event.instructorName(), event.memberName(), event.classDate(), event.classTime());
-            Notification instrNotif = notificationService.createNotificationByMemberId(
-                    event.memberId(), NotificationType.NEW_RESERVATION,
+            Notification instrNotif = notificationService.createNotificationForInstructor(
+                    event.instructorId(), NotificationType.NEW_RESERVATION,
                     "NEW_RESERVATION", instructorContent, LocalDateTime.now());
             notificationService.send(instrNotif.getId());
 
@@ -55,7 +56,7 @@ public class NotificationEventListener {
         try {
             String content = String.format("[필라테스 OO점] %s님, %s %s 예약이 취소되었습니다.",
                     event.memberName(), event.classDate(), event.classTime());
-            Notification notification = notificationService.createNotificationByMemberId(
+            Notification notification = notificationService.createNotificationForMember(
                     event.memberId(), NotificationType.RESERVATION_CANCEL,
                     "RESERVATION_CANCEL", content, LocalDateTime.now());
             notificationService.send(notification.getId());

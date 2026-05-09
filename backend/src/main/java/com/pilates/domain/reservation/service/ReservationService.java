@@ -149,7 +149,9 @@ public class ReservationService {
 
         // 알림 이벤트 발행
         eventPublisher.publishEvent(new ReservationCreatedEvent(
-                reservation.getId(), memberId, request.classScheduleId(),
+                reservation.getId(), memberId,
+                classSchedule.getInstructor().getId(),
+                request.classScheduleId(),
                 encryptionService.decrypt(member.getName()),
                 classSchedule.getLessonType().getName(),
                 classSchedule.getInstructor().getName(),
