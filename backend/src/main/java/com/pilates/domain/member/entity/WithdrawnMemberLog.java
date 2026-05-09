@@ -36,11 +36,11 @@ public class WithdrawnMemberLog {
     private String phoneHashOriginal;
 
     /** 탈퇴 전 암호화된 이름 원본 (30일 후 익명화 시 NULL 처리) */
-    @Column(name = "name_original", length = 50)
+    @Column(name = "name_original", length = 512)
     private String nameOriginal;
 
     /** 탈퇴 전 암호화된 생년월일 원본 (30일 후 익명화 시 NULL 처리) */
-    @Column(name = "birth_encrypted_original", length = 255)
+    @Column(name = "birth_encrypted_original", length = 512)
     private String birthEncryptedOriginal;
 
     @NotNull

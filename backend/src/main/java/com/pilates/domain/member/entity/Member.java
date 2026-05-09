@@ -33,9 +33,8 @@ public class Member extends BaseEntity {
     @Column(name = "name", nullable = false, length = 512)
     private String name;
 
-    /** AES-256 암호화된 휴대폰 번호 (복호화하여 표시용) */
-    @NotBlank
-    @Column(name = "phone_encrypted", nullable = false, length = 512)
+    /** AES-256 암호화된 휴대폰 번호 (복호화하여 표시용). 탈퇴 시 NULL 처리. */
+    @Column(name = "phone_encrypted", length = 512)
     private String phoneEncrypted;
 
     /** SHA-256 해시된 휴대폰 번호 (검색/중복 확인용). 탈퇴 시 NULL 처리. */
@@ -92,15 +91,36 @@ public class Member extends BaseEntity {
 
     // ── 도메인 메서드 (placeholder, 다음 단계에서 구현) ──
 
-    /** 회원 정보 수정 */
-    public void updateInfo(String name, String phoneEncrypted, String phoneHash, String birthEncrypted) {
-        // TODO: 다음 단계
+    /** 이름 수정 (암호화된 값) */
+    public void updateName(String encryptedName) {
+        this.name = encryptedName;
+    }
+
+    /** 생년월일 수정 (암호화된 값) */
+    public void updateBirthEncrypted(String encryptedBirth) {
+        this.birthEncrypted = encryptedBirth;
+    }
+
+    /** 비밀번호 변경 (BCrypt 해시된 값) */
+    public void changePassword(String newPasswordHash) {
+        this.passwordHash = newPasswordHash;
     }
 
     /** 상태 변경 */
     public void changeStatus(MemberStatus newStatus) {
-        // TODO: 상태 전이 검증 로직
         this.status = newStatus;
+    }
+
+    /** 프로필 사진 업데이트 */
+    public void updateProfileImage(String imageUrl) {
+        this.profileImageUrl = imageUrl;
+        this.profileImageUploadedAt = java.time.LocalDateTime.now();
+    }
+
+    /** 프로필 사진 삭제 */
+    public void removeProfileImage() {
+        this.profileImageUrl = null;
+        this.profileImageUploadedAt = null;
     }
 
     /** 담당 강사 변경 */

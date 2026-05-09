@@ -3,6 +3,8 @@ package com.pilates.domain.auth.controller;
 import com.pilates.common.response.ApiResponse;
 import com.pilates.domain.auth.dto.*;
 import com.pilates.domain.auth.service.AuthService;
+import com.pilates.domain.member.dto.PasswordResetRequest;
+import com.pilates.domain.member.service.MemberService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -20,6 +22,7 @@ import org.springframework.web.bind.annotation.RestController;
 public class AuthController {
 
     private final AuthService authService;
+    private final MemberService memberService;
 
     /**
      * 회원가입.
@@ -46,5 +49,15 @@ public class AuthController {
     @PostMapping("/refresh")
     public ApiResponse<TokenResponse> refresh(@Valid @RequestBody TokenRefreshRequest request) {
         return ApiResponse.success(authService.refresh(request));
+    }
+
+    /**
+     * 비밀번호 재설정 (SMS 인증 후).
+     * POST /api/auth/reset-password
+     */
+    @PostMapping("/reset-password")
+    public ApiResponse<Void> resetPassword(@Valid @RequestBody PasswordResetRequest request) {
+        memberService.resetPassword(request);
+        return ApiResponse.success();
     }
 }

@@ -49,6 +49,12 @@ public enum ErrorCode {
     // ── 로그인 ──
     AUTH_LOGIN_FAILED(HttpStatus.UNAUTHORIZED, "AUTH_010", "휴대폰 번호 또는 비밀번호가 올바르지 않습니다."),
 
+    // ── 프로필 이미지 ──
+    PROFILE_IMAGE_EMPTY(HttpStatus.BAD_REQUEST, "IMG_001", "이미지 파일을 선택해주세요."),
+    PROFILE_IMAGE_TOO_LARGE(HttpStatus.BAD_REQUEST, "IMG_002", "이미지 크기는 5MB 이하여야 합니다."),
+    PROFILE_IMAGE_INVALID_TYPE(HttpStatus.BAD_REQUEST, "IMG_003", "JPG, PNG, WebP 형식만 지원합니다."),
+    PROFILE_IMAGE_UPLOAD_FAILED(HttpStatus.INTERNAL_SERVER_ERROR, "IMG_004", "이미지 업로드에 실패했습니다."),
+
     ;
 
     private final HttpStatus httpStatus;
