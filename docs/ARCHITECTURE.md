@@ -567,3 +567,99 @@ V10 마이그레이션으로 instructors 테이블에 `phone_encrypted` (AES-256
 
 - **휴강 처리 시 알림 X**: `cancelAllByClassSchedule`은 이벤트를 발행하지 않음
 - **알림톡 실패 → SMS 자동 폴백**: Mock에서는 `FAIL_` prefix로 실패 시뮬레이션
+
+---
+
+## 11. admin 도메인
+
+### 11.1 패키지 구조
+
+```
+domain/admin/
+├── controller/
+│   ├── AdminAuthController.java        # 관리자 인증 (기존)
+│   ├── AdminDashboardController.java   # 대시보드 통합 조회
+│   ├── AdminMemberController.java      # 회원 검색·상세·메모·강제탈퇴
+│   ├── AdminStatisticsController.java  # 매출·회원·출석·인기시간 통계
+│   ├── AdminBulkImportController.java  # 엑셀 일괄 등록·다운로드
+│   └── AdminSettingsController.java    # 학원 설정 (SUPER_ADMIN 전용)
+├── dto/
+│   ├── DashboardResponse.java          # 대시보드 4영역 (수업·매출·만료·알림)
+│   ├── AdminMemberResponse.java        # 회원 리스트 + 상세 (8도메인 통합)
+│   ├── StatisticsResponse.java         # 4종 통계 응답
+│   ├── BulkImportResponse.java         # 엑셀 일괄 결과 (부분 성공)
+│   └── StudioSettingResponse.java      # 학원 설정 Key-Value
+├── entity/
+│   ├── Admin.java, AdminRole.java      # 기존
+│   ├── AdminAuditLog.java              # 감사 로그
+│   ├── StudioSetting.java              # 학원 전역 설정
+│   └── Holiday.java                    # 휴무일
+├── repository/
+│   ├── AdminRepository.java
+│   └── StudioSettingRepository.java
+└── service/
+    ├── AdminAuthService.java           # 기존
+    ├── AdminDashboardService.java      # 대시보드 통합 쿼리
+    ├── AdminMemberService.java         # 회원 관리 + 메모 CRUD
+    ├── AdminStatisticsService.java     # 통계 집계
+    ├── AdminBulkImportService.java     # 엑셀 파싱·등록
+    └── AdminSettingsService.java       # 학원 설정 CRUD
+```
+
+### 11.2 대시보드 통합 쿼리
+
+단일 API (`GET /api/admin/dashboard`)로 4개 영역 데이터를 한 번에 반환:
+
+| 영역 | 데이터 소스 | 쿼리 전략 |
+|------|------------|----------|
+| 오늘 수업 | class_schedules | classDate = today, status ≠ CANCELLED |
+| 이번 주 매출 | payments | paid_at BETWEEN 월~일, COMPLETED/REFUNDED |
+| 만료 임박 정기권 | memberships | end_date ≤ today+7, ACTIVE |
+| 알림 (노쇼) | attendances | 최근 30일 NO_SHOW 3회 이상 |
+| 알림 (잔여 부족) | memberships | remaining_count ≤ 1, ACTIVE, !unlimited |
+
+N+1 방지: member 정보는 ID 수집 후 `findAllById()` 일괄 조회.
+
+### 11.3 통계 쿼리 패턴
+
+4개 통계 엔드포인트:
+
+- **매출**: `payments` → groupBy (daily/weekly/monthly) 집계, net = amount - refundAmount
+- **회원 추이**: `members` → createdAt/deletedAt 기반 가입/탈퇴 카운트
+- **출석률**: `attendances` → 강사별·수업유형별 ATTENDED+LATE / 전체(PENDING 제외) 비율
+- **인기 시간대**: `class_schedules` → 시간대별·요일별 currentCount 합산
+
+인덱스 활용: `idx_payments_paid_at_status`, `idx_members_status_created` (V12 마이그레이션).
+
+### 11.4 엑셀 일괄 처리 흐름
+
+```
+[엑셀 업로드] → [헤더 검증] → [행별 개별 트랜잭션 처리]
+                                    ├─ 성공 → INSERT (members/memberships)
+                                    └─ 실패 → failures 리스트에 추가
+                              → [결과: successCount + failureCount + failures[]]
+```
+
+핵심 설계:
+- **부분 성공**: 각 행을 `TransactionTemplate`으로 독립 트랜잭션 처리. 50번째 실패해도 1~49번째 유지.
+- **검증**: 휴대폰 형식, phone_hash 중복, 필수 필드
+- **제한**: 5MB / 1000행
+- **워크북 자원 관리**: try-with-resources 필수 (메모리 누수 방지)
+
+### 11.5 권한 매트릭스
+
+| 경로 | MEMBER | INSTRUCTOR | ADMIN | SUPER_ADMIN |
+|------|--------|-----------|-------|-------------|
+| /api/admin/dashboard | X | O | O | O |
+| /api/admin/members/** | X | O | O | O |
+| /api/admin/statistics/** | X | O | O | O |
+| /api/admin/members/bulk | X | O | O | O |
+| /api/admin/settings/** | X | X | X | **O (전용)** |
+
+`SecurityConfig`에서 `/api/admin/settings/**` → `hasRole("SUPER_ADMIN")` 우선 매칭.
+회원 메모 수정/삭제는 작성한 admin만 가능 (또는 SUPER_ADMIN 검증 가능).
+
+### 11.6 V12 마이그레이션
+
+- `member_memos`: `admin_id` 추가 (관리자도 메모 작성), `instructor_id` nullable, `deleted_at` 추가
+- 통계 성능 인덱스: `idx_payments_paid_at_status`, `idx_memberships_end_date_status`, `idx_members_status_created`
