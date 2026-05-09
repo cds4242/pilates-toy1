@@ -309,6 +309,57 @@ sequenceDiagram
 
 \* v1에서는 공개 조회 API는 permitAll (인증 불필요)
 
+## 7. 인증·권한 시스템
+
+### 7.1 역할 (Role)
+
+| 역할 | JWT subject | JWT claim | 설명 |
+|------|------------|-----------|------|
+| MEMBER | members.id | role=MEMBER | 회원 (SMS 가입) |
+| INSTRUCTOR | admins.id | role=INSTRUCTOR, instructorId | 강사 (admin 로그인) |
+| ADMIN | admins.id | role=ADMIN | 관리자 |
+| SUPER_ADMIN | admins.id | role=SUPER_ADMIN | 슈퍼 관리자 |
+
+### 7.2 권한 매트릭스
+
+| 경로 | MEMBER | INSTRUCTOR | ADMIN | SUPER_ADMIN |
+|------|--------|------------|-------|-------------|
+| /api/auth/** | permitAll | | | |
+| /api/admin/auth/** | permitAll | | | |
+| /api/health, /api/test/** | permitAll | | | |
+| /api/instructors/** (공개) | permitAll | | | |
+| /api/class-schedules/** (공개) | permitAll | | | |
+| /api/admin/** | X | O | O | O |
+| /api/instructor/** | X | O | O | O |
+| /api/members/me/** | O | O | O | O |
+| 기타 (인증 필요) | O | O | O | O |
+
+### 7.3 인증 시퀀스
+
+```mermaid
+sequenceDiagram
+    participant C as Client
+    participant AC as AdminAuthController
+    participant AS as AdminAuthService
+    participant DB as MySQL
+    participant R as Redis
+
+    Note over C,R: 강사·관리자 로그인
+    C->>AC: POST /api/admin/auth/login {loginId, password}
+    AC->>AS: login(request)
+    AS->>DB: Admin 조회 (login_id)
+    AS->>AS: BCrypt 비밀번호 검증
+    AS->>AS: JWT 발급 (subject=adminId, role, instructorId)
+    AS->>R: Refresh Token 저장
+    AS-->>C: 200 {adminId, role, instructorId, tokens}
+```
+
+### 7.4 JWT 토큰 구조
+- **subject**: userId (members.id 또는 admins.id)
+- **claim "role"**: MEMBER / INSTRUCTOR / ADMIN / SUPER_ADMIN
+- **claim "instructorId"**: 강사인 경우만 (instructors.id)
+- **claim "type"**: access / refresh
+
 ## 9. attendance 도메인
 
 ### 9.1 패키지 구조
