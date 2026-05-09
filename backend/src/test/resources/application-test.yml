@@ -40,3 +40,7 @@ app:
     secret: dGVzdC1qd3Qtc2VjcmV0LWtleS0zMi1ieXRlcyEhISE=
     access-token-expiration: 1800
     refresh-token-expiration: 1209600
+  alimtalk:
+    provider: mock
+    sender-key: test
+    plus-friend-id: "@필라테스OO점"

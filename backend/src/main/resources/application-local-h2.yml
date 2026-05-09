@@ -56,3 +56,7 @@ app:
     refresh-token-expiration: 1209600
   toss:
     secret-key: test_sk_DUMMY
+  alimtalk:
+    provider: mock
+    sender-key: ${ALIMTALK_SENDER_KEY:test}
+    plus-friend-id: ${ALIMTALK_PFID:@필라테스OO점}
