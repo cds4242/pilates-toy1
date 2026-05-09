@@ -83,7 +83,14 @@ export default function MyPage() {
             <span className="flex-1 text-left text-[15px] text-[var(--color-text-title)]">로그아웃</span>
             <ChevronRight className="h-4 w-4 text-[var(--color-text-sub)]" />
           </button>
-          <button onClick={() => toast.info("회원 탈퇴는 마이페이지 > 설정에서 가능합니다")} className="flex items-center gap-4 py-4">
+          <button onClick={async () => {
+            if (!confirm("정말 탈퇴하시겠습니까? 되돌릴 수 없습니다.")) return;
+            try {
+              const { api: callApi } = await import("@/lib/api/client");
+              await callApi("delete", "/api/members/me", { reason: "회원 요청" });
+              toast.success("탈퇴 완료"); logout(); router.push("/login");
+            } catch (err: unknown) { toast.error(err instanceof Error ? err.message : "탈퇴 실패"); }
+          }} className="flex items-center gap-4 py-4">
             <UserX className="h-[18px] w-[18px] shrink-0 text-[var(--color-error)]" />
             <span className="flex-1 text-left text-[15px] text-[var(--color-error)]">회원 탈퇴</span>
             <ChevronRight className="h-4 w-4 text-[var(--color-text-sub)]" />

@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { Bell } from "lucide-react";
 import { useAuthStore } from "@/lib/store/auth-store";
 import { memberApi } from "@/lib/api/member";
@@ -12,6 +13,7 @@ import { formatTime } from "@/lib/utils/format";
 import { toast } from "sonner";
 
 export default function MemberHomePage() {
+  const router = useRouter();
   const { user } = useAuthStore();
   const [member, setMember] = useState<Member | null>(null);
   const [memberships, setMemberships] = useState<Membership[]>([]);
@@ -53,7 +55,7 @@ export default function MemberHomePage() {
         <span className="text-[20px] font-bold text-[var(--color-text-title)]">
           필라테스 OO점
         </span>
-        <button onClick={() => toast.info("알림 기능은 준비 중입니다")} className="relative text-[var(--color-text-title)]">
+        <button onClick={() => router.push("/reservations")} className="relative text-[var(--color-text-title)]">
           <Bell className="h-6 w-6" />
           <span className="absolute -top-1 -right-1 bg-[var(--color-error)] text-white text-[10px] font-bold w-4 h-4 rounded-full flex items-center justify-center">
             2

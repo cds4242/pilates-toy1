@@ -55,7 +55,13 @@ export default function MembershipPage() {
             </div>
           </div>
         )}
-        <button onClick={() => toast.info("수강권 구매 기능은 준비 중입니다")} className="w-full bg-[var(--color-pilates)] hover:bg-[var(--color-pilates-dark)] text-[var(--color-text-title)] rounded-[8px] py-4 text-[16px] font-semibold transition-all">수강권 구매하기</button>
+        <button onClick={async () => {
+          try {
+            const passes = await (await import("@/lib/api/client")).api<{id:number;name:string;price:number;totalCount:number|null;validityDays:number}[]>("get", "/api/membership-passes");
+            const names = passes.map(p => `${p.name} (${p.price.toLocaleString()}원, ${p.totalCount ? p.totalCount+"회" : "무제한"} / ${p.validityDays}일)`).join("\n");
+            alert("구매 가능한 수강권:\n\n" + names + "\n\n결제 연동은 토스페이먼츠 가맹점 등록 후 이용 가능합니다.");
+          } catch { toast.error("수강권 목록 조회 실패"); }
+        }} className="w-full bg-pilates hover:bg-pilates-dark text-text-title rounded-[8px] py-4 text-[16px] font-semibold transition-all">수강권 구매하기</button>
       </main>
       <MobileTabBar />
     </div>
