@@ -31,8 +31,58 @@ ON DUPLICATE KEY UPDATE name = VALUES(name);
 
 -- ── 개발용 강사 ──
 INSERT INTO instructors (public_id, name, phone, status) VALUES
-    ('dev_instructor_001', '김강사', '010-1234-5678', 'ACTIVE'),
-    ('dev_instructor_002', '이강사', '010-2345-6789', 'ACTIVE')
+    ('dev_instructor_001', '박지영', '010-1111-2222', 'ACTIVE'),
+    ('dev_instructor_002', '이수진', '010-3333-4444', 'ACTIVE'),
+    ('dev_instructor_003', '최재훈', '010-5555-6666', 'ACTIVE')
+ON DUPLICATE KEY UPDATE name = VALUES(name);
+
+-- ── 강사 근무 가능 시간 ──
+-- 박지영: 월~금 09:00~18:00
+INSERT INTO instructor_available_times (instructor_id, day_of_week, start_time, end_time) VALUES
+    ((SELECT id FROM instructors WHERE public_id = 'dev_instructor_001'), 'MONDAY', '09:00:00', '18:00:00'),
+    ((SELECT id FROM instructors WHERE public_id = 'dev_instructor_001'), 'TUESDAY', '09:00:00', '18:00:00'),
+    ((SELECT id FROM instructors WHERE public_id = 'dev_instructor_001'), 'WEDNESDAY', '09:00:00', '18:00:00'),
+    ((SELECT id FROM instructors WHERE public_id = 'dev_instructor_001'), 'THURSDAY', '09:00:00', '18:00:00'),
+    ((SELECT id FROM instructors WHERE public_id = 'dev_instructor_001'), 'FRIDAY', '09:00:00', '18:00:00')
+ON DUPLICATE KEY UPDATE start_time = VALUES(start_time);
+
+-- 이수진: 월수금 10:00~19:00
+INSERT INTO instructor_available_times (instructor_id, day_of_week, start_time, end_time) VALUES
+    ((SELECT id FROM instructors WHERE public_id = 'dev_instructor_002'), 'MONDAY', '10:00:00', '19:00:00'),
+    ((SELECT id FROM instructors WHERE public_id = 'dev_instructor_002'), 'WEDNESDAY', '10:00:00', '19:00:00'),
+    ((SELECT id FROM instructors WHERE public_id = 'dev_instructor_002'), 'FRIDAY', '10:00:00', '19:00:00')
+ON DUPLICATE KEY UPDATE start_time = VALUES(start_time);
+
+-- 최재훈: 화목토 09:00~17:00
+INSERT INTO instructor_available_times (instructor_id, day_of_week, start_time, end_time) VALUES
+    ((SELECT id FROM instructors WHERE public_id = 'dev_instructor_003'), 'TUESDAY', '09:00:00', '17:00:00'),
+    ((SELECT id FROM instructors WHERE public_id = 'dev_instructor_003'), 'THURSDAY', '09:00:00', '17:00:00'),
+    ((SELECT id FROM instructors WHERE public_id = 'dev_instructor_003'), 'SATURDAY', '09:00:00', '17:00:00')
+ON DUPLICATE KEY UPDATE start_time = VALUES(start_time);
+
+-- ── 고정 스케줄 예시 ──
+-- 박지영: 월 10:00 개인, 월 11:00 듀엣, 수 14:00 그룹
+INSERT INTO fixed_schedules (instructor_id, lesson_type_id, day_of_week, start_time, end_time, is_active) VALUES
+    ((SELECT id FROM instructors WHERE public_id = 'dev_instructor_001'),
+     (SELECT id FROM lesson_types WHERE name = '개인'), 'MONDAY', '10:00:00', '10:50:00', 1),
+    ((SELECT id FROM instructors WHERE public_id = 'dev_instructor_001'),
+     (SELECT id FROM lesson_types WHERE name = '듀엣'), 'MONDAY', '11:00:00', '11:50:00', 1),
+    ((SELECT id FROM instructors WHERE public_id = 'dev_instructor_001'),
+     (SELECT id FROM lesson_types WHERE name = '그룹'), 'WEDNESDAY', '14:00:00', '14:50:00', 1)
+ON DUPLICATE KEY UPDATE is_active = VALUES(is_active);
+
+-- 이수진: 수 10:00 개인, 금 15:00 듀엣
+INSERT INTO fixed_schedules (instructor_id, lesson_type_id, day_of_week, start_time, end_time, is_active) VALUES
+    ((SELECT id FROM instructors WHERE public_id = 'dev_instructor_002'),
+     (SELECT id FROM lesson_types WHERE name = '개인'), 'WEDNESDAY', '10:00:00', '10:50:00', 1),
+    ((SELECT id FROM instructors WHERE public_id = 'dev_instructor_002'),
+     (SELECT id FROM lesson_types WHERE name = '듀엣'), 'FRIDAY', '15:00:00', '15:50:00', 1)
+ON DUPLICATE KEY UPDATE is_active = VALUES(is_active);
+
+-- ── 공휴일 ──
+INSERT INTO holidays (holiday_date, name) VALUES
+    ('2026-08-15', '광복절'),
+    ('2026-10-03', '개천절')
 ON DUPLICATE KEY UPDATE name = VALUES(name);
 
 -- ── 개발용 정기권-수업 유형 매핑 예시 ──

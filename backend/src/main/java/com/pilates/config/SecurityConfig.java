@@ -35,6 +35,9 @@ public class SecurityConfig {
             "/api/health",
             "/api/auth/**",
             "/api/test/**",
+            "/api/instructors/**",
+            "/api/lesson-types/**",
+            "/api/class-schedules/**",
             "/actuator/health",
             "/actuator/info",
             "/swagger-ui/**",
@@ -49,6 +52,8 @@ public class SecurityConfig {
                 .csrf(AbstractHttpConfigurer::disable)
                 .sessionManagement(session ->
                         session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+                // TODO: /api/admin/** 경로에 ROLE_ADMIN 권한 제한 추가 (admin auth 구현 후)
+                //       현재 v1에서는 인증된 사용자 모두 접근 가능
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers(PUBLIC_URLS).permitAll()
                         .anyRequest().authenticated()

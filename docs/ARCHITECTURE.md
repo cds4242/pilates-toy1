@@ -189,3 +189,77 @@ sequenceDiagram
 | 동시성 (정기권) | memberships.remaining_count | 비관적 락 `FOR UPDATE` |
 | 동시성 (수업 정원) | class_schedules.current_count | 낙관적 락 `@Version` |
 | 동시성 (회원 정보) | members | last-write-wins (v1) |
+
+## 5. 강사 + 수업 도메인
+
+### 5.1 패키지 구조
+```
+domain/instructor/
+├── controller/  AdminInstructorController, PublicInstructorController
+├── dto/         InstructorRegisterRequest, InstructorResponse, AvailableTimeRequest 등
+├── repository/  InstructorRepository, InstructorAvailableTimeRepository
+└── service/     InstructorService
+
+domain/classroom/
+├── controller/  AdminLessonTypeController, AdminFixedScheduleController,
+│                AdminClassScheduleController, MemberClassScheduleController,
+│                PublicLessonTypeController
+├── dto/         LessonTypeRequest, FixedScheduleRequest, ClassScheduleResponse 등
+├── repository/  LessonTypeRepository, FixedScheduleRepository, ClassScheduleRepository
+├── scheduler/   ClassScheduleGenerator (매주 일요일 자정)
+└── service/     LessonTypeService, FixedScheduleService, ClassScheduleService
+```
+
+### 5.2 시간표 구조 (2단계)
+
+```mermaid
+graph LR
+    FS[FixedSchedule<br>주간 반복 템플릿] -->|매주 자동 생성| CS[ClassSchedule<br>실제 수업 인스턴스]
+    AD[관리자 단건 등록] --> CS
+    CS -->|예약| R[Reservation<br>STEP 8]
+```
+
+- **FixedSchedule**: "매주 월요일 10:00 박지영 그룹" (템플릿)
+- **ClassSchedule**: "2026-05-12 월 10:00 박지영 그룹" (실제 수업)
+- 자동 생성: 매주 일요일 자정, 다음 4주치
+- 수동 생성: 관리자 API로 즉시 (멱등)
+
+### 5.3 자동 생성 시퀀스
+
+```mermaid
+sequenceDiagram
+    participant S as Scheduler (매주 일)
+    participant FS as FixedScheduleRepo
+    participant H as HolidayRepo
+    participant CS as ClassScheduleRepo
+
+    S->>FS: 활성 고정 스케줄 전체 조회
+    loop 각 FixedSchedule
+        loop 대상 기간의 매칭 요일
+            S->>H: 공휴일인가?
+            alt 공휴일
+                S->>S: skip
+            end
+            S->>CS: 이미 존재하는가?
+            alt 이미 존재
+                S->>S: skip
+            end
+            S->>CS: INSERT ClassSchedule
+        end
+    end
+    S->>S: log("생성 N건, 스킵 M건")
+```
+
+### 5.4 권한별 API 매트릭스
+
+| API 경로 | ADMIN | INSTRUCTOR | MEMBER | 비인증 |
+|----------|-------|------------|--------|--------|
+| /api/admin/instructors/** | O | X | X | X |
+| /api/admin/lesson-types/** | O | X | X | X |
+| /api/admin/fixed-schedules/** | O | X | X | X |
+| /api/admin/class-schedules/** | O | X | X | X |
+| /api/instructors/** | O | O | O | O* |
+| /api/lesson-types/** | O | O | O | O* |
+| /api/class-schedules/** | O | O | O | O* |
+
+\* v1에서는 공개 조회 API는 permitAll (인증 불필요)
