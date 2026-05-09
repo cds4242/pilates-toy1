@@ -38,3 +38,7 @@ docker-compose.override.yml
 # === Logs ===
 *.log
 logs/
+
+# === Uploads (테스트 생성 파일) ===
+uploads/
+backend/uploads/
