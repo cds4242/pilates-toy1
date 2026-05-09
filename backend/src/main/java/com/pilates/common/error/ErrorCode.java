@@ -86,6 +86,13 @@ public enum ErrorCode {
     MEMBERSHIP_HOLDING_INVALID_PERIOD(HttpStatus.BAD_REQUEST, "MSHIP_006", "일시정지 기간이 올바르지 않습니다."),
     MEMBERSHIP_INSUFFICIENT_COUNT(HttpStatus.BAD_REQUEST, "MSHIP_007", "잔여 횟수가 부족합니다."),
 
+    // ── 정기권 종류 ──
+    MEMBERSHIP_PASS_NOT_FOUND(HttpStatus.NOT_FOUND, "MPASS_001", "정기권 종류를 찾을 수 없습니다."),
+    MEMBERSHIP_PASS_INVALID_CONFIG(HttpStatus.BAD_REQUEST, "MPASS_002", "무제한권 설정이 올바르지 않습니다."),
+    MEMBERSHIP_PASS_LESSON_TYPE_REQUIRED(HttpStatus.BAD_REQUEST, "MPASS_003", "수업 유형 매핑이 1개 이상 필요합니다."),
+    MEMBERSHIP_PASS_DUPLICATE_NAME(HttpStatus.CONFLICT, "MPASS_004", "같은 이름의 정기권 종류가 있습니다."),
+    MEMBERSHIP_PASS_UNLIMITED_LESSON_INVALID(HttpStatus.BAD_REQUEST, "MPASS_005", "무제한권은 그룹 수업만 매핑 가능합니다."),
+
     ;
 
     private final HttpStatus httpStatus;

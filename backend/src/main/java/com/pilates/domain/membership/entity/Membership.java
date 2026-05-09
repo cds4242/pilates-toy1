@@ -69,11 +69,17 @@ public class Membership extends BaseEntity {
     @Column(name = "status", nullable = false, length = 20)
     private MembershipStatus status;
 
+    /** 발급 기반 정기권 종류 (없으면 직접 입력 발급) */
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "membership_pass_id",
+            foreignKey = @ForeignKey(name = "fk_memberships_membership_pass"))
+    private MembershipPass membershipPass;
+
     @Builder
     private Membership(String publicId, Member member,
                        Integer totalCount, Integer remainingCount, boolean unlimited,
                        LocalDate startDate, LocalDate endDate, BigDecimal price,
-                       MembershipStatus status) {
+                       MembershipStatus status, MembershipPass membershipPass) {
         this.publicId = publicId;
         this.member = member;
         this.totalCount = totalCount;
@@ -83,6 +89,7 @@ public class Membership extends BaseEntity {
         this.endDate = endDate;
         this.price = price;
         this.status = status;
+        this.membershipPass = membershipPass;
     }
 
     // ── 도메인 메서드 ──
