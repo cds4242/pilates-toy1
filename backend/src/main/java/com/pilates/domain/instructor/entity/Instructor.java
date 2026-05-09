@@ -11,6 +11,7 @@ import lombok.NoArgsConstructor;
 
 /**
  * 강사 엔티티.
+ * phone은 AES-256 암호화(phone_encrypted) + SHA-256 해시(phone_hash) 이중 저장.
  */
 @Entity
 @Table(name = "instructors")
@@ -26,6 +27,16 @@ public class Instructor extends BaseEntity {
     @Column(name = "name", nullable = false, length = 50)
     private String name;
 
+    /** AES-256 암호화된 휴대폰 번호 (복호화하여 표시/발송용) */
+    @Column(name = "phone_encrypted", length = 500)
+    private String phoneEncrypted;
+
+    /** SHA-256 해시된 휴대폰 번호 (검색/중복 확인용) */
+    @Column(name = "phone_hash", length = 64)
+    private String phoneHash;
+
+    /** @deprecated V10 마이그레이션 후 사용 안 함. phone_encrypted 사용. */
+    @Deprecated
     @Column(name = "phone", length = 20)
     private String phone;
 
@@ -38,19 +49,23 @@ public class Instructor extends BaseEntity {
     private String profileImageUrl;
 
     @Builder
-    private Instructor(String publicId, String name, String phone,
+    private Instructor(String publicId, String name, String phoneEncrypted, String phoneHash,
                        InstructorStatus status, String profileImageUrl) {
         this.publicId = publicId;
         this.name = name;
-        this.phone = phone;
+        this.phoneEncrypted = phoneEncrypted;
+        this.phoneHash = phoneHash;
         this.status = status;
         this.profileImageUrl = profileImageUrl;
     }
 
     /** 강사 정보 수정. null이 아닌 필드만 업데이트. */
-    public void updateInfo(String name, String phone, String profileImageUrl) {
+    public void updateInfo(String name, String phoneEncrypted, String phoneHash, String profileImageUrl) {
         if (name != null && !name.isBlank()) this.name = name;
-        if (phone != null) this.phone = phone;
+        if (phoneEncrypted != null) {
+            this.phoneEncrypted = phoneEncrypted;
+            this.phoneHash = phoneHash;
+        }
         if (profileImageUrl != null) this.profileImageUrl = profileImageUrl;
     }
 
@@ -67,5 +82,11 @@ public class Instructor extends BaseEntity {
     /** 활성 상태인지 */
     public boolean isActive() {
         return this.status == InstructorStatus.ACTIVE;
+    }
+
+    /** phone 평문 → 암호화 마이그레이션 */
+    public void migratePhone(String phoneEncrypted, String phoneHash) {
+        this.phoneEncrypted = phoneEncrypted;
+        this.phoneHash = phoneHash;
     }
 }

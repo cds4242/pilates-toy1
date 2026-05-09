@@ -2,6 +2,8 @@ package com.pilates.domain.instructor.service;
 
 import com.pilates.common.error.BusinessException;
 import com.pilates.common.error.ErrorCode;
+import com.pilates.common.security.encryption.EncryptionService;
+import com.pilates.common.security.hash.HashingService;
 import com.pilates.domain.instructor.dto.*;
 import com.pilates.domain.instructor.entity.Instructor;
 import com.pilates.domain.instructor.entity.InstructorAvailableTime;
@@ -27,6 +29,8 @@ public class InstructorService {
 
     private final InstructorRepository instructorRepository;
     private final InstructorAvailableTimeRepository availableTimeRepository;
+    private final EncryptionService encryptionService;
+    private final HashingService hashingService;
 
     /**
      * 강사 등록.
@@ -34,10 +38,14 @@ public class InstructorService {
      */
     @Transactional
     public InstructorResponse registerInstructor(InstructorRegisterRequest request) {
+        String phoneEncrypted = request.phone() != null ? encryptionService.encrypt(request.phone()) : null;
+        String phoneHash = request.phone() != null ? hashingService.hash(normalizePhone(request.phone())) : null;
+
         Instructor instructor = Instructor.builder()
                 .publicId(UUID.randomUUID().toString().replace("-", "").substring(0, 32))
                 .name(request.name())
-                .phone(request.phone())
+                .phoneEncrypted(phoneEncrypted)
+                .phoneHash(phoneHash)
                 .status(InstructorStatus.ACTIVE)
                 .profileImageUrl(request.profileImageUrl())
                 .build();
@@ -54,7 +62,15 @@ public class InstructorService {
     @Transactional
     public InstructorResponse updateInstructor(Long id, InstructorUpdateRequest request) {
         Instructor instructor = findById(id);
-        instructor.updateInfo(request.name(), request.phone(), request.profileImageUrl());
+
+        String phoneEncrypted = null;
+        String phoneHash = null;
+        if (request.phone() != null) {
+            phoneEncrypted = encryptionService.encrypt(request.phone());
+            phoneHash = hashingService.hash(normalizePhone(request.phone()));
+        }
+
+        instructor.updateInfo(request.name(), phoneEncrypted, phoneHash, request.profileImageUrl());
         log.info("강사 정보 수정: id={}", id);
         return toResponse(instructor);
     }
@@ -84,8 +100,6 @@ public class InstructorService {
             throw new BusinessException(ErrorCode.INSTRUCTOR_ALREADY_ACTIVE);
         }
         instructor.activate();
-        // BaseEntity의 deletedAt을 null로 복원하기 위해 별도 처리 필요
-        // 현재 BaseEntity에 restore 메서드가 없으므로 activate만 수행
         log.info("강사 활성화: id={}", id);
         return toResponse(instructor);
     }
@@ -196,12 +210,21 @@ public class InstructorService {
         }
     }
 
+    /** 전화번호 정규화: 하이픈 제거 → 11자리 */
+    private String normalizePhone(String phone) {
+        if (phone == null) return null;
+        return phone.replaceAll("[^0-9]", "");
+    }
+
     private InstructorResponse toResponse(Instructor instructor) {
+        String decryptedPhone = instructor.getPhoneEncrypted() != null
+                ? encryptionService.decrypt(instructor.getPhoneEncrypted())
+                : null;
         return new InstructorResponse(
                 instructor.getId(),
                 instructor.getPublicId(),
                 instructor.getName(),
-                instructor.getPhone(),
+                decryptedPhone,
                 instructor.getStatus().name(),
                 instructor.getProfileImageUrl(),
                 instructor.getCreatedAt() != null
