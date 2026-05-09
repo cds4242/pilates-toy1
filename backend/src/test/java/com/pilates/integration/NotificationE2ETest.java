@@ -1,17 +1,12 @@
 package com.pilates.integration;
 
-import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.pilates.common.notification.kakao.MockKakaoAlimtalkClient;
 import com.pilates.common.sms.MockSmsService;
 import com.pilates.domain.admin.repository.AdminRepository;
 import com.pilates.domain.instructor.repository.InstructorRepository;
-import com.pilates.domain.membership.entity.Membership;
-import com.pilates.domain.membership.entity.MembershipStatus;
 import com.pilates.domain.membership.repository.MembershipRepository;
-import com.pilates.domain.notification.entity.Notification;
-import com.pilates.domain.notification.entity.NotificationStatus;
-import com.pilates.domain.notification.entity.NotificationType;
+import com.pilates.domain.notification.entity.*;
 import com.pilates.domain.notification.repository.NotificationRepository;
 import com.pilates.domain.notification.scheduler.MembershipExpirationReminderScheduler;
 import com.pilates.domain.notification.scheduler.ReservationReminderScheduler;
@@ -59,6 +54,8 @@ class NotificationE2ETest {
     @Autowired private MockSmsService mockSmsService;
     @Autowired private ReservationReminderScheduler reminderScheduler;
     @Autowired private MembershipExpirationReminderScheduler expirationScheduler;
+    @Autowired private com.pilates.domain.member.repository.MemberRepository memberRepository;
+    @Autowired private com.pilates.domain.notification.service.NotificationService notificationService;
 
     private AuthTestHelper authHelper;
 
@@ -74,11 +71,11 @@ class NotificationE2ETest {
         mockSmsService.setForceFailMode(false);
     }
 
-    /** 강사+수업유형+정기권+수업 → classScheduleId, lessonTypeId, passId 반환 */
+    /** 강사+수업유형+정기권+수업 → [classScheduleId, lessonTypeId, passId, instructorId] */
     private long[] setupFullScenario(String adminToken, String memberId, String suffix, int capacity) throws Exception {
         MvcResult ir = mockMvc.perform(post("/api/admin/instructors")
                 .header("Authorization", "Bearer " + adminToken).contentType(MediaType.APPLICATION_JSON)
-                .content("{\"name\":\"NOTI강사" + suffix + "\",\"phone\":\"010-0000-0000\"}")).andExpect(status().isOk()).andReturn();
+                .content("{\"name\":\"NOTI강사" + suffix + "\",\"phone\":\"010-9999-" + suffix.hashCode() % 10000 + "\"}")).andExpect(status().isOk()).andReturn();
         Long instrId = objectMapper.readTree(ir.getResponse().getContentAsString()).get("data").get("id").asLong();
 
         MvcResult lt = mockMvc.perform(post("/api/admin/lesson-types")
@@ -123,7 +120,6 @@ class NotificationE2ETest {
 
         int beforeAlimtalk = mockAlimtalkClient.getSendCallCount();
 
-        // 예약 생성
         mockMvc.perform(post("/api/reservations")
                 .header("Authorization", "Bearer " + token).contentType(MediaType.APPLICATION_JSON)
                 .content("{\"classScheduleId\":" + setup[0] + "}")).andExpect(status().isOk());
@@ -133,9 +129,10 @@ class NotificationE2ETest {
         // Mock 알림톡 호출 확인 (RESERVATION_CONFIRM + NEW_RESERVATION = 2건)
         assertThat(mockAlimtalkClient.getSendCallCount() - beforeAlimtalk).isGreaterThanOrEqualTo(2);
 
-        // notifications 테이블에 INSERT 확인
+        // RESERVATION_CONFIRM (MEMBER 수신자) 확인
         List<Notification> notifications = notificationRepository.findAll().stream()
-                .filter(n -> n.getMember().getId().equals(Long.valueOf(memberId)))
+                .filter(n -> n.getRecipientType() == RecipientType.MEMBER)
+                .filter(n -> n.getRecipientId().equals(Long.valueOf(memberId)))
                 .filter(n -> n.getType() == NotificationType.RESERVATION_CONFIRM)
                 .toList();
         assertThat(notifications).isNotEmpty();
@@ -148,12 +145,13 @@ class NotificationE2ETest {
 
     @Test
     @Order(2)
-    @DisplayName("시나리오2: 예약 생성 → 회원 RESERVATION_CONFIRM + 강사 NEW_RESERVATION 두 건 발송")
+    @DisplayName("시나리오2: 예약 생성 → 회원 RESERVATION_CONFIRM + 강사 NEW_RESERVATION (recipient 분리)")
     void scenario2_newReservationToInstructor() throws Exception {
         String adminToken = authHelper.loginAsAdmin();
         String[] auth = authHelper.loginAsMember("01088880002");
         String token = auth[0]; String memberId = auth[1];
         long[] setup = setupFullScenario(adminToken, memberId, "N2", 8);
+        Long instructorId = setup[3];
 
         int beforeAlimtalk = mockAlimtalkClient.getSendCallCount();
 
@@ -166,12 +164,22 @@ class NotificationE2ETest {
         // 회원 + 강사 = 최소 2건 발송
         assertThat(mockAlimtalkClient.getSendCallCount() - beforeAlimtalk).isGreaterThanOrEqualTo(2);
 
-        // NEW_RESERVATION 타입 알림 존재 확인
+        // NEW_RESERVATION: recipientType=INSTRUCTOR, recipientId=instructorId
         List<Notification> instrNotifs = notificationRepository.findAll().stream()
-                .filter(n -> n.getMember().getId().equals(Long.valueOf(memberId)))
+                .filter(n -> n.getRecipientType() == RecipientType.INSTRUCTOR)
+                .filter(n -> n.getRecipientId().equals(instructorId))
                 .filter(n -> n.getType() == NotificationType.NEW_RESERVATION)
                 .toList();
         assertThat(instrNotifs).isNotEmpty();
+        assertThat(instrNotifs.get(0).getMember()).isNull(); // 강사 알림은 member null
+
+        // RESERVATION_CONFIRM: recipientType=MEMBER
+        List<Notification> memberNotifs = notificationRepository.findAll().stream()
+                .filter(n -> n.getRecipientType() == RecipientType.MEMBER)
+                .filter(n -> n.getRecipientId().equals(Long.valueOf(memberId)))
+                .filter(n -> n.getType() == NotificationType.RESERVATION_CONFIRM)
+                .toList();
+        assertThat(memberNotifs).isNotEmpty();
     }
 
     // ═══════════════════════════════════════════
@@ -187,7 +195,6 @@ class NotificationE2ETest {
         String token = auth[0]; String memberId = auth[1];
         long[] setup = setupFullScenario(adminToken, memberId, "N3", 8);
 
-        // 예약 생성
         MvcResult resResult = mockMvc.perform(post("/api/reservations")
                 .header("Authorization", "Bearer " + token).contentType(MediaType.APPLICATION_JSON)
                 .content("{\"classScheduleId\":" + setup[0] + "}")).andExpect(status().isOk()).andReturn();
@@ -196,17 +203,16 @@ class NotificationE2ETest {
         waitForAsync();
         int beforeAlimtalk = mockAlimtalkClient.getSendCallCount();
 
-        // 예약 취소
         mockMvc.perform(delete("/api/reservations/" + resId)
                 .header("Authorization", "Bearer " + token)).andExpect(status().isOk());
 
         waitForAsync();
 
-        // RESERVATION_CANCEL 알림 발송 확인
         assertThat(mockAlimtalkClient.getSendCallCount() - beforeAlimtalk).isGreaterThanOrEqualTo(1);
 
         List<Notification> cancelNotifs = notificationRepository.findAll().stream()
-                .filter(n -> n.getMember().getId().equals(Long.valueOf(memberId)))
+                .filter(n -> n.getRecipientType() == RecipientType.MEMBER)
+                .filter(n -> n.getRecipientId().equals(Long.valueOf(memberId)))
                 .filter(n -> n.getType() == NotificationType.RESERVATION_CANCEL)
                 .toList();
         assertThat(cancelNotifs).isNotEmpty();
@@ -222,45 +228,21 @@ class NotificationE2ETest {
     void scenario4_alimtalkFailSmsFallback() throws Exception {
         String adminToken = authHelper.loginAsAdmin();
         String[] auth = authHelper.loginAsMember("01088880004");
-        String token = auth[0]; String memberId = auth[1];
+        String memberId = auth[1];
 
-        // 강사 + 수업유형 + 정기권
-        MvcResult ir = mockMvc.perform(post("/api/admin/instructors")
-                .header("Authorization", "Bearer " + adminToken).contentType(MediaType.APPLICATION_JSON)
-                .content("{\"name\":\"NOTI강사N4\",\"phone\":\"010-0000-0000\"}")).andExpect(status().isOk()).andReturn();
-        Long instrId = objectMapper.readTree(ir.getResponse().getContentAsString()).get("data").get("id").asLong();
-
-        MvcResult lt = mockMvc.perform(post("/api/admin/lesson-types")
-                .header("Authorization", "Bearer " + adminToken).contentType(MediaType.APPLICATION_JSON)
-                .content("{\"name\":\"NOTI유형N4\",\"maxCapacity\":8,\"durationMinutes\":50,\"deductionCount\":1}")).andExpect(status().isOk()).andReturn();
-        Long ltId = objectMapper.readTree(lt.getResponse().getContentAsString()).get("data").get("id").asLong();
-
-        MvcResult mp = mockMvc.perform(post("/api/admin/membership-passes")
-                .header("Authorization", "Bearer " + adminToken).contentType(MediaType.APPLICATION_JSON)
-                .content("{\"name\":\"NOTI패스N4\",\"price\":100000,\"totalCount\":10,\"validityDays\":90,\"unlimited\":false,\"lessonTypeIds\":[" + ltId + "]}")).andExpect(status().isOk()).andReturn();
-        Long passId = objectMapper.readTree(mp.getResponse().getContentAsString()).get("data").get("id").asLong();
-        mockMvc.perform(post("/api/admin/memberships")
-                .header("Authorization", "Bearer " + adminToken).contentType(MediaType.APPLICATION_JSON)
-                .content("{\"memberId\":" + memberId + ",\"totalCount\":10,\"price\":100000,\"validityDays\":90,\"unlimited\":false,\"lessonTypeIds\":[" + ltId + "],\"membershipPassId\":" + passId + "}")).andExpect(status().isOk());
-
-        // FAIL_ prefix 템플릿 코드 → 알림톡 실패 → SMS 폴백 검증
-        Notification failNotif = Notification.create(
-                getMemberById(Long.valueOf(memberId)),
-                NotificationType.RESERVATION_CONFIRM,
-                "FAIL_ALIMTALK_TEST",
-                "[테스트] 알림톡 실패 폴백 테스트",
+        // FAIL_ prefix → 알림톡 실패 → SMS 폴백
+        com.pilates.domain.member.entity.Member member = memberRepository.findById(Long.valueOf(memberId)).orElseThrow();
+        Notification failNotif = Notification.createForMember(
+                member, NotificationType.RESERVATION_CONFIRM,
+                "FAIL_ALIMTALK_TEST", "[테스트] 알림톡 실패 폴백 테스트",
                 java.time.LocalDateTime.now());
         failNotif = notificationRepository.save(failNotif);
 
         int beforeSms = mockSmsService.getSendCallCount();
+        notificationService.sendSync(failNotif.getId());
 
-        // sendSync 호출 (FAIL_ prefix → 알림톡 실패 → SMS 폴백)
-        getNotificationService().sendSync(failNotif.getId());
-
-        // SMS 폴백 발송됨
         assertThat(mockSmsService.getSendCallCount() - beforeSms).isGreaterThanOrEqualTo(1);
 
-        // status = FALLBACK_SENT
         Notification updated = notificationRepository.findById(failNotif.getId()).orElseThrow();
         assertThat(updated.getStatus()).isEqualTo(NotificationStatus.FALLBACK_SENT);
     }
@@ -277,20 +259,17 @@ class NotificationE2ETest {
         String[] auth = authHelper.loginAsMember("01088880005");
         String memberId = auth[1];
 
-        // SMS 강제 실패 모드
         mockSmsService.setForceFailMode(true);
 
-        Notification failNotif = Notification.create(
-                getMemberById(Long.valueOf(memberId)),
-                NotificationType.RESERVATION_CONFIRM,
-                "FAIL_ALL_TEST",
-                "[테스트] 전체 실패 테스트",
+        com.pilates.domain.member.entity.Member member = memberRepository.findById(Long.valueOf(memberId)).orElseThrow();
+        Notification failNotif = Notification.createForMember(
+                member, NotificationType.RESERVATION_CONFIRM,
+                "FAIL_ALL_TEST", "[테스트] 전체 실패 테스트",
                 java.time.LocalDateTime.now());
         failNotif = notificationRepository.save(failNotif);
 
-        getNotificationService().sendSync(failNotif.getId());
+        notificationService.sendSync(failNotif.getId());
 
-        // status = FAILED
         Notification updated = notificationRepository.findById(failNotif.getId()).orElseThrow();
         assertThat(updated.getStatus()).isEqualTo(NotificationStatus.FAILED);
         assertThat(updated.getFailureReason()).isNotBlank();
@@ -310,10 +289,9 @@ class NotificationE2ETest {
         String[] auth = authHelper.loginAsMember("01088880006");
         String token = auth[0]; String memberId = auth[1];
 
-        // 강사 + 수업유형 + 정기권
         MvcResult ir = mockMvc.perform(post("/api/admin/instructors")
                 .header("Authorization", "Bearer " + adminToken).contentType(MediaType.APPLICATION_JSON)
-                .content("{\"name\":\"NOTI강사N6\",\"phone\":\"010-0000-0000\"}")).andExpect(status().isOk()).andReturn();
+                .content("{\"name\":\"NOTI강사N6\",\"phone\":\"010-0000-0006\"}")).andExpect(status().isOk()).andReturn();
         Long instrId = objectMapper.readTree(ir.getResponse().getContentAsString()).get("data").get("id").asLong();
 
         MvcResult lt = mockMvc.perform(post("/api/admin/lesson-types")
@@ -329,39 +307,31 @@ class NotificationE2ETest {
                 .header("Authorization", "Bearer " + adminToken).contentType(MediaType.APPLICATION_JSON)
                 .content("{\"memberId\":" + memberId + ",\"totalCount\":10,\"price\":100000,\"validityDays\":90,\"unlimited\":false,\"lessonTypeIds\":[" + ltId + "],\"membershipPassId\":" + passId + "}")).andExpect(status().isOk());
 
-        // 오늘 수업 (현재시각 + 30~50분 후 시작) — 스케줄러의 1시간 윈도우에 들어가도록
         LocalDate today = LocalDate.now();
         LocalTime startTime = LocalTime.now().plusMinutes(40).withSecond(0).withNano(0);
         LocalTime endTime = startTime.plusMinutes(50);
         String startStr = startTime.format(DateTimeFormatter.ofPattern("HH:mm"));
         String endStr = endTime.format(DateTimeFormatter.ofPattern("HH:mm"));
 
-        // 자정 근처 방어
-        if (endTime.isBefore(startTime)) {
-            return;
-        }
+        if (endTime.isBefore(startTime)) return;
 
         MvcResult cs = mockMvc.perform(post("/api/admin/class-schedules")
                 .header("Authorization", "Bearer " + adminToken).contentType(MediaType.APPLICATION_JSON)
                 .content("{\"instructorId\":" + instrId + ",\"lessonTypeId\":" + ltId + ",\"classDate\":\"" + today + "\",\"startTime\":\"" + startStr + "\",\"endTime\":\"" + endStr + "\",\"maxCapacity\":8}")).andExpect(status().isOk()).andReturn();
         Long classId = objectMapper.readTree(cs.getResponse().getContentAsString()).get("data").get("id").asLong();
 
-        // 예약
         mockMvc.perform(post("/api/reservations")
                 .header("Authorization", "Bearer " + token).contentType(MediaType.APPLICATION_JSON)
                 .content("{\"classScheduleId\":" + classId + "}")).andExpect(status().isOk());
 
         waitForAsync();
-        int beforeAlimtalk = mockAlimtalkClient.getSendCallCount();
 
-        // 스케줄러 수동 호출
         reminderScheduler.sendReminders();
-
         waitForAsync();
 
-        // REMINDER_1HOUR 알림 발송 확인
         List<Notification> reminders = notificationRepository.findAll().stream()
-                .filter(n -> n.getMember().getId().equals(Long.valueOf(memberId)))
+                .filter(n -> n.getRecipientType() == RecipientType.MEMBER)
+                .filter(n -> n.getRecipientId().equals(Long.valueOf(memberId)))
                 .filter(n -> n.getType() == NotificationType.REMINDER_1HOUR)
                 .toList();
         assertThat(reminders).isNotEmpty();
@@ -379,7 +349,6 @@ class NotificationE2ETest {
         String[] auth = authHelper.loginAsMember("01088880007");
         String memberId = auth[1];
 
-        // 강사 + 수업유형 + 정기권 (3일 후 만료되도록 validityDays 조절)
         MvcResult lt = mockMvc.perform(post("/api/admin/lesson-types")
                 .header("Authorization", "Bearer " + adminToken).contentType(MediaType.APPLICATION_JSON)
                 .content("{\"name\":\"NOTI유형N7\",\"maxCapacity\":8,\"durationMinutes\":50,\"deductionCount\":1}")).andExpect(status().isOk()).andReturn();
@@ -394,18 +363,13 @@ class NotificationE2ETest {
                 .header("Authorization", "Bearer " + adminToken).contentType(MediaType.APPLICATION_JSON)
                 .content("{\"memberId\":" + memberId + ",\"totalCount\":10,\"price\":100000,\"validityDays\":3,\"unlimited\":false,\"lessonTypeIds\":[" + ltId + "],\"membershipPassId\":" + passId + "}")).andExpect(status().isOk());
 
-        // 정기권의 endDate를 3일 후로 직접 설정 (API로는 정확히 맞추기 어려움)
-        // validityDays=3이면 startDate=today, endDate=today+3이므로 이미 3일 후 만료
         waitForAsync();
-
-        // 스케줄러 호출
         expirationScheduler.sendExpirationReminders();
-
         waitForAsync();
 
-        // MEMBERSHIP_EXPIRING 알림 발송 확인
         List<Notification> expiryNotifs = notificationRepository.findAll().stream()
-                .filter(n -> n.getMember().getId().equals(Long.valueOf(memberId)))
+                .filter(n -> n.getRecipientType() == RecipientType.MEMBER)
+                .filter(n -> n.getRecipientId().equals(Long.valueOf(memberId)))
                 .filter(n -> n.getType() == NotificationType.MEMBERSHIP_EXPIRING)
                 .toList();
         assertThat(expiryNotifs).isNotEmpty();
@@ -424,23 +388,17 @@ class NotificationE2ETest {
         String token = auth[0]; String memberId = auth[1];
         long[] setup = setupFullScenario(adminToken, memberId, "N8", 8);
 
-        // 예약
         mockMvc.perform(post("/api/reservations")
                 .header("Authorization", "Bearer " + token).contentType(MediaType.APPLICATION_JSON)
                 .content("{\"classScheduleId\":" + setup[0] + "}")).andExpect(status().isOk());
 
         waitForAsync();
-
-        // 알림톡 카운트 기록
         int beforeAlimtalk = mockAlimtalkClient.getSendCallCount();
 
-        // 휴강 처리
         mockMvc.perform(post("/api/admin/class-schedules/" + setup[0] + "/cancel")
                 .header("Authorization", "Bearer " + adminToken)).andExpect(status().isOk());
 
         waitForAsync();
-
-        // 휴강 시 알림톡 호출 카운트 0 (의뢰인 정책: 휴강 시 알림 X)
         assertThat(mockAlimtalkClient.getSendCallCount() - beforeAlimtalk).isEqualTo(0);
     }
 
@@ -450,7 +408,7 @@ class NotificationE2ETest {
 
     @Test
     @Order(9)
-    @DisplayName("시나리오9: 회원 → /api/admin/notifications 접근 시 403 + 다른 회원 알림 조회 403/404")
+    @DisplayName("시나리오9: 회원 → /api/admin/notifications 403 + 다른 회원 알림 조회 403 + 강사 알림 조회 403")
     void scenario9_accessControl() throws Exception {
         String adminToken = authHelper.loginAsAdmin();
         String[] auth1 = authHelper.loginAsMember("01088880091");
@@ -463,16 +421,24 @@ class NotificationE2ETest {
                         .header("Authorization", "Bearer " + token1))
                 .andExpect(status().isForbidden());
 
-        // 다른 회원의 알림 조회 시도 → 알림이 없으면 404, 있어도 403
-        // 먼저 memberId2에 알림 생성
-        Notification otherNotif = Notification.create(
-                getMemberById(Long.valueOf(memberId2)),
-                NotificationType.RESERVATION_CONFIRM,
+        // 다른 회원의 알림 조회 시도 → 403
+        com.pilates.domain.member.entity.Member member2 = memberRepository.findById(Long.valueOf(memberId2)).orElseThrow();
+        Notification otherNotif = Notification.createForMember(
+                member2, NotificationType.RESERVATION_CONFIRM,
                 "TEST_ACCESS", "[테스트] 접근 제어", java.time.LocalDateTime.now());
         otherNotif = notificationRepository.save(otherNotif);
 
-        // memberId1 토큰으로 memberId2의 알림 조회 → 403
         mockMvc.perform(get("/api/members/me/notifications/" + otherNotif.getId())
+                        .header("Authorization", "Bearer " + token1))
+                .andExpect(status().isForbidden());
+
+        // 강사 알림 조회 시도 → 403 (recipientType=INSTRUCTOR이므로 MEMBER 권한 검증 실패)
+        Notification instrNotif = Notification.createForInstructor(
+                999L, NotificationType.NEW_RESERVATION,
+                "TEST_INSTR_ACCESS", "[테스트] 강사 알림", java.time.LocalDateTime.now());
+        instrNotif = notificationRepository.save(instrNotif);
+
+        mockMvc.perform(get("/api/members/me/notifications/" + instrNotif.getId())
                         .header("Authorization", "Bearer " + token1))
                 .andExpect(status().isForbidden());
     }
@@ -489,40 +455,20 @@ class NotificationE2ETest {
         String[] auth = authHelper.loginAsMember("01088880010");
         String memberId = auth[1];
 
-        // FAILED 상태 알림 시드
-        Notification failedNotif = Notification.create(
-                getMemberById(Long.valueOf(memberId)),
-                NotificationType.RESERVATION_CONFIRM,
-                "RESERVATION_CONFIRM",
-                "[테스트] 재발송 테스트",
+        com.pilates.domain.member.entity.Member member = memberRepository.findById(Long.valueOf(memberId)).orElseThrow();
+        Notification failedNotif = Notification.createForMember(
+                member, NotificationType.RESERVATION_CONFIRM,
+                "RESERVATION_CONFIRM", "[테스트] 재발송 테스트",
                 java.time.LocalDateTime.now());
         failedNotif = notificationRepository.save(failedNotif);
         failedNotif.markAsFailed("초기 실패");
         notificationRepository.save(failedNotif);
 
-        // 관리자 재발송
         mockMvc.perform(post("/api/admin/notifications/" + failedNotif.getId() + "/resend")
                         .header("Authorization", "Bearer " + adminToken))
                 .andExpect(status().isOk());
 
-        // status 변경 확인
         Notification updated = notificationRepository.findById(failedNotif.getId()).orElseThrow();
         assertThat(updated.getStatus()).isIn(NotificationStatus.SENT, NotificationStatus.FALLBACK_SENT);
-    }
-
-    // ── helper ──
-
-    @Autowired
-    private com.pilates.domain.member.repository.MemberRepository memberRepository;
-
-    @Autowired
-    private com.pilates.domain.notification.service.NotificationService notificationService;
-
-    private com.pilates.domain.member.entity.Member getMemberById(Long id) {
-        return memberRepository.findById(id).orElseThrow();
-    }
-
-    private com.pilates.domain.notification.service.NotificationService getNotificationService() {
-        return notificationService;
     }
 }
