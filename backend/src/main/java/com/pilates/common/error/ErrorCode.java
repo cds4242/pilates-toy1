@@ -122,6 +122,14 @@ public enum ErrorCode {
     RESERVATION_MONTHLY_LIMIT(HttpStatus.BAD_REQUEST, "RES_009", "이번 달 예약 한도를 초과했습니다."),
     RESERVATION_TIME_OVERLAP(HttpStatus.CONFLICT, "RES_010", "같은 시간대에 이미 다른 수업이 예약되어 있습니다."),
 
+    // ── 알림 ──
+    NOTIFICATION_NOT_FOUND(HttpStatus.NOT_FOUND, "NOTI_001", "알림을 찾을 수 없습니다."),
+    NOTIFICATION_TEMPLATE_NOT_FOUND(HttpStatus.NOT_FOUND, "NOTI_002", "알림 템플릿을 찾을 수 없습니다."),
+    NOTIFICATION_ALIMTALK_SEND_FAILED(HttpStatus.BAD_GATEWAY, "NOTI_003", "알림톡 발송에 실패했습니다."),
+    NOTIFICATION_SMS_SEND_FAILED(HttpStatus.BAD_GATEWAY, "NOTI_004", "SMS 발송에 실패했습니다."),
+    NOTIFICATION_ALL_CHANNELS_FAILED(HttpStatus.BAD_GATEWAY, "NOTI_005", "모든 채널 발송에 실패했습니다."),
+    NOTIFICATION_INVALID_TEMPLATE_PARAM(HttpStatus.BAD_REQUEST, "NOTI_006", "알림 템플릿 파라미터가 올바르지 않습니다."),
+
     // ── 출석 ──
     ATTENDANCE_NOT_FOUND(HttpStatus.NOT_FOUND, "ATT_001", "출석 기록을 찾을 수 없습니다."),
     ATTENDANCE_NOT_CHECKABLE(HttpStatus.BAD_REQUEST, "ATT_002", "출석 체크 가능 시간이 아닙니다."),
