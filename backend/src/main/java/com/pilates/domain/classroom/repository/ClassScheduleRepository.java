@@ -25,4 +25,18 @@ public interface ClassScheduleRepository extends JpaRepository<ClassSchedule, Lo
     boolean existsByInstructorIdAndClassDateAndStartTimeAndStatusNot(Long instructorId, LocalDate classDate,
                                                                      LocalTime startTime,
                                                                      ClassScheduleStatus excludeStatus);
+
+    /** 시간 겹침 수업 조회 (같은 강사, 같은 날짜, CANCELLED 제외) */
+    @org.springframework.data.jpa.repository.Query(
+            "SELECT cs FROM ClassSchedule cs " +
+            "WHERE cs.instructor.id = :instructorId " +
+            "AND cs.classDate = :classDate " +
+            "AND cs.status <> 'CANCELLED' " +
+            "AND cs.startTime < :endTime " +
+            "AND cs.endTime > :startTime")
+    java.util.List<ClassSchedule> findOverlappingClasses(
+            @org.springframework.data.repository.query.Param("instructorId") Long instructorId,
+            @org.springframework.data.repository.query.Param("classDate") LocalDate classDate,
+            @org.springframework.data.repository.query.Param("startTime") LocalTime startTime,
+            @org.springframework.data.repository.query.Param("endTime") LocalTime endTime);
 }

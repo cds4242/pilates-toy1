@@ -75,6 +75,7 @@ public enum ErrorCode {
     CLASS_ALREADY_CANCELLED(HttpStatus.BAD_REQUEST, "CLASS_002", "이미 취소된 수업입니다."),
     CLASS_ALREADY_COMPLETED(HttpStatus.BAD_REQUEST, "CLASS_003", "이미 완료된 수업입니다."),
     CLASS_PAST_MODIFICATION(HttpStatus.BAD_REQUEST, "CLASS_004", "과거 수업은 수정할 수 없습니다."),
+    CLASS_TIME_CONFLICT(HttpStatus.CONFLICT, "CLASS_005", "해당 강사의 같은 시간대에 이미 수업이 존재합니다."),
 
     ;
 
