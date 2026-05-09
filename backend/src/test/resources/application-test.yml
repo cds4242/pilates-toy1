@@ -33,3 +33,10 @@ app:
   logging:
     masking:
       enabled: false
+  encryption:
+    key: dGVzdC1rZXktMzItYnl0ZXMtbG9uZy1leGFtcGxlISE=
+    key-version: v1
+  jwt:
+    secret: dGVzdC1qd3Qtc2VjcmV0LWtleS0zMi1ieXRlcyEhISE=
+    access-token-expiration: 1800
+    refresh-token-expiration: 1209600
