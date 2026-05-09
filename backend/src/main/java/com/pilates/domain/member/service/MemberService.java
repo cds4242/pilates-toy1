@@ -65,6 +65,11 @@ public class MemberService {
     /**
      * 내 정보 수정.
      * null이 아닌 필드만 업데이트한다.
+     *
+     * 동시성 정책: last-write-wins.
+     * 동시 수정 시 마지막 요청이 승리한다.
+     * v1에서는 회원 본인만 수정 가능하므로 충돌 가능성 낮음.
+     * 추후 관리자 동시 수정 기능 추가 시 낙관적 락(@Version) 검토 필요.
      */
     @Transactional
     public MemberResponse updateMyInfo(Long memberId, MemberUpdateRequest request) {
