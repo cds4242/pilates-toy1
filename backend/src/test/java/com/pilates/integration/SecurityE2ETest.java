@@ -87,7 +87,7 @@ class SecurityE2ETest {
 
     @Test
     @Order(3)
-    @DisplayName("시나리오3: 회원 토큰으로 admin API 5개 도메인 → 403")
+    @DisplayName("시나리오3: 회원 토큰으로 admin API 6개 도메인 → 403")
     void scenario3_memberTokenAdminApi403() throws Exception {
         String[] memberAuth = authHelper.loginAsMember("01099880001");
         String memberToken = memberAuth[0];
@@ -125,6 +125,13 @@ class SecurityE2ETest {
                         .header("Authorization", "Bearer " + memberToken)
                         .param("from", "2026-01-01")
                         .param("to", "2026-01-31"))
+                .andExpect(status().isForbidden());
+
+        // 정기권 발급
+        mockMvc.perform(post("/api/admin/memberships")
+                        .header("Authorization", "Bearer " + memberToken)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"memberId\":1,\"totalCount\":10,\"price\":100000,\"validityDays\":90,\"unlimited\":false,\"lessonTypeIds\":[1],\"membershipPassId\":1}"))
                 .andExpect(status().isForbidden());
     }
 
