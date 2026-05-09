@@ -1,5 +1,7 @@
 package com.pilates.domain.attendance.controller;
 
+import com.pilates.common.error.BusinessException;
+import com.pilates.common.error.ErrorCode;
 import com.pilates.common.response.ApiResponse;
 import com.pilates.common.security.auth.LoginMember;
 import com.pilates.common.security.auth.LoginMemberAnnotation;
@@ -29,7 +31,8 @@ public class InstructorAttendanceController {
             @LoginMemberAnnotation LoginMember loginMember,
             @PathVariable Long reservationId,
             @Valid @RequestBody AttendanceMarkRequest request) {
-        instructorAttendanceService.markAttendance(loginMember.memberId(), reservationId, request.status());
+        Long instructorId = requireInstructorId(loginMember);
+        instructorAttendanceService.markAttendance(instructorId, reservationId, request.status());
         return ApiResponse.success();
     }
 
@@ -39,8 +42,9 @@ public class InstructorAttendanceController {
             @LoginMemberAnnotation LoginMember loginMember,
             @PathVariable Long classScheduleId,
             @Valid @RequestBody BatchAttendanceRequest request) {
+        Long instructorId = requireInstructorId(loginMember);
         instructorAttendanceService.markBatchAttendance(
-                loginMember.memberId(), classScheduleId, request.attendances());
+                instructorId, classScheduleId, request.attendances());
         return ApiResponse.success();
     }
 
@@ -49,7 +53,15 @@ public class InstructorAttendanceController {
     public ApiResponse<List<AttendanceResponse>> listAttendanceForClass(
             @LoginMemberAnnotation LoginMember loginMember,
             @PathVariable Long classScheduleId) {
+        Long instructorId = requireInstructorId(loginMember);
         return ApiResponse.success(
-                instructorAttendanceService.listAttendanceForClass(loginMember.memberId(), classScheduleId));
+                instructorAttendanceService.listAttendanceForClass(instructorId, classScheduleId));
+    }
+
+    private Long requireInstructorId(LoginMember loginMember) {
+        if (loginMember.instructorId() == null) {
+            throw new BusinessException(ErrorCode.ACCESS_DENIED);
+        }
+        return loginMember.instructorId();
     }
 }

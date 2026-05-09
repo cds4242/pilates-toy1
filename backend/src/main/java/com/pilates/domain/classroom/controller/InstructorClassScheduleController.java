@@ -1,5 +1,7 @@
 package com.pilates.domain.classroom.controller;
 
+import com.pilates.common.error.BusinessException;
+import com.pilates.common.error.ErrorCode;
 import com.pilates.common.response.ApiResponse;
 import com.pilates.common.security.auth.LoginMember;
 import com.pilates.common.security.auth.LoginMemberAnnotation;
@@ -43,10 +45,9 @@ public class InstructorClassScheduleController {
             @LoginMemberAnnotation LoginMember loginMember,
             @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate from,
             @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate to) {
-        // TODO: loginMember에서 instructor_id를 매핑하는 로직 필요
-        //       현재 v1에서는 memberId를 instructorId로 사용 (admin auth 구현 후 개선)
+        Long instructorId = requireInstructorId(loginMember);
         return ApiResponse.success(
-                classScheduleService.listByInstructorAndDateRange(loginMember.memberId(), from, to));
+                classScheduleService.listByInstructorAndDateRange(instructorId, from, to));
     }
 
     /**
@@ -62,7 +63,15 @@ public class InstructorClassScheduleController {
     public ApiResponse<ClassScheduleDetailResponse> getMyClassDetail(
             @LoginMemberAnnotation LoginMember loginMember,
             @PathVariable Long id) {
+        Long instructorId = requireInstructorId(loginMember);
         return ApiResponse.success(
-                classScheduleService.getDetailForInstructor(loginMember.memberId(), id));
+                classScheduleService.getDetailForInstructor(instructorId, id));
+    }
+
+    private Long requireInstructorId(LoginMember loginMember) {
+        if (loginMember.instructorId() == null) {
+            throw new BusinessException(ErrorCode.ACCESS_DENIED);
+        }
+        return loginMember.instructorId();
     }
 }
