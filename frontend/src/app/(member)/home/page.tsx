@@ -2,19 +2,12 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
+import { Bell } from "lucide-react";
 import { useAuthStore } from "@/lib/store/auth-store";
 import { memberApi } from "@/lib/api/member";
 import type { Member, Membership, Reservation } from "@/lib/types/domain";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
-import { Calendar, Ticket, Clock } from "lucide-react";
+import { PassCard } from "@/components/design/PassCard";
+import { MobileTabBar } from "@/components/design/MobileTabBar";
 import { formatTime } from "@/lib/utils/format";
 
 export default function MemberHomePage() {
@@ -36,7 +29,7 @@ export default function MemberHomePage() {
         setMemberships(ms);
         setReservations(rs);
       } catch {
-        // 로딩 실패 시 빈 상태
+        // empty
       } finally {
         setLoading(false);
       }
@@ -49,123 +42,90 @@ export default function MemberHomePage() {
     .filter((r) => r.status === "CONFIRMED")
     .slice(0, 3);
 
-  if (loading) {
-    return (
-      <div className="flex items-center justify-center p-8">
-        <div className="animate-pulse text-muted-foreground">로딩 중...</div>
-      </div>
-    );
-  }
+  const today = new Date();
+  const dateStr = `${today.getMonth() + 1}월 ${today.getDate()}일 ${["일", "월", "화", "수", "목", "금", "토"][today.getDay()]}요일`;
 
   return (
-    <div className="max-w-lg mx-auto p-4 space-y-4">
-      {/* 환영 */}
-      <div>
-        <h1 className="text-2xl font-bold">
-          안녕하세요, {member?.name || "회원"}님
-        </h1>
-        <p className="text-muted-foreground text-sm">
-          오늘도 건강한 하루 보내세요
-        </p>
-      </div>
+    <div className="max-w-[480px] mx-auto min-h-screen bg-white pb-20">
+      {/* Header */}
+      <header className="sticky top-0 z-50 bg-white px-6 py-4 flex items-center justify-between border-b border-[var(--color-border)]">
+        <span className="text-[20px] font-bold text-[var(--color-text-title)]">
+          필라테스 OO점
+        </span>
+        <button className="relative text-[var(--color-text-title)]">
+          <Bell className="h-6 w-6" />
+          <span className="absolute -top-1 -right-1 bg-[var(--color-error)] text-white text-[10px] font-bold w-4 h-4 rounded-full flex items-center justify-center">
+            2
+          </span>
+        </button>
+      </header>
 
-      {/* 정기권 카드 */}
-      <Card>
-        <CardHeader className="pb-2">
-          <div className="flex items-center gap-2">
-            <Ticket className="h-4 w-4" />
-            <CardTitle className="text-base">내 정기권</CardTitle>
-          </div>
-        </CardHeader>
-        <CardContent>
-          {activeMembership ? (
-            <div className="space-y-2">
-              <div className="flex justify-between items-center">
-                <span className="font-medium">
-                  {activeMembership.passName}
-                </span>
-                <Badge variant="secondary">
-                  {activeMembership.unlimited
-                    ? "무제한"
-                    : `${activeMembership.remainingCount}/${activeMembership.totalCount}회`}
-                </Badge>
-              </div>
-              <p className="text-sm text-muted-foreground">
-                {activeMembership.startDate} ~ {activeMembership.endDate}
-              </p>
-              {!activeMembership.unlimited && (
-                <div className="w-full bg-muted rounded-full h-2">
-                  <div
-                    className="bg-primary h-2 rounded-full transition-all"
-                    style={{
-                      width: `${
-                        (activeMembership.remainingCount /
-                          activeMembership.totalCount) *
-                        100
-                      }%`,
-                    }}
-                  />
-                </div>
-              )}
-            </div>
-          ) : (
-            <p className="text-sm text-muted-foreground">
-              활성 정기권이 없습니다.
-            </p>
-          )}
-        </CardContent>
-      </Card>
+      <main className="p-6 flex flex-col gap-6">
+        {/* 인사 */}
+        <div>
+          <h1 className="text-[22px] font-semibold text-[var(--color-text-title)]">
+            안녕하세요, {member?.name || "회원"}님
+          </h1>
+          <p className="text-[15px] text-[var(--color-text-body)] mt-1">{dateStr}</p>
+        </div>
 
-      {/* 다가오는 예약 */}
-      <Card>
-        <CardHeader className="pb-2">
-          <div className="flex items-center gap-2">
-            <Clock className="h-4 w-4" />
-            <CardTitle className="text-base">다가오는 예약</CardTitle>
+        {/* 정기권 카드 */}
+        {loading ? (
+          <div className="rounded-[18px] bg-[var(--color-pilates-light)] p-5 animate-pulse h-32" />
+        ) : activeMembership ? (
+          <PassCard
+            name={activeMembership.passName}
+            remaining={activeMembership.remainingCount}
+            total={activeMembership.totalCount}
+            unlimited={activeMembership.unlimited}
+            endDate={activeMembership.endDate}
+          />
+        ) : (
+          <div className="rounded-[18px] bg-[var(--color-bg-section)] p-5 text-center text-[15px] text-[var(--color-text-sub)]">
+            활성 정기권이 없습니다
           </div>
-        </CardHeader>
-        <CardContent>
+        )}
+
+        {/* 다음 예약 */}
+        <div>
+          <h2 className="text-[18px] font-bold text-[var(--color-text-title)] mb-3">
+            다음 예약
+          </h2>
           {upcomingReservations.length > 0 ? (
-            <div className="space-y-3">
+            <div className="flex flex-col gap-3">
               {upcomingReservations.map((r) => (
                 <div
                   key={r.id}
-                  className="flex justify-between items-center py-2 border-b last:border-0"
+                  className="rounded-[18px] border border-[var(--color-border)] p-4 flex items-center gap-4"
                 >
-                  <div>
-                    <p className="font-medium text-sm">{r.lessonTypeName}</p>
-                    <p className="text-xs text-muted-foreground">
-                      {r.classDate} {formatTime(r.startTime)}~
-                      {formatTime(r.endTime)} · {r.instructorName}
+                  <div className="w-1 h-12 rounded-full bg-[var(--color-pilates)]" />
+                  <div className="flex-1">
+                    <p className="text-[15px] font-semibold text-[var(--color-text-title)]">
+                      {r.classDate} {formatTime(r.startTime)}
+                    </p>
+                    <p className="text-[13px] text-[var(--color-text-body)]">
+                      {r.lessonTypeName} · {r.instructorName}
                     </p>
                   </div>
-                  <Badge>{r.status === "CONFIRMED" ? "확정" : r.status}</Badge>
                 </div>
               ))}
             </div>
           ) : (
-            <p className="text-sm text-muted-foreground">
-              예정된 예약이 없습니다.
+            <p className="text-[15px] text-[var(--color-text-sub)]">
+              예정된 예약이 없습니다
             </p>
           )}
-        </CardContent>
-      </Card>
+        </div>
 
-      {/* 빠른 액션 */}
-      <div className="grid grid-cols-2 gap-3">
+        {/* CTA */}
         <Link href="/schedule">
-          <Button variant="outline" className="w-full h-14">
-            <Calendar className="h-4 w-4 mr-2" />
-            시간표 보기
-          </Button>
+          <button className="w-full bg-[var(--color-pilates)] hover:bg-[var(--color-pilates-dark)] text-[var(--color-text-title)] rounded-[8px] py-4 text-[16px] font-semibold transition-all">
+            수업 예약하기
+          </button>
         </Link>
-        <Link href="/schedule">
-          <Button className="w-full h-14">
-            <Calendar className="h-4 w-4 mr-2" />
-            예약하기
-          </Button>
-        </Link>
-      </div>
+      </main>
+
+      <MobileTabBar />
     </div>
   );
 }
