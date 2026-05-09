@@ -183,11 +183,19 @@ class AcceptanceE2ETest {
         Long passId = createMembershipPass(adminToken, "인수B패스", 100000, 10, ltId);
 
         // 회원 3명 가입 + 정기권 + 예약
-        // 수업 시간을 현재 시각 기준으로 설정 (출석 체크 가능하도록)
+        // 수업 시간: 이미 종료된 수업 (종료+30분 이내 → 출석 체크 가능)
         LocalDate today = LocalDate.now();
-        LocalTime now = LocalTime.now();
-        String startTime = now.minusMinutes(10).format(DateTimeFormatter.ofPattern("HH:mm"));
-        String endTime = now.plusMinutes(40).format(DateTimeFormatter.ofPattern("HH:mm"));
+        LocalTime now = LocalTime.now().withSecond(0).withNano(0);
+        LocalTime classStart = now.minusHours(1);
+        LocalTime classEnd = now.minusMinutes(10);
+        // 자정 부근 edge case 방어
+        if (classStart.isAfter(classEnd) || classStart.getHour() >= 23) {
+            classStart = LocalTime.of(9, 0);
+            classEnd = now.minusMinutes(5);
+            if (classStart.isAfter(classEnd)) classEnd = LocalTime.of(10, 0);
+        }
+        String startTime = classStart.format(DateTimeFormatter.ofPattern("HH:mm"));
+        String endTime = classEnd.format(DateTimeFormatter.ofPattern("HH:mm"));
         Long classId = createClassSchedule(adminToken, instrId, ltId, today, startTime, endTime, 4);
 
         Long[] resIds = new Long[3];
