@@ -7,14 +7,14 @@
 <title>대시보드 - 관리자</title>
 <link rel="stylesheet" as="style" crossorigin href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css">
 <style>
-:root{--color-primary:#F8C8DC;--color-primary-dark:#F0A8C4;--color-primary-light:#FCE4EC;--color-bg:#FFFFFF;--color-bg-section:#F8F8F8;--color-text-title:#2D2D2D;--color-text-body:#6B6B6B;--color-text-sub:#9B9B9B;--color-border:#EEEEEE;--color-success:#4CAF50;--color-warning:#F4A261;--color-error:#E76F51;--sidebar-width:240px;--radius-sm:8px;--radius-md:12px;--spacing-xs:8px;--spacing-sm:12px;--spacing-md:16px;--spacing-lg:24px;--spacing-xl:32px}
+:root{--color-primary:#F0A0B5;--color-primary-dark:#D88A9E;--color-primary-light:#FAD4DE;--color-bg:#FFFFFF;--color-bg-section:#F8F8F8;--color-text-title:#2D2D2D;--color-text-body:#6B6B6B;--color-text-sub:#9B9B9B;--color-border:#EEEEEE;--color-success:#4CAF50;--color-warning:#F4A261;--color-error:#E76F51;--sidebar-width:240px;--radius-sm:8px;--radius-md:18px;--spacing-xs:8px;--spacing-sm:12px;--spacing-md:16px;--spacing-lg:24px;--spacing-xl:32px}
 *{margin:0;padding:0;box-sizing:border-box}
-body{font-family:'Pretendard',-apple-system,BlinkMacSystemFont,sans-serif;background:var(--color-bg-section);color:var(--color-text-body);-webkit-font-smoothing:antialiased}
-/* ── Sidebar ── */
+body{font-family:'Pretendard',-apple-system,BlinkMacSystemFont,sans-serif;background:var(--color-bg-section);color:var(--color-text-body);-webkit-font-smoothing:antialiased;font-size:15px}
+/* -- Sidebar -- */
 .sidebar{position:fixed;top:0;left:0;width:var(--sidebar-width);height:100vh;background:var(--color-bg);border-right:1px solid var(--color-border);display:flex;flex-direction:column;z-index:200;transition:transform .3s}
-.sidebar-logo{padding:24px;font-size:18px;font-weight:700;color:var(--color-text-title);border-bottom:1px solid var(--color-border)}
+.sidebar-logo{padding:24px;font-size:20px;font-weight:700;color:var(--color-text-title);border-bottom:1px solid var(--color-border)}
 .sidebar-nav{flex:1;padding:var(--spacing-md) 0;overflow-y:auto}
-.nav-item{display:flex;align-items:center;gap:var(--spacing-sm);padding:12px 24px;font-size:14px;color:var(--color-text-body);text-decoration:none;transition:all .2s;cursor:pointer}
+.nav-item{display:flex;align-items:center;gap:var(--spacing-sm);padding:12px 24px;font-size:15px;color:var(--color-text-body);text-decoration:none;transition:all .2s;cursor:pointer}
 .nav-item:hover{background:var(--color-bg-section);color:var(--color-text-title)}
 .nav-item.active{background:var(--color-primary-light);color:var(--color-primary-dark);font-weight:600}
 .nav-item svg{width:20px;height:20px;flex-shrink:0}
@@ -23,38 +23,54 @@ body{font-family:'Pretendard',-apple-system,BlinkMacSystemFont,sans-serif;backgr
 .sidebar-footer-info{flex:1}
 .sidebar-footer-name{font-size:13px;font-weight:600;color:var(--color-text-title)}
 .sidebar-footer-role{font-size:11px;color:var(--color-text-sub)}
-/* ── Main ── */
+/* -- Main -- */
 .main{margin-left:var(--sidebar-width);min-height:100vh;padding:var(--spacing-xl)}
 .mobile-header{display:none;position:sticky;top:0;z-index:100;background:var(--color-bg);padding:16px var(--spacing-lg);border-bottom:1px solid var(--color-border);align-items:center;justify-content:space-between}
 .hamburger{background:none;border:none;cursor:pointer;padding:4px}
 .hamburger svg{width:24px;height:24px;color:var(--color-text-title)}
 .overlay{display:none;position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,.3);z-index:150}
 .overlay.active{display:block}
-.page-title{font-size:24px;font-weight:700;color:var(--color-text-title);margin-bottom:var(--spacing-lg)}
-/* ── KPI Cards ── */
+.page-title{font-size:26px;font-weight:700;color:var(--color-text-title);margin-bottom:var(--spacing-lg)}
+/* -- KPI Cards -- */
 .kpi-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:var(--spacing-md);margin-bottom:var(--spacing-xl)}
 .kpi-card{background:var(--color-bg);border:1px solid var(--color-border);border-radius:var(--radius-md);padding:20px}
 .kpi-label{font-size:13px;color:var(--color-text-sub);margin-bottom:var(--spacing-xs)}
 .kpi-value{font-size:28px;font-weight:700;color:var(--color-text-title)}
-.kpi-change{font-size:12px;margin-top:4px}
+.kpi-change{font-size:13px;margin-top:4px}
 .kpi-change.up{color:var(--color-success)}
 .kpi-change.down{color:var(--color-error)}
-/* ── Content Grid ── */
+/* -- Content Grid -- */
 .content-grid{display:grid;grid-template-columns:1fr 1fr;gap:var(--spacing-lg)}
 .content-card{background:var(--color-bg);border:1px solid var(--color-border);border-radius:var(--radius-md);padding:20px}
-.card-title{font-size:16px;font-weight:700;color:var(--color-text-title);margin-bottom:var(--spacing-md)}
+.card-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:var(--spacing-md)}
+.card-title{font-size:18px;font-weight:700;color:var(--color-text-title)}
+/* -- View Toggle -- */
+.view-toggle{display:flex;border:1px solid var(--color-border);border-radius:var(--radius-sm);overflow:hidden}
+.view-toggle-btn{padding:6px 14px;font-size:13px;font-weight:600;font-family:'Pretendard',sans-serif;border:none;background:var(--color-bg);color:var(--color-text-sub);cursor:pointer;transition:all .2s}
+.view-toggle-btn.active{background:var(--color-primary);color:var(--color-text-title)}
+/* -- Class List -- */
 .class-list{display:flex;flex-direction:column;gap:var(--spacing-sm)}
 .class-item{display:flex;justify-content:space-between;align-items:center;padding:10px 0;border-bottom:1px solid var(--color-border)}
 .class-item:last-child{border-bottom:none}
-.class-item-time{font-size:14px;font-weight:600;color:var(--color-text-title)}
+.class-item-time{font-size:15px;font-weight:600;color:var(--color-text-title)}
 .class-item-info{font-size:13px;color:var(--color-text-body)}
 .class-item-count{font-size:13px;font-weight:600;color:var(--color-text-sub)}
+/* -- Calendar View -- */
+.calendar-view{display:none}
+.cal-grid{display:grid;grid-template-columns:60px repeat(7,1fr);border:1px solid var(--color-border);border-radius:var(--radius-sm);overflow:hidden}
+.cal-header-cell{padding:10px 4px;text-align:center;font-size:13px;font-weight:600;color:var(--color-text-sub);background:var(--color-bg-section);border-bottom:1px solid var(--color-border)}
+.cal-time-cell{padding:8px 4px;text-align:center;font-size:13px;color:var(--color-text-sub);border-bottom:1px solid var(--color-border);border-right:1px solid var(--color-border);background:var(--color-bg-section)}
+.cal-cell{padding:4px;border-bottom:1px solid var(--color-border);border-right:1px solid var(--color-border);min-height:44px}
+.cal-cell:nth-child(8n){border-right:none}
+.cal-block{font-size:11px;padding:4px 6px;border-radius:4px;background:var(--color-primary-light);color:var(--color-primary-dark);font-weight:600;cursor:pointer;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.cal-block:hover{background:var(--color-primary);color:#fff}
+/* -- Alerts -- */
 .alert-list{display:flex;flex-direction:column;gap:var(--spacing-sm)}
 .alert-item{display:flex;gap:var(--spacing-sm);padding:10px 12px;border-radius:var(--radius-sm);background:var(--color-bg-section);font-size:13px;color:var(--color-text-body)}
 .alert-icon{flex-shrink:0;width:20px;height:20px}
 .alert-item.warn{background:#FFF3E0}
 .alert-item.danger{background:#FDECEA}
-/* ── 매출 차트 ── */
+/* -- 매출 차트 -- */
 .chart-container{margin-top:var(--spacing-lg);background:var(--color-bg);border:1px solid var(--color-border);border-radius:var(--radius-md);padding:20px}
 .chart-placeholder{display:flex;align-items:flex-end;gap:6px;height:160px;padding-top:20px}
 .chart-bar{flex:1;background:var(--color-primary);border-radius:4px 4px 0 0;transition:height .3s}
@@ -112,18 +128,102 @@ body{font-family:'Pretendard',-apple-system,BlinkMacSystemFont,sans-serif;backgr
 
   <div class="content-grid">
     <div class="content-card">
-      <h2 class="card-title">오늘의 수업</h2>
-      <div class="class-list">
+      <div class="card-header">
+        <h2 class="card-title">오늘의 수업</h2>
+        <div class="view-toggle">
+          <button class="view-toggle-btn active" onclick="switchView('list')">리스트</button>
+          <button class="view-toggle-btn" onclick="switchView('calendar')">캘린더</button>
+        </div>
+      </div>
+
+      <!-- List View -->
+      <div class="class-list" id="listView">
         <div class="class-item"><div><div class="class-item-time">09:00</div><div class="class-item-info">그룹 필라테스 - 박지영</div></div><div class="class-item-count">5/8</div></div>
         <div class="class-item"><div><div class="class-item-time">10:00</div><div class="class-item-info">듀엣 - 이수진</div></div><div class="class-item-count">1/2</div></div>
         <div class="class-item"><div><div class="class-item-time">11:00</div><div class="class-item-info">그룹 필라테스 - 박지영</div></div><div class="class-item-count">8/8</div></div>
         <div class="class-item"><div><div class="class-item-time">14:00</div><div class="class-item-info">개인 - 최재훈</div></div><div class="class-item-count">0/1</div></div>
         <div class="class-item"><div><div class="class-item-time">19:00</div><div class="class-item-info">그룹 필라테스 - 박지영</div></div><div class="class-item-count">7/8</div></div>
       </div>
+
+      <!-- Calendar View -->
+      <div class="calendar-view" id="calendarView">
+        <div class="cal-grid">
+          <div class="cal-header-cell"></div>
+          <div class="cal-header-cell">월</div>
+          <div class="cal-header-cell">화</div>
+          <div class="cal-header-cell">수</div>
+          <div class="cal-header-cell">목</div>
+          <div class="cal-header-cell">금</div>
+          <div class="cal-header-cell">토</div>
+          <div class="cal-header-cell">일</div>
+
+          <div class="cal-time-cell">09:00</div>
+          <div class="cal-cell"><div class="cal-block" onclick="alert('09:00 그룹 필라테스 - 박지영 (5/8)')">그룹-박지영</div></div>
+          <div class="cal-cell"></div>
+          <div class="cal-cell"><div class="cal-block" onclick="alert('09:00 그룹 필라테스 - 박지영 (6/8)')">그룹-박지영</div></div>
+          <div class="cal-cell"></div>
+          <div class="cal-cell"><div class="cal-block" onclick="alert('09:00 그룹 필라테스 - 박지영 (7/8)')">그룹-박지영</div></div>
+          <div class="cal-cell"><div class="cal-block" onclick="alert('09:00 그룹 필라테스 - 박지영 (5/8)')">그룹-박지영</div></div>
+          <div class="cal-cell"></div>
+
+          <div class="cal-time-cell">10:00</div>
+          <div class="cal-cell"><div class="cal-block" onclick="alert('10:00 듀엣 - 이수진 (1/2)')">듀엣-이수진</div></div>
+          <div class="cal-cell"><div class="cal-block" onclick="alert('10:00 듀엣 - 이수진 (2/2)')">듀엣-이수진</div></div>
+          <div class="cal-cell"></div>
+          <div class="cal-cell"><div class="cal-block" onclick="alert('10:00 듀엣 - 이수진 (1/2)')">듀엣-이수진</div></div>
+          <div class="cal-cell"><div class="cal-block" onclick="alert('10:00 듀엣 - 이수진 (2/2)')">듀엣-이수진</div></div>
+          <div class="cal-cell"></div>
+          <div class="cal-cell"></div>
+
+          <div class="cal-time-cell">11:00</div>
+          <div class="cal-cell"><div class="cal-block" onclick="alert('11:00 그룹 필라테스 - 박지영 (8/8)')">그룹-박지영</div></div>
+          <div class="cal-cell"></div>
+          <div class="cal-cell"><div class="cal-block" onclick="alert('11:00 그룹 필라테스 - 박지영 (7/8)')">그룹-박지영</div></div>
+          <div class="cal-cell"></div>
+          <div class="cal-cell"><div class="cal-block" onclick="alert('11:00 그룹 필라테스 - 박지영 (6/8)')">그룹-박지영</div></div>
+          <div class="cal-cell"><div class="cal-block" onclick="alert('11:00 그룹 필라테스 - 박지영 (8/8)')">그룹-박지영</div></div>
+          <div class="cal-cell"></div>
+
+          <div class="cal-time-cell">14:00</div>
+          <div class="cal-cell"><div class="cal-block" onclick="alert('14:00 개인 - 최재훈 (0/1)')">개인-최재훈</div></div>
+          <div class="cal-cell"><div class="cal-block" onclick="alert('14:00 개인 - 최재훈 (1/1)')">개인-최재훈</div></div>
+          <div class="cal-cell"><div class="cal-block" onclick="alert('14:00 개인 - 최재훈 (0/1)')">개인-최재훈</div></div>
+          <div class="cal-cell"><div class="cal-block" onclick="alert('14:00 개인 - 최재훈 (1/1)')">개인-최재훈</div></div>
+          <div class="cal-cell"><div class="cal-block" onclick="alert('14:00 개인 - 최재훈 (0/1)')">개인-최재훈</div></div>
+          <div class="cal-cell"></div>
+          <div class="cal-cell"></div>
+
+          <div class="cal-time-cell">15:00</div>
+          <div class="cal-cell"></div><div class="cal-cell"></div><div class="cal-cell"></div><div class="cal-cell"></div><div class="cal-cell"></div><div class="cal-cell"></div><div class="cal-cell"></div>
+
+          <div class="cal-time-cell">16:00</div>
+          <div class="cal-cell"></div><div class="cal-cell"></div><div class="cal-cell"></div><div class="cal-cell"></div><div class="cal-cell"></div><div class="cal-cell"></div><div class="cal-cell"></div>
+
+          <div class="cal-time-cell">17:00</div>
+          <div class="cal-cell"></div><div class="cal-cell"></div><div class="cal-cell"></div><div class="cal-cell"></div><div class="cal-cell"></div><div class="cal-cell"></div><div class="cal-cell"></div>
+
+          <div class="cal-time-cell">18:00</div>
+          <div class="cal-cell"></div><div class="cal-cell"></div><div class="cal-cell"></div><div class="cal-cell"></div><div class="cal-cell"></div><div class="cal-cell"></div><div class="cal-cell"></div>
+
+          <div class="cal-time-cell">19:00</div>
+          <div class="cal-cell"><div class="cal-block" onclick="alert('19:00 그룹 필라테스 - 박지영 (7/8)')">그룹-박지영</div></div>
+          <div class="cal-cell"><div class="cal-block" onclick="alert('19:00 그룹 필라테스 - 박지영 (8/8)')">그룹-박지영</div></div>
+          <div class="cal-cell"><div class="cal-block" onclick="alert('19:00 그룹 필라테스 - 박지영 (6/8)')">그룹-박지영</div></div>
+          <div class="cal-cell"><div class="cal-block" onclick="alert('19:00 그룹 필라테스 - 박지영 (7/8)')">그룹-박지영</div></div>
+          <div class="cal-cell"><div class="cal-block" onclick="alert('19:00 그룹 필라테스 - 박지영 (8/8)')">그룹-박지영</div></div>
+          <div class="cal-cell"></div>
+          <div class="cal-cell"></div>
+
+          <div class="cal-time-cell">20:00</div>
+          <div class="cal-cell"></div><div class="cal-cell"></div><div class="cal-cell"></div><div class="cal-cell"></div><div class="cal-cell"></div><div class="cal-cell"></div><div class="cal-cell"></div>
+        </div>
+      </div>
     </div>
 
     <div class="content-card">
-      <h2 class="card-title">알림</h2>
+      <div class="card-header">
+        <h2 class="card-title">알림</h2>
+      </div>
       <div class="alert-list">
         <div class="alert-item warn"><svg class="alert-icon" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126ZM12 15.75h.007v.008H12v-.008Z"/></svg>이번 주 노쇼 3명 (최유진, 강하린, 오지원)</div>
         <div class="alert-item danger"><svg class="alert-icon" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z"/></svg>정기권 만료 임박 5명 (7일 이내)</div>
@@ -156,6 +256,20 @@ body{font-family:'Pretendard',-apple-system,BlinkMacSystemFont,sans-serif;backgr
 function toggleSidebar(){
   document.getElementById('sidebar').classList.toggle('open');
   document.getElementById('overlay').classList.toggle('active');
+}
+
+function switchView(view){
+  var btns = document.querySelectorAll('.view-toggle-btn');
+  btns.forEach(function(b){ b.classList.remove('active'); });
+  if(view === 'list'){
+    btns[0].classList.add('active');
+    document.getElementById('listView').style.display = 'flex';
+    document.getElementById('calendarView').style.display = 'none';
+  } else {
+    btns[1].classList.add('active');
+    document.getElementById('listView').style.display = 'none';
+    document.getElementById('calendarView').style.display = 'block';
+  }
 }
 </script>
 </body>
