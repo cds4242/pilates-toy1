@@ -68,6 +68,7 @@ public class ProfileImageService {
         String fileName = member.getPublicId() + "_" + System.currentTimeMillis() + getExtension(file);
         Path filePath = uploadDir.resolve(fileName);
 
+        // TODO: 이미지 리사이즈 (200x200, 500x500) — R2 연동 시 구현
         try {
             Files.write(filePath, file.getBytes());
         } catch (IOException e) {
@@ -104,9 +105,37 @@ public class ProfileImageService {
         if (file.getSize() > MAX_FILE_SIZE) {
             throw new BusinessException(ErrorCode.PROFILE_IMAGE_TOO_LARGE);
         }
-        if (!ALLOWED_TYPES.contains(file.getContentType())) {
-            throw new BusinessException(ErrorCode.PROFILE_IMAGE_INVALID_TYPE);
+        // 매직 넘버 검증 (Content-Type 헤더만으로는 위조 가능)
+        try {
+            byte[] header = file.getBytes();
+            if (header.length < 12) {
+                throw new BusinessException(ErrorCode.PROFILE_IMAGE_INVALID_TYPE);
+            }
+            if (!isValidImageMagicNumber(header)) {
+                throw new BusinessException(ErrorCode.PROFILE_IMAGE_INVALID_TYPE);
+            }
+        } catch (IOException e) {
+            throw new BusinessException(ErrorCode.PROFILE_IMAGE_UPLOAD_FAILED);
         }
+    }
+
+    /** 파일의 매직 넘버(시그니처)로 실제 이미지 타입을 검증한다. */
+    private boolean isValidImageMagicNumber(byte[] data) {
+        // JPEG: FF D8 FF
+        if (data[0] == (byte) 0xFF && data[1] == (byte) 0xD8 && data[2] == (byte) 0xFF) {
+            return true;
+        }
+        // PNG: 89 50 4E 47
+        if (data[0] == (byte) 0x89 && data[1] == 0x50 && data[2] == 0x4E && data[3] == 0x47) {
+            return true;
+        }
+        // WebP: RIFF....WEBP
+        if (data.length >= 12
+                && data[0] == 'R' && data[1] == 'I' && data[2] == 'F' && data[3] == 'F'
+                && data[8] == 'W' && data[9] == 'E' && data[10] == 'B' && data[11] == 'P') {
+            return true;
+        }
+        return false;
     }
 
     private String getExtension(MultipartFile file) {

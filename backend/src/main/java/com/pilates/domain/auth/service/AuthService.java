@@ -12,6 +12,7 @@ import com.pilates.domain.member.entity.Gender;
 import com.pilates.domain.member.entity.Member;
 import com.pilates.domain.member.entity.MemberStatus;
 import com.pilates.domain.member.repository.MemberRepository;
+import org.springframework.dao.DataIntegrityViolationException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.redis.core.StringRedisTemplate;
@@ -92,7 +93,12 @@ public class AuthService {
                 .passwordHash(hashedPassword)
                 .build();
 
-        memberRepository.save(member);
+        try {
+            memberRepository.save(member);
+        } catch (DataIntegrityViolationException e) {
+            // 동시 가입 시 phone_hash UNIQUE 제약 위반
+            throw new BusinessException(ErrorCode.MEMBER_ALREADY_EXISTS);
+        }
 
         // 8. 토큰 발급
         String accessToken = jwtTokenProvider.createAccessToken(member.getId(), ROLE_MEMBER);

@@ -111,6 +111,9 @@ public class MemberService {
     public void withdraw(Long memberId, String reason) {
         Member member = findActiveMember(memberId);
 
+        // TODO: 미래 예약 자동 취소 + 정기권 복구 (reservation 도메인 구현 후 연결)
+        // TODO: 활성 정기권 환불은 관리자 수동 처리 → 관리자 알림 발송
+
         // 1. 탈퇴 이력 기록 (개인정보 원본 보관, 30일 후 익명화)
         WithdrawnMemberLog withdrawnLog = WithdrawnMemberLog.builder()
                 .memberId(member.getId())

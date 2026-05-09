@@ -7,14 +7,17 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import org.springframework.context.annotation.Profile;
+
 import java.util.Map;
 
 /**
  * 인증 검증용 임시 엔드포인트.
- * Phase 5 완료 후 제거 예정.
+ * local, local-h2 프로파일에서만 활성화. 운영 환경에서는 비활성.
  */
 @RestController
 @RequestMapping("/api/test")
+@Profile({"local", "local-h2", "test"})
 public class TestAuthController {
 
     /**
