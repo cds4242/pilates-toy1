@@ -46,4 +46,9 @@ public class StudioSetting {
         this.settingValue = settingValue;
         this.description = description;
     }
+
+    /** 설정 값 업데이트 */
+    public void updateValue(String value) {
+        this.settingValue = value;
+    }
 }

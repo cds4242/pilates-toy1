@@ -136,6 +136,16 @@ public enum ErrorCode {
     ATTENDANCE_ALREADY_CHECKED(HttpStatus.BAD_REQUEST, "ATT_003", "이미 출석 체크된 기록입니다."),
     ATTENDANCE_INVALID_STATUS(HttpStatus.BAD_REQUEST, "ATT_004", "유효하지 않은 출석 상태입니다."),
 
+    // ── 관리자 (Admin) ──
+    ADMIN_DASHBOARD_LOAD_FAILED(HttpStatus.INTERNAL_SERVER_ERROR, "ADMIN_010", "대시보드 데이터 로드에 실패했습니다."),
+    ADMIN_BULK_IMPORT_INVALID_FORMAT(HttpStatus.BAD_REQUEST, "ADMIN_011", "엑셀 파일 형식이 올바르지 않습니다."),
+    ADMIN_BULK_IMPORT_TOO_LARGE(HttpStatus.BAD_REQUEST, "ADMIN_012", "엑셀 파일이 너무 큽니다. (최대 5MB, 1000행)"),
+    ADMIN_MEMBER_FORCE_WITHDRAW_FAILED(HttpStatus.INTERNAL_SERVER_ERROR, "ADMIN_013", "강제 탈퇴 처리에 실패했습니다."),
+    ADMIN_SETTINGS_NOT_FOUND(HttpStatus.NOT_FOUND, "ADMIN_014", "학원 설정을 찾을 수 없습니다."),
+    ADMIN_STATISTICS_INVALID_RANGE(HttpStatus.BAD_REQUEST, "ADMIN_015", "통계 조회 기간이 올바르지 않습니다."),
+    ADMIN_MEMO_NOT_FOUND(HttpStatus.NOT_FOUND, "ADMIN_016", "메모를 찾을 수 없습니다."),
+    ADMIN_MEMO_NOT_OWNER(HttpStatus.FORBIDDEN, "ADMIN_017", "메모 작성자만 수정/삭제할 수 있습니다."),
+
     ;
 
     private final HttpStatus httpStatus;
