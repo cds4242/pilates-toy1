@@ -18,11 +18,11 @@ spring:
   flyway:
     enabled: false
 
-  # Redis 자동 설정 제외 (테스트에서는 Redis 불필요)
-  autoconfigure:
-    exclude:
-      - org.springframework.boot.autoconfigure.data.redis.RedisAutoConfiguration
-      - org.springframework.boot.autoconfigure.data.redis.RedisRepositoriesAutoConfiguration
+  # Redis (테스트용 - Docker Redis 필요)
+  data:
+    redis:
+      host: localhost
+      port: 6379
 
 logging:
   level:

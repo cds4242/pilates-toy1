@@ -34,6 +34,13 @@ public enum ErrorCode {
     // ── 전화번호 ──
     INVALID_PHONE_NUMBER(HttpStatus.BAD_REQUEST, "PHONE_001", "올바르지 않은 휴대폰 번호입니다."),
 
+    // ── SMS 인증 ──
+    SMS_RATE_LIMIT_EXCEEDED(HttpStatus.TOO_MANY_REQUESTS, "SMS_001", "잠시 후 다시 시도해주세요. (1분 내 재발송 불가)"),
+    SMS_DAILY_LIMIT_EXCEEDED(HttpStatus.TOO_MANY_REQUESTS, "SMS_002", "오늘 인증번호 발송 횟수를 초과했습니다. (일 5회)"),
+    SMS_CODE_EXPIRED(HttpStatus.BAD_REQUEST, "SMS_003", "인증번호가 만료되었습니다. 다시 요청해주세요."),
+    SMS_CODE_MISMATCH(HttpStatus.BAD_REQUEST, "SMS_004", "인증번호가 일치하지 않습니다."),
+    SMS_VERIFICATION_REQUIRED(HttpStatus.BAD_REQUEST, "SMS_005", "SMS 인증이 필요합니다."),
+
     ;
 
     private final HttpStatus httpStatus;
