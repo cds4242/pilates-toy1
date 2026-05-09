@@ -131,6 +131,12 @@ export default function SignupPage() {
                 </div>
               </div>
 
+              {/* 생년월일 */}
+              <div className="flex flex-col gap-1.5">
+                <label className="text-[13px] font-semibold text-[var(--color-text-title)]">생년월일</label>
+                <input type="date" className={inputCls} />
+              </div>
+
               <button
                 onClick={handleSignup}
                 disabled={loading || !name || password.length < 8}

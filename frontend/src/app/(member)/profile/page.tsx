@@ -54,6 +54,21 @@ export default function MyPage() {
         ) : (
           <div className="rounded-[18px] bg-[var(--color-bg-section)] p-5 text-center text-[15px] text-[var(--color-text-sub)]">활성 정기권이 없습니다</div>
         )}
+        {/* 출석 이력 */}
+        <div>
+          <h2 className="text-[20px] font-bold text-[var(--color-text-title)] mb-3">출석 이력</h2>
+          <div className="flex flex-col gap-2">
+            {[
+              { date: "최근 출석 내역", status: "로그인 후 표시" },
+            ].map((item, i) => (
+              <div key={i} className="flex items-center justify-between rounded-[18px] border border-[var(--color-border)] px-4 py-3.5">
+                <span className="text-[15px] text-[var(--color-text-title)]">{item.date}</span>
+                <span className="text-[13px] text-[var(--color-text-sub)]">{item.status}</span>
+              </div>
+            ))}
+          </div>
+        </div>
+
         <div className="flex flex-col">
           {menuItems.map(({ icon: Icon, label, href }) => (
             <button key={label} onClick={() => router.push(href)} className="flex items-center gap-4 py-4 border-b border-[var(--color-border)] hover:text-[var(--color-pilates-dark)] transition-colors">

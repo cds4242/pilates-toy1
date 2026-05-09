@@ -63,7 +63,7 @@ export default function SchedulePage() {
         <button onClick={() => router.back()} className="text-[var(--color-text-title)]">
           <ChevronLeft className="h-6 w-6" />
         </button>
-        <h1 className="text-[20px] font-bold text-[var(--color-text-title)]">수업 시간표</h1>
+        <h1 className="text-[20px] font-bold text-[var(--color-text-title)]">수업 예약</h1>
       </header>
 
       {/* 날짜 선택 */}
