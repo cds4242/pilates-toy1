@@ -25,8 +25,15 @@ export default function SignupPage() {
   const handleRequestSms = async () => {
     setLoading(true);
     try {
-      await authApi.requestSms(phone.replace(/-/g, ""));
-      toast.success("인증번호가 발송되었습니다. (백엔드 콘솔 로그 확인)");
+      const normalized = phone.replace(/-/g, "");
+      await authApi.requestSms(normalized);
+      // 개발 모드: 인증번호 자동 입력
+      try {
+        const { api: callApi } = await import("@/lib/api/client");
+        const res = await callApi<{ code: string }>("get", `/api/test/sms-code/${normalized}`);
+        if (res.code) { setCode(res.code); toast.success(`인증번호: ${res.code} (자동 입력됨)`); }
+        else { toast.success("인증번호가 발송되었습니다."); }
+      } catch { toast.success("인증번호가 발송되었습니다."); }
       setStep("verify");
     } catch (err: unknown) {
       toast.error(err instanceof Error ? err.message : "발송 실패");
