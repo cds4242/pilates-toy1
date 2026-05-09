@@ -6,6 +6,7 @@ import { ko } from "date-fns/locale";
 import { api } from "@/lib/api/client";
 import type { ClassSchedule } from "@/lib/types/domain";
 import { formatTime } from "@/lib/utils/format";
+import { toast } from "sonner";
 
 const HOURS = [9, 10, 11, 14, 15, 16, 17, 18, 19];
 const DAYS = ["월", "화", "수", "목", "금", "토", "일"];
@@ -37,7 +38,7 @@ export default function AdminClassesPage() {
     <div>
       <div className="flex flex-wrap items-center justify-between gap-4 mb-6">
         <h1 className="text-[26px] font-bold text-[var(--color-text-title)]">시간표 관리</h1>
-        <button className="rounded-[8px] bg-[var(--color-pilates)] hover:bg-[var(--color-pilates-dark)] px-4 py-2.5 text-[13px] font-semibold text-[var(--color-text-title)] transition-colors">
+        <button onClick={() => toast.info("자동 생성 기능은 준비 중입니다")} className="rounded-[8px] bg-[var(--color-pilates)] hover:bg-[var(--color-pilates-dark)] px-4 py-2.5 text-[13px] font-semibold text-[var(--color-text-title)] transition-colors">
           다음 4주치 자동 생성
         </button>
       </div>
@@ -61,7 +62,7 @@ export default function AdminClassesPage() {
                 </select>
               </div>
             ))}
-            <button className="w-full bg-[var(--color-pilates)] hover:bg-[var(--color-pilates-dark)] text-[var(--color-text-title)] rounded-[8px] py-3 text-[15px] font-semibold mt-2 transition-colors">
+            <button onClick={() => toast.info("수업 추가 기능은 준비 중입니다")} className="w-full bg-[var(--color-pilates)] hover:bg-[var(--color-pilates-dark)] text-[var(--color-text-title)] rounded-[8px] py-3 text-[15px] font-semibold mt-2 transition-colors">
               수업 추가
             </button>
           </div>

@@ -80,7 +80,7 @@ export default function LoginPage() {
       {/* 링크 */}
       <div className="flex justify-center gap-6">
         <Link href="/signup" className="text-[15px] text-pilates-dark hover:underline">회원가입</Link>
-        <button className="text-[15px] text-text-body hover:underline">비밀번호 찾기</button>
+        <button onClick={() => toast.info("비밀번호 찾기 기능은 준비 중입니다")} className="text-[15px] text-text-body hover:underline">비밀번호 찾기</button>
       </div>
 
       {/* 관리자 링크 */}

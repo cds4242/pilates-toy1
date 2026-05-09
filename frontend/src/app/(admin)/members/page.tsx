@@ -5,6 +5,7 @@ import { Search } from "lucide-react";
 import { api } from "@/lib/api/client";
 import type { PageResponse } from "@/lib/types/api";
 import { StatusBadge } from "@/components/design/StatusBadge";
+import { toast } from "sonner";
 
 interface AdminMember {
   id: number; name: string; phone: string; gender: string; status: string; activeMembership: string | null; createdAt: string;
@@ -35,8 +36,8 @@ export default function AdminMembersPage() {
       <div className="flex flex-wrap items-center justify-between gap-4 mb-6">
         <h1 className="text-[26px] font-bold text-[var(--color-text-title)]">회원 관리</h1>
         <div className="flex gap-3">
-          <button className="rounded-[8px] bg-[var(--color-pilates)] hover:bg-[var(--color-pilates-dark)] px-4 py-2.5 text-[13px] font-semibold text-[var(--color-text-title)] transition-colors">+ 회원 등록</button>
-          <button className="rounded-[8px] border border-[var(--color-border)] hover:border-[var(--color-pilates)] bg-white px-4 py-2.5 text-[13px] font-semibold text-[var(--color-text-body)] transition-colors">엑셀 일괄 등록</button>
+          <button onClick={() => toast.info("회원 등록 기능은 준비 중입니다")} className="rounded-[8px] bg-[var(--color-pilates)] hover:bg-[var(--color-pilates-dark)] px-4 py-2.5 text-[13px] font-semibold text-[var(--color-text-title)] transition-colors">+ 회원 등록</button>
+          <button onClick={() => toast.info("엑셀 일괄 등록 기능은 준비 중입니다")} className="rounded-[8px] border border-[var(--color-border)] hover:border-[var(--color-pilates)] bg-white px-4 py-2.5 text-[13px] font-semibold text-[var(--color-text-body)] transition-colors">엑셀 일괄 등록</button>
         </div>
       </div>
 

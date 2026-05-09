@@ -8,6 +8,7 @@ import { memberApi } from "@/lib/api/member";
 import type { Member, Membership } from "@/lib/types/domain";
 import { PassCard } from "@/components/design/PassCard";
 import { MobileTabBar } from "@/components/design/MobileTabBar";
+import { toast } from "sonner";
 
 export default function MyPage() {
   const router = useRouter();
@@ -82,7 +83,7 @@ export default function MyPage() {
             <span className="flex-1 text-left text-[15px] text-[var(--color-text-title)]">로그아웃</span>
             <ChevronRight className="h-4 w-4 text-[var(--color-text-sub)]" />
           </button>
-          <button className="flex items-center gap-4 py-4">
+          <button onClick={() => toast.info("회원 탈퇴는 마이페이지 > 설정에서 가능합니다")} className="flex items-center gap-4 py-4">
             <UserX className="h-[18px] w-[18px] shrink-0 text-[var(--color-error)]" />
             <span className="flex-1 text-left text-[15px] text-[var(--color-error)]">회원 탈퇴</span>
             <ChevronRight className="h-4 w-4 text-[var(--color-text-sub)]" />

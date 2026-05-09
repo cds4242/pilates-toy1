@@ -1,10 +1,13 @@
 "use client";
 
+import { useState } from "react";
 import { useAuth } from "@/lib/hooks/use-auth";
 import { ClassCard } from "@/components/design/ClassCard";
+import { toast } from "sonner";
 
 export default function InstructorSchedulePage() {
   const { user, logout } = useAuth();
+  const [activeTab, setActiveTab] = useState(0);
 
   return (
     <div className="max-w-[480px] mx-auto min-h-screen bg-white">
@@ -23,8 +26,9 @@ export default function InstructorSchedulePage() {
         {["오늘", "내일", "이번 주"].map((tab, i) => (
           <button
             key={tab}
+            onClick={() => setActiveTab(i)}
             className={`flex-1 py-3.5 text-[15px] text-center transition-colors ${
-              i === 0
+              i === activeTab
                 ? "text-[var(--color-instructor)] font-semibold border-b-2 border-[var(--color-instructor)]"
                 : "text-[var(--color-text-sub)]"
             }`}
@@ -46,7 +50,7 @@ export default function InstructorSchedulePage() {
           <div className="flex gap-4 text-[13px] text-[var(--color-text-body)]">
             <span>5/8명</span><span>50분</span>
           </div>
-          <button className="w-full rounded-[8px] bg-[var(--color-instructor)] py-3 text-[15px] font-semibold text-white">출석 체크</button>
+          <button onClick={() => toast.info("출석 체크 기능은 준비 중입니다")} className="w-full rounded-[8px] bg-[var(--color-instructor)] py-3 text-[15px] font-semibold text-white">출석 체크</button>
         </div>
         <p className="text-center text-[13px] text-[var(--color-text-sub)]">수업 데이터는 백엔드 연동 시 표시됩니다</p>
       </main>

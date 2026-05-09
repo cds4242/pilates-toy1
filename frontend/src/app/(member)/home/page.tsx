@@ -9,6 +9,7 @@ import type { Member, Membership, Reservation } from "@/lib/types/domain";
 import { PassCard } from "@/components/design/PassCard";
 import { MobileTabBar } from "@/components/design/MobileTabBar";
 import { formatTime } from "@/lib/utils/format";
+import { toast } from "sonner";
 
 export default function MemberHomePage() {
   const { user } = useAuthStore();
@@ -52,7 +53,7 @@ export default function MemberHomePage() {
         <span className="text-[20px] font-bold text-[var(--color-text-title)]">
           필라테스 OO점
         </span>
-        <button className="relative text-[var(--color-text-title)]">
+        <button onClick={() => toast.info("알림 기능은 준비 중입니다")} className="relative text-[var(--color-text-title)]">
           <Bell className="h-6 w-6" />
           <span className="absolute -top-1 -right-1 bg-[var(--color-error)] text-white text-[10px] font-bold w-4 h-4 rounded-full flex items-center justify-center">
             2

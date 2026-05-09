@@ -6,6 +6,7 @@ import type { Membership } from "@/lib/types/domain";
 import { PassCard } from "@/components/design/PassCard";
 import { StatusBadge } from "@/components/design/StatusBadge";
 import { MobileTabBar } from "@/components/design/MobileTabBar";
+import { toast } from "sonner";
 
 export default function MembershipPage() {
   const [memberships, setMemberships] = useState<Membership[]>([]);
@@ -54,7 +55,7 @@ export default function MembershipPage() {
             </div>
           </div>
         )}
-        <button className="w-full bg-[var(--color-pilates)] hover:bg-[var(--color-pilates-dark)] text-[var(--color-text-title)] rounded-[8px] py-4 text-[16px] font-semibold transition-all">수강권 구매하기</button>
+        <button onClick={() => toast.info("수강권 구매 기능은 준비 중입니다")} className="w-full bg-[var(--color-pilates)] hover:bg-[var(--color-pilates-dark)] text-[var(--color-text-title)] rounded-[8px] py-4 text-[16px] font-semibold transition-all">수강권 구매하기</button>
       </main>
       <MobileTabBar />
     </div>
