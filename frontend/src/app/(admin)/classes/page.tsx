@@ -1,13 +1,9 @@
-export default function ClassesPlaceholderPage() {
+export default function ClassesPage() {
   return (
-    <div className="flex items-center justify-center min-h-[60vh]">
-      <div className="text-center space-y-2">
-        <h1 className="text-xl font-semibold text-muted-foreground">
-          classes 페이지
-        </h1>
-        <p className="text-sm text-muted-foreground">
-          STEP 12 v2 구현 예정
-        </p>
+    <div>
+      <h1 className="text-[26px] font-bold text-[var(--color-text-title)] mb-6">시간표 관리</h1>
+      <div className="rounded-[18px] border border-[var(--color-border)] bg-white p-8 text-center">
+        <p className="text-[15px] text-[var(--color-text-sub)]">시간표 관리 페이지 (v2 구현 예정)</p>
       </div>
     </div>
   );

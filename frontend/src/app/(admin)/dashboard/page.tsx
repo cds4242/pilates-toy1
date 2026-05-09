@@ -3,20 +3,9 @@
 import { useEffect, useState } from "react";
 import { adminApi } from "@/lib/api/admin";
 import type { DashboardData } from "@/lib/types/domain";
-import {
-  Card,
-  CardContent,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import {
-  Calendar,
-  DollarSign,
-  AlertTriangle,
-  Clock,
-} from "lucide-react";
+import { KpiCard } from "@/components/design/KpiCard";
 import { formatTime } from "@/lib/utils/format";
+import { AlertTriangle, Clock, User } from "lucide-react";
 
 export default function AdminDashboardPage() {
   const [data, setData] = useState<DashboardData | null>(null);
@@ -24,227 +13,93 @@ export default function AdminDashboardPage() {
 
   useEffect(() => {
     async function load() {
-      try {
-        const d = await adminApi.getDashboard();
-        setData(d);
-      } catch {
-        // empty
-      } finally {
-        setLoading(false);
-      }
+      try { setData(await adminApi.getDashboard()); } catch { /* empty */ }
+      finally { setLoading(false); }
     }
     load();
   }, []);
 
-  if (loading) {
-    return (
-      <div className="space-y-6">
-        <h1 className="text-2xl font-bold">대시보드</h1>
-        <div className="flex items-center justify-center p-8">
-          <div className="animate-pulse text-muted-foreground">로딩 중...</div>
-        </div>
-      </div>
-    );
-  }
-
-  if (!data) {
-    return (
-      <div className="space-y-6">
-        <h1 className="text-2xl font-bold">대시보드</h1>
-        <div className="text-center text-muted-foreground p-8">
-          대시보드 데이터를 불러올 수 없습니다.
-        </div>
-      </div>
-    );
-  }
-
   return (
-    <div className="space-y-6">
-      <h1 className="text-2xl font-bold">대시보드</h1>
+    <div>
+      <h1 className="text-[26px] font-bold text-[var(--color-text-title)] mb-6">대시보드</h1>
 
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-        {/* 오늘 수업 요약 */}
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardTitle className="text-sm font-medium">오늘 수업</CardTitle>
-            <Calendar className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">
-              {data.todayClasses.count}건
-            </div>
-          </CardContent>
-        </Card>
+      {/* KPI */}
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+        <KpiCard label="오늘 수업" value={loading ? "—" : `${data?.todayClasses.count ?? 0}건`} />
+        <KpiCard label="오늘 예약" value={loading ? "—" : `${data?.todayClasses.schedules.reduce((s, c) => s + c.reservedCount, 0) ?? 0}명`} />
+        <KpiCard label="이번 주 매출" value={loading ? "—" : `${Number(data?.thisWeekRevenue.total ?? 0).toLocaleString()}원`} />
+        <KpiCard label="만료 임박" value={loading ? "—" : `${data?.expiringMemberships.length ?? 0}명`} />
+      </div>
 
-        {/* 이번 주 매출 */}
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardTitle className="text-sm font-medium">이번 주 매출</CardTitle>
-            <DollarSign className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">
-              {Number(data.thisWeekRevenue.total).toLocaleString()}원
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        {/* 오늘의 수업 */}
+        <div className="rounded-[18px] border border-[var(--color-border)] bg-white p-5">
+          <h2 className="text-[18px] font-bold text-[var(--color-text-title)] mb-4">오늘의 수업</h2>
+          {!data || data.todayClasses.schedules.length === 0 ? (
+            <p className="text-[15px] text-[var(--color-text-sub)] py-4">예정된 수업이 없습니다</p>
+          ) : (
+            <div className="flex flex-col">
+              {data.todayClasses.schedules.map((s, i) => (
+                <div key={i} className="flex items-center justify-between py-3 border-b border-[var(--color-border)] last:border-0">
+                  <div>
+                    <p className="text-[15px] font-semibold text-[var(--color-text-title)]">{formatTime(s.time)} {s.className}</p>
+                    <p className="text-[13px] text-[var(--color-text-body)]">{s.instructor}</p>
+                  </div>
+                  <span className="text-[13px] font-semibold text-[var(--color-text-sub)]">{s.reservedCount}/{s.capacity}명</span>
+                </div>
+              ))}
             </div>
-          </CardContent>
-        </Card>
-
-        {/* 만료 임박 */}
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardTitle className="text-sm font-medium">만료 임박</CardTitle>
-            <Clock className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">
-              {data.expiringMemberships.length}명
-            </div>
-          </CardContent>
-        </Card>
+          )}
+        </div>
 
         {/* 알림 */}
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardTitle className="text-sm font-medium">주의 알림</CardTitle>
-            <AlertTriangle className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">
-              {data.alerts.noShowMembers.length +
-                data.alerts.lowMembershipMembers.length}
-              건
-            </div>
-          </CardContent>
-        </Card>
+        <div className="rounded-[18px] border border-[var(--color-border)] bg-white p-5">
+          <h2 className="text-[18px] font-bold text-[var(--color-text-title)] mb-4">알림</h2>
+          <div className="flex flex-col gap-3">
+            {data?.alerts.noShowMembers.map((m) => (
+              <div key={m.memberId} className="flex items-center gap-3 rounded-[8px] bg-[#FDECEA] px-4 py-3">
+                <AlertTriangle className="h-4 w-4 text-[var(--color-error)] shrink-0" />
+                <span className="text-[13px] text-[var(--color-text-title)]">{m.memberName} — 노쇼 {m.noShowCount}회</span>
+              </div>
+            ))}
+            {data?.expiringMemberships.slice(0, 3).map((m) => (
+              <div key={m.memberId} className="flex items-center gap-3 rounded-[8px] bg-[#FFF3E0] px-4 py-3">
+                <Clock className="h-4 w-4 text-[var(--color-warning)] shrink-0" />
+                <span className="text-[13px] text-[var(--color-text-title)]">{m.memberName} — D-{m.daysLeft}</span>
+              </div>
+            ))}
+            {data?.alerts.lowMembershipMembers.slice(0, 3).map((m) => (
+              <div key={m.memberId} className="flex items-center gap-3 rounded-[8px] bg-[#FFF3E0] px-4 py-3">
+                <User className="h-4 w-4 text-[var(--color-warning)] shrink-0" />
+                <span className="text-[13px] text-[var(--color-text-title)]">{m.memberName} — 잔여 {m.remainingCount}회</span>
+              </div>
+            ))}
+            {(!data || (data.alerts.noShowMembers.length === 0 && data.expiringMemberships.length === 0 && data.alerts.lowMembershipMembers.length === 0)) && !loading && (
+              <p className="text-[15px] text-[var(--color-text-sub)]">알림이 없습니다</p>
+            )}
+          </div>
+        </div>
       </div>
 
-      <div className="grid gap-4 md:grid-cols-2">
-        {/* 오늘 수업 상세 */}
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-base">오늘의 수업</CardTitle>
-          </CardHeader>
-          <CardContent>
-            {data.todayClasses.schedules.length === 0 ? (
-              <p className="text-sm text-muted-foreground">
-                오늘 예정된 수업이 없습니다.
-              </p>
-            ) : (
-              <div className="space-y-3">
-                {data.todayClasses.schedules.map((s, i) => (
-                  <div
-                    key={i}
-                    className="flex justify-between items-center py-2 border-b last:border-0"
-                  >
-                    <div>
-                      <p className="font-medium text-sm">
-                        {formatTime(s.time)} · {s.className}
-                      </p>
-                      <p className="text-xs text-muted-foreground">
-                        {s.instructor}
-                      </p>
-                    </div>
-                    <Badge variant="secondary">
-                      {s.reservedCount}/{s.capacity}
-                    </Badge>
-                  </div>
-                ))}
-              </div>
-            )}
-          </CardContent>
-        </Card>
-
-        {/* 만료 임박 정기권 */}
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-base">만료 임박 정기권</CardTitle>
-          </CardHeader>
-          <CardContent>
-            {data.expiringMemberships.length === 0 ? (
-              <p className="text-sm text-muted-foreground">
-                7일 이내 만료 정기권이 없습니다.
-              </p>
-            ) : (
-              <div className="space-y-3">
-                {data.expiringMemberships.map((m) => (
-                  <div
-                    key={m.memberId}
-                    className="flex justify-between items-center py-2 border-b last:border-0"
-                  >
-                    <div>
-                      <p className="font-medium text-sm">{m.memberName}</p>
-                      <p className="text-xs text-muted-foreground">
-                        {m.passName}
-                      </p>
-                    </div>
-                    <Badge
-                      variant={m.daysLeft <= 2 ? "destructive" : "secondary"}
-                    >
-                      D-{m.daysLeft}
-                    </Badge>
-                  </div>
-                ))}
-              </div>
-            )}
-          </CardContent>
-        </Card>
-
-        {/* 노쇼 알림 */}
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-base">노쇼 주의 회원</CardTitle>
-          </CardHeader>
-          <CardContent>
-            {data.alerts.noShowMembers.length === 0 ? (
-              <p className="text-sm text-muted-foreground">
-                노쇼 주의 회원이 없습니다.
-              </p>
-            ) : (
-              <div className="space-y-2">
-                {data.alerts.noShowMembers.map((m) => (
-                  <div
-                    key={m.memberId}
-                    className="flex justify-between items-center"
-                  >
-                    <span className="text-sm">{m.memberName}</span>
-                    <Badge variant="destructive">{m.noShowCount}회</Badge>
-                  </div>
-                ))}
-              </div>
-            )}
-          </CardContent>
-        </Card>
-
-        {/* 잔여 부족 */}
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-base">정기권 잔여 부족</CardTitle>
-          </CardHeader>
-          <CardContent>
-            {data.alerts.lowMembershipMembers.length === 0 ? (
-              <p className="text-sm text-muted-foreground">
-                잔여 부족 회원이 없습니다.
-              </p>
-            ) : (
-              <div className="space-y-2">
-                {data.alerts.lowMembershipMembers.map((m) => (
-                  <div
-                    key={m.memberId}
-                    className="flex justify-between items-center"
-                  >
-                    <div>
-                      <span className="text-sm">{m.memberName}</span>
-                      <span className="text-xs text-muted-foreground ml-2">
-                        {m.passName}
-                      </span>
-                    </div>
-                    <Badge variant="secondary">{m.remainingCount}회 남음</Badge>
-                  </div>
-                ))}
-              </div>
-            )}
-          </CardContent>
-        </Card>
+      {/* 매출 추이 */}
+      <div className="mt-6 rounded-[18px] border border-[var(--color-border)] bg-white p-5">
+        <h2 className="text-[18px] font-bold text-[var(--color-text-title)] mb-4">이번 주 매출 추이</h2>
+        {data?.thisWeekRevenue.breakdown && data.thisWeekRevenue.breakdown.length > 0 ? (
+          <div className="flex items-end gap-2 h-[120px]">
+            {data.thisWeekRevenue.breakdown.map((d, i) => {
+              const max = Math.max(...data.thisWeekRevenue.breakdown.map((b) => Number(b.amount)), 1);
+              const h = (Number(d.amount) / max) * 100;
+              return (
+                <div key={i} className="flex-1 flex flex-col items-center gap-1">
+                  <div className="w-full rounded-t-[4px] bg-[var(--color-pilates)] min-h-[2px]" style={{ height: `${h}%` }} />
+                  <span className="text-[10px] text-[var(--color-text-sub)]">{d.date.slice(5)}</span>
+                </div>
+              );
+            })}
+          </div>
+        ) : (
+          <p className="text-[15px] text-[var(--color-text-sub)] py-4">매출 데이터가 없습니다</p>
+        )}
       </div>
     </div>
   );
