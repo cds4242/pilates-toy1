@@ -2,13 +2,17 @@ package com.pilates.integration;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.pilates.domain.admin.repository.AdminRepository;
+import com.pilates.domain.instructor.repository.InstructorRepository;
 import com.pilates.domain.reservation.scheduler.NoShowMarkingScheduler;
+import com.pilates.integration.support.AuthTestHelper;
 import org.junit.jupiter.api.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.http.MediaType;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
@@ -16,7 +20,6 @@ import org.springframework.test.web.servlet.MvcResult;
 import java.time.LocalDate;
 import java.time.LocalTime;
 import java.time.format.DateTimeFormatter;
-import java.util.Set;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
@@ -36,98 +39,57 @@ class AttendanceE2ETest {
     @Autowired private ObjectMapper objectMapper;
     @Autowired private StringRedisTemplate redisTemplate;
     @Autowired private NoShowMarkingScheduler noShowMarkingScheduler;
-    @Autowired private org.springframework.security.crypto.password.PasswordEncoder passwordEncoder;
-    @Autowired private com.pilates.domain.admin.repository.AdminRepository adminRepository;
-    @Autowired private com.pilates.domain.instructor.repository.InstructorRepository instructorRepository;
+    @Autowired private PasswordEncoder passwordEncoder;
+    @Autowired private AdminRepository adminRepository;
+    @Autowired private InstructorRepository instructorRepository;
+
+    private AuthTestHelper authHelper;
 
     @BeforeEach
-    void clearRedis() {
-        Set<String> keys = redisTemplate.keys("sms:*");
-        if (keys != null) redisTemplate.delete(keys);
-        Set<String> authKeys = redisTemplate.keys("auth:*");
-        if (authKeys != null) redisTemplate.delete(authKeys);
+    void setUp() {
+        authHelper = new AuthTestHelper(mockMvc, objectMapper, redisTemplate, passwordEncoder, adminRepository, instructorRepository);
+        authHelper.clearRedis();
     }
 
     // ── 헬퍼 ──
 
-    private String[] signup(String phone) throws Exception {
-        mockMvc.perform(post("/api/auth/sms/request").contentType(MediaType.APPLICATION_JSON)
-                .content("{\"phoneNumber\":\"" + phone + "\"}")).andExpect(status().isOk());
-        String code = redisTemplate.opsForValue().get("sms:code:" + phone);
-        MvcResult vr = mockMvc.perform(post("/api/auth/sms/verify").contentType(MediaType.APPLICATION_JSON)
-                .content("{\"phoneNumber\":\"" + phone + "\",\"code\":\"" + code + "\"}")).andReturn();
-        String vtoken = objectMapper.readTree(vr.getResponse().getContentAsString()).get("data").get("verifiedToken").asText();
-        MvcResult sr = mockMvc.perform(post("/api/auth/signup").contentType(MediaType.APPLICATION_JSON)
-                .content("{\"verifiedToken\":\"" + vtoken + "\",\"name\":\"AttUser\",\"password\":\"Test1234!\",\"gender\":\"MALE\"}")).andReturn();
-        JsonNode data = objectMapper.readTree(sr.getResponse().getContentAsString()).get("data");
-        String token = data.get("accessToken").asText();
-        String[] parts = token.split("\\.");
-        String payload = new String(java.util.Base64.getUrlDecoder().decode(parts[1]));
-        String memberId = objectMapper.readTree(payload).get("sub").asText();
-        return new String[]{token, memberId};
-    }
-
-    /**
-     * 강사 admin 계정 생성 + 로그인 → 강사 토큰 반환.
-     * instructorId를 가진 admins 레코드를 직접 생성.
-     */
-    private String loginAsInstructor(Long instructorId, String loginId) throws Exception {
-        // Admin 엔티티 직접 생성
-        var instructor = instructorRepository.findById(instructorId).orElseThrow();
-        var admin = com.pilates.domain.admin.entity.Admin.builder()
-                .loginId(loginId)
-                .passwordHash(passwordEncoder.encode("Test1234!"))
-                .name("강사" + loginId)
-                .role(com.pilates.domain.admin.entity.AdminRole.INSTRUCTOR)
-                .instructor(instructor)
-                .active(true)
-                .build();
-        adminRepository.save(admin);
-
-        // 로그인 API 호출
-        MvcResult lr = mockMvc.perform(post("/api/admin/auth/login").contentType(MediaType.APPLICATION_JSON)
-                        .content("{\"loginId\":\"" + loginId + "\",\"password\":\"Test1234!\"}"))
-                .andExpect(status().isOk())
-                .andReturn();
-        return objectMapper.readTree(lr.getResponse().getContentAsString()).get("data").get("accessToken").asText();
-    }
-
     /**
      * 강사+수업유형+정기권+정기권발급+수업 생성.
+     * adminToken을 사용하여 /api/admin/** 엔드포인트 호출.
      * 반환: [classScheduleId, lessonTypeId, membershipPassId, instructorId]
      */
-    private long[] setupFullScenario(String token, String memberId, String suffix, int capacity,
+    private long[] setupFullScenario(String adminToken, String memberId, String suffix, int capacity,
                                        LocalDate classDate, String startTime, String endTime) throws Exception {
         MvcResult ir = mockMvc.perform(post("/api/admin/instructors")
-                .header("Authorization", "Bearer " + token).contentType(MediaType.APPLICATION_JSON)
+                .header("Authorization", "Bearer " + adminToken).contentType(MediaType.APPLICATION_JSON)
                 .content("{\"name\":\"ATT강사" + suffix + "\",\"phone\":\"010-0000-0000\"}")).andExpect(status().isOk()).andReturn();
         Long instrId = objectMapper.readTree(ir.getResponse().getContentAsString()).get("data").get("id").asLong();
 
         MvcResult lt = mockMvc.perform(post("/api/admin/lesson-types")
-                .header("Authorization", "Bearer " + token).contentType(MediaType.APPLICATION_JSON)
+                .header("Authorization", "Bearer " + adminToken).contentType(MediaType.APPLICATION_JSON)
                 .content("{\"name\":\"ATT유형" + suffix + "\",\"maxCapacity\":" + capacity + ",\"durationMinutes\":50,\"deductionCount\":1}")).andExpect(status().isOk()).andReturn();
         Long ltId = objectMapper.readTree(lt.getResponse().getContentAsString()).get("data").get("id").asLong();
 
         MvcResult mp = mockMvc.perform(post("/api/admin/membership-passes")
-                .header("Authorization", "Bearer " + token).contentType(MediaType.APPLICATION_JSON)
+                .header("Authorization", "Bearer " + adminToken).contentType(MediaType.APPLICATION_JSON)
                 .content("{\"name\":\"ATT패스" + suffix + "\",\"price\":100000,\"totalCount\":10,\"validityDays\":90,\"unlimited\":false,\"lessonTypeIds\":[" + ltId + "]}")).andExpect(status().isOk()).andReturn();
         Long passId = objectMapper.readTree(mp.getResponse().getContentAsString()).get("data").get("id").asLong();
 
         mockMvc.perform(post("/api/admin/memberships")
-                .header("Authorization", "Bearer " + token).contentType(MediaType.APPLICATION_JSON)
+                .header("Authorization", "Bearer " + adminToken).contentType(MediaType.APPLICATION_JSON)
                 .content("{\"memberId\":" + memberId + ",\"totalCount\":10,\"price\":100000,\"validityDays\":90,\"unlimited\":false,\"lessonTypeIds\":[" + ltId + "],\"membershipPassId\":" + passId + "}")).andExpect(status().isOk());
 
         MvcResult cs = mockMvc.perform(post("/api/admin/class-schedules")
-                .header("Authorization", "Bearer " + token).contentType(MediaType.APPLICATION_JSON)
+                .header("Authorization", "Bearer " + adminToken).contentType(MediaType.APPLICATION_JSON)
                 .content("{\"instructorId\":" + instrId + ",\"lessonTypeId\":" + ltId + ",\"classDate\":\"" + classDate + "\",\"startTime\":\"" + startTime + "\",\"endTime\":\"" + endTime + "\",\"maxCapacity\":" + capacity + "}")).andExpect(status().isOk()).andReturn();
         Long classId = objectMapper.readTree(cs.getResponse().getContentAsString()).get("data").get("id").asLong();
 
         return new long[]{classId, ltId, passId, instrId};
     }
 
-    private long[] setupFutureScenario(String token, String memberId, String suffix, int capacity) throws Exception {
+    private long[] setupFutureScenario(String adminToken, String memberId, String suffix, int capacity) throws Exception {
         LocalDate futureDate = LocalDate.now().plusDays(14);
-        return setupFullScenario(token, memberId, suffix, capacity, futureDate, "10:00", "10:50");
+        return setupFullScenario(adminToken, memberId, suffix, capacity, futureDate, "10:00", "10:50");
     }
 
     private Long reserveClass(String token, Long classId) throws Exception {
@@ -145,9 +107,10 @@ class AttendanceE2ETest {
     @Order(1)
     @DisplayName("시나리오1: 강사 토큰으로 출석 체크 → ATTENDED/LATE/ABSENT 마킹 + 이력 조회")
     void scenario1_instructorMarkAttendance() throws Exception {
-        String[] auth1 = signup("01066660001");
-        String[] auth2 = signup("01066660002");
-        String[] auth3 = signup("01066660003");
+        String adminToken = authHelper.loginAsAdmin();
+        String[] auth1 = authHelper.loginAsMember("01066660001");
+        String[] auth2 = authHelper.loginAsMember("01066660002");
+        String[] auth3 = authHelper.loginAsMember("01066660003");
 
         LocalDate today = LocalDate.now();
         LocalTime now = LocalTime.now();
@@ -158,12 +121,12 @@ class AttendanceE2ETest {
         String startStr = startTime.format(DateTimeFormatter.ofPattern("HH:mm"));
         String endStr = endTime.format(DateTimeFormatter.ofPattern("HH:mm"));
 
-        long[] setup = setupFullScenario(auth1[0], auth1[1], "ATT1", 8, today, startStr, endStr);
+        long[] setup = setupFullScenario(adminToken, auth1[1], "ATT1", 8, today, startStr, endStr);
         Long classId = setup[0]; Long ltId = setup[1]; Long passId = setup[2]; Long instrId = setup[3];
 
         for (String[] auth : new String[][]{auth2, auth3}) {
             mockMvc.perform(post("/api/admin/memberships")
-                    .header("Authorization", "Bearer " + auth[0]).contentType(MediaType.APPLICATION_JSON)
+                    .header("Authorization", "Bearer " + adminToken).contentType(MediaType.APPLICATION_JSON)
                     .content("{\"memberId\":" + auth[1] + ",\"totalCount\":10,\"price\":100000,\"validityDays\":90,\"unlimited\":false,\"lessonTypeIds\":[" + ltId + "],\"membershipPassId\":" + passId + "}")).andExpect(status().isOk());
         }
 
@@ -172,7 +135,7 @@ class AttendanceE2ETest {
         Long resId3 = reserveClass(auth3[0], classId);
 
         // 강사 admin 계정 생성 + 로그인
-        String instructorToken = loginAsInstructor(instrId, "att_instructor_1");
+        String instructorToken = authHelper.loginAsInstructor(instrId);
 
         // 강사 토큰으로 출석 현황 조회 → 3명 PENDING
         MvcResult listResult = mockMvc.perform(get("/api/instructor/class-schedules/" + classId + "/attendances")
@@ -225,8 +188,9 @@ class AttendanceE2ETest {
     @Order(2)
     @DisplayName("시나리오2: 다른 강사 토큰으로 출석 체크 시도 → ACCESS_DENIED")
     void scenario2_otherInstructorAccessDenied() throws Exception {
-        String[] auth = signup("01066660010");
-        String token = auth[0]; String memberId = auth[1];
+        String adminToken = authHelper.loginAsAdmin();
+        String[] auth = authHelper.loginAsMember("01066660010");
+        String memberToken = auth[0]; String memberId = auth[1];
 
         LocalDate today = LocalDate.now();
         LocalTime startTime = LocalTime.now().minusHours(1).withSecond(0).withNano(0);
@@ -236,17 +200,17 @@ class AttendanceE2ETest {
         String startStr = startTime.format(DateTimeFormatter.ofPattern("HH:mm"));
         String endStr = endTime.format(DateTimeFormatter.ofPattern("HH:mm"));
 
-        long[] setup = setupFullScenario(token, memberId, "ATT2", 8, today, startStr, endStr);
+        long[] setup = setupFullScenario(adminToken, memberId, "ATT2", 8, today, startStr, endStr);
         Long classId = setup[0]; Long instrId = setup[3];
 
-        Long resId = reserveClass(token, classId);
+        Long resId = reserveClass(memberToken, classId);
 
         // 다른 강사 생성 + 로그인
         MvcResult ir2 = mockMvc.perform(post("/api/admin/instructors")
-                .header("Authorization", "Bearer " + token).contentType(MediaType.APPLICATION_JSON)
+                .header("Authorization", "Bearer " + adminToken).contentType(MediaType.APPLICATION_JSON)
                 .content("{\"name\":\"ATT강사OTHER2\",\"phone\":\"010-0000-0000\"}")).andExpect(status().isOk()).andReturn();
         Long otherInstrId = objectMapper.readTree(ir2.getResponse().getContentAsString()).get("data").get("id").asLong();
-        String otherInstructorToken = loginAsInstructor(otherInstrId, "att_other_instructor_2");
+        String otherInstructorToken = authHelper.loginAsInstructor(otherInstrId);
 
         // 다른 강사가 단건 출석 체크 → COMMON_005
         mockMvc.perform(post("/api/instructor/attendances/" + resId)
@@ -272,7 +236,7 @@ class AttendanceE2ETest {
 
         // 회원 토큰으로 강사 API 접근 → 403 (ROLE_MEMBER로는 /api/instructor/** 접근 불가)
         mockMvc.perform(post("/api/instructor/attendances/" + resId)
-                        .header("Authorization", "Bearer " + token)
+                        .header("Authorization", "Bearer " + memberToken)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("{\"status\":\"ATTENDED\"}"))
                 .andExpect(status().isForbidden());
@@ -286,16 +250,17 @@ class AttendanceE2ETest {
     @Order(3)
     @DisplayName("시나리오3: 강사 토큰으로 미래 수업 출석 체크 → ATT_002")
     void scenario3_notCheckableTime() throws Exception {
-        String[] auth = signup("01066660020");
-        String token = auth[0]; String memberId = auth[1];
+        String adminToken = authHelper.loginAsAdmin();
+        String[] auth = authHelper.loginAsMember("01066660020");
+        String memberToken = auth[0]; String memberId = auth[1];
 
-        long[] setup = setupFutureScenario(token, memberId, "ATT3", 8);
+        long[] setup = setupFutureScenario(adminToken, memberId, "ATT3", 8);
         Long classId = setup[0]; Long instrId = setup[3];
 
-        Long resId = reserveClass(token, classId);
+        Long resId = reserveClass(memberToken, classId);
 
         // 해당 강사로 로그인
-        String instructorToken = loginAsInstructor(instrId, "att_instructor_3");
+        String instructorToken = authHelper.loginAsInstructor(instrId);
 
         // 미래 수업 출석 체크 → ATT_002 (시간 외)
         mockMvc.perform(post("/api/instructor/attendances/" + resId)
@@ -314,17 +279,18 @@ class AttendanceE2ETest {
     @Order(4)
     @DisplayName("시나리오4: 출석률 계산 → PENDING만 → 출석률 0, 강사 마킹 후 반영")
     void scenario4_attendanceRate() throws Exception {
-        String[] auth = signup("01066660030");
-        String token = auth[0]; String memberId = auth[1];
+        String adminToken = authHelper.loginAsAdmin();
+        String[] auth = authHelper.loginAsMember("01066660030");
+        String memberToken = auth[0]; String memberId = auth[1];
 
-        long[] setup = setupFutureScenario(token, memberId, "ATT4", 8);
+        long[] setup = setupFutureScenario(adminToken, memberId, "ATT4", 8);
         Long classId = setup[0];
 
-        reserveClass(token, classId);
+        reserveClass(memberToken, classId);
 
         // 출석률 조회 (PENDING 제외 → 0)
         MvcResult rateResult = mockMvc.perform(get("/api/members/me/attendance-rate")
-                        .header("Authorization", "Bearer " + token)
+                        .header("Authorization", "Bearer " + memberToken)
                         .param("period", "all"))
                 .andExpect(status().isOk())
                 .andReturn();
@@ -342,8 +308,9 @@ class AttendanceE2ETest {
     @Order(5)
     @DisplayName("시나리오5: 노쇼 스케줄러 → Attendance.status = NO_SHOW")
     void scenario5_noShowSchedulerWithAttendance() throws Exception {
-        String[] auth = signup("01066660040");
-        String token = auth[0]; String memberId = auth[1];
+        String adminToken = authHelper.loginAsAdmin();
+        String[] auth = authHelper.loginAsMember("01066660040");
+        String memberToken = auth[0]; String memberId = auth[1];
 
         LocalDate today = LocalDate.now();
         LocalTime endTime = LocalTime.now().minusMinutes(31).withSecond(0).withNano(0);
@@ -353,16 +320,16 @@ class AttendanceE2ETest {
         String startStr = startTime.format(DateTimeFormatter.ofPattern("HH:mm"));
         String endStr = endTime.format(DateTimeFormatter.ofPattern("HH:mm"));
 
-        long[] setup = setupFullScenario(token, memberId, "ATT5", 8, today, startStr, endStr);
+        long[] setup = setupFullScenario(adminToken, memberId, "ATT5", 8, today, startStr, endStr);
         Long classId = setup[0];
 
-        Long resId = reserveClass(token, classId);
+        Long resId = reserveClass(memberToken, classId);
 
         noShowMarkingScheduler.markOverdueReservations();
 
         // NO_SHOW 확인
         MvcResult myAtt = mockMvc.perform(get("/api/members/me/attendances")
-                        .header("Authorization", "Bearer " + token))
+                        .header("Authorization", "Bearer " + memberToken))
                 .andExpect(status().isOk())
                 .andReturn();
         JsonNode content = objectMapper.readTree(myAtt.getResponse().getContentAsString()).get("data").get("content");
@@ -377,7 +344,7 @@ class AttendanceE2ETest {
 
         // 출석률에 NO_SHOW 반영
         MvcResult rateResult = mockMvc.perform(get("/api/members/me/attendance-rate")
-                        .header("Authorization", "Bearer " + token)
+                        .header("Authorization", "Bearer " + memberToken)
                         .param("period", "all"))
                 .andExpect(status().isOk())
                 .andReturn();
@@ -394,9 +361,10 @@ class AttendanceE2ETest {
     @Order(6)
     @DisplayName("시나리오6: 강사 토큰으로 일괄 출석 체크 5명 → 유효하지 않은 status 시 롤백")
     void scenario6_batchAttendanceTransaction() throws Exception {
+        String adminToken = authHelper.loginAsAdmin();
         String[][] auths = new String[5][];
         for (int i = 0; i < 5; i++) {
-            auths[i] = signup("0106666005" + i);
+            auths[i] = authHelper.loginAsMember("0106666005" + i);
         }
 
         LocalDate today = LocalDate.now();
@@ -407,12 +375,12 @@ class AttendanceE2ETest {
         String startStr = startTime.format(DateTimeFormatter.ofPattern("HH:mm"));
         String endStr = endTime.format(DateTimeFormatter.ofPattern("HH:mm"));
 
-        long[] setup = setupFullScenario(auths[0][0], auths[0][1], "ATT6", 8, today, startStr, endStr);
+        long[] setup = setupFullScenario(adminToken, auths[0][1], "ATT6", 8, today, startStr, endStr);
         Long classId = setup[0]; Long ltId = setup[1]; Long passId = setup[2]; Long instrId = setup[3];
 
         for (int i = 1; i < 5; i++) {
             mockMvc.perform(post("/api/admin/memberships")
-                    .header("Authorization", "Bearer " + auths[i][0]).contentType(MediaType.APPLICATION_JSON)
+                    .header("Authorization", "Bearer " + adminToken).contentType(MediaType.APPLICATION_JSON)
                     .content("{\"memberId\":" + auths[i][1] + ",\"totalCount\":10,\"price\":100000,\"validityDays\":90,\"unlimited\":false,\"lessonTypeIds\":[" + ltId + "],\"membershipPassId\":" + passId + "}")).andExpect(status().isOk());
         }
 
@@ -422,7 +390,7 @@ class AttendanceE2ETest {
         }
 
         // 강사 로그인
-        String instructorToken = loginAsInstructor(instrId, "att_instructor_6");
+        String instructorToken = authHelper.loginAsInstructor(instrId);
 
         // 유효하지 않은 status 포함 일괄 호출 → ATT_004 + 전체 롤백
         StringBuilder invalidBatch = new StringBuilder("{\"attendances\":[");
@@ -482,7 +450,7 @@ class AttendanceE2ETest {
 
         // 관리자 노쇼 카운트 조회
         mockMvc.perform(get("/api/admin/attendances/no-show-counts")
-                        .header("Authorization", "Bearer " + auths[0][0])
+                        .header("Authorization", "Bearer " + adminToken)
                         .param("from", today.minusDays(1).toString())
                         .param("to", today.plusDays(1).toString()))
                 .andExpect(status().isOk());

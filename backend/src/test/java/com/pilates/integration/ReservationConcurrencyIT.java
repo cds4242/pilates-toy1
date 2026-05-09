@@ -2,6 +2,9 @@ package com.pilates.integration;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.pilates.domain.admin.repository.AdminRepository;
+import com.pilates.domain.instructor.repository.InstructorRepository;
+import com.pilates.integration.support.AuthTestHelper;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -10,12 +13,12 @@ import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMock
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.http.MediaType;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
 
 import java.time.LocalDate;
-import java.util.Set;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -59,69 +62,67 @@ class ReservationConcurrencyIT {
     @Autowired private MockMvc mockMvc;
     @Autowired private ObjectMapper objectMapper;
     @Autowired private StringRedisTemplate redisTemplate;
+    @Autowired private PasswordEncoder passwordEncoder;
+    @Autowired private AdminRepository adminRepository;
+    @Autowired private InstructorRepository instructorRepository;
+
+    private AuthTestHelper authHelper;
 
     @BeforeEach
-    void clearRedis() {
-        Set<String> keys = redisTemplate.keys("sms:*");
-        if (keys != null) redisTemplate.delete(keys);
-        Set<String> authKeys = redisTemplate.keys("auth:*");
-        if (authKeys != null) redisTemplate.delete(authKeys);
-    }
-
-    private String[] signup(String phone) throws Exception {
-        mockMvc.perform(post("/api/auth/sms/request").contentType(MediaType.APPLICATION_JSON)
-                .content("{\"phoneNumber\":\"" + phone + "\"}")).andExpect(status().isOk());
-        String code = redisTemplate.opsForValue().get("sms:code:" + phone);
-        MvcResult vr = mockMvc.perform(post("/api/auth/sms/verify").contentType(MediaType.APPLICATION_JSON)
-                .content("{\"phoneNumber\":\"" + phone + "\",\"code\":\"" + code + "\"}")).andReturn();
-        String vtoken = objectMapper.readTree(vr.getResponse().getContentAsString()).get("data").get("verifiedToken").asText();
-        MvcResult sr = mockMvc.perform(post("/api/auth/signup").contentType(MediaType.APPLICATION_JSON)
-                .content("{\"verifiedToken\":\"" + vtoken + "\",\"name\":\"ConcUser\",\"password\":\"Test1234!\",\"gender\":\"MALE\"}")).andReturn();
-        JsonNode data = objectMapper.readTree(sr.getResponse().getContentAsString()).get("data");
-        String token = data.get("accessToken").asText();
-        String[] parts = token.split("\\.");
-        String payload = new String(java.util.Base64.getUrlDecoder().decode(parts[1]));
-        String memberId = objectMapper.readTree(payload).get("sub").asText();
-        return new String[]{token, memberId};
+    void setUp() {
+        authHelper = new AuthTestHelper(mockMvc, objectMapper, redisTemplate,
+                passwordEncoder, adminRepository, instructorRepository);
+        authHelper.clearRedis();
     }
 
     @Test
     @DisplayName("비관적 락: 잔여 1회 정기권에 2개 수업 동시 예약 → 1건만 성공, remaining=0")
     void pessimisticLock_concurrentDeduction() throws Exception {
-        String phone = "010" + String.valueOf(System.currentTimeMillis()).substring(5);
-        String[] auth = signup(phone);
-        String token = auth[0]; String memberId = auth[1];
+        // --- 관리자 토큰 발급 ---
+        String adminToken = authHelper.loginAsAdmin();
 
+        // --- 회원 토큰 발급 ---
+        String phone = "010" + String.valueOf(System.currentTimeMillis()).substring(5);
+        String[] memberAuth = authHelper.loginAsMember(phone);
+        String memberToken = memberAuth[0];
+        String memberId = memberAuth[1];
+
+        // --- 관리자 API: 강사 생성 ---
         MvcResult ir = mockMvc.perform(post("/api/admin/instructors")
-                .header("Authorization", "Bearer " + token).contentType(MediaType.APPLICATION_JSON)
+                .header("Authorization", "Bearer " + adminToken).contentType(MediaType.APPLICATION_JSON)
                 .content("{\"name\":\"동시성강사" + System.currentTimeMillis() + "\",\"phone\":\"010-0000-0001\"}")).andExpect(status().isOk()).andReturn();
         Long instrId = objectMapper.readTree(ir.getResponse().getContentAsString()).get("data").get("id").asLong();
 
+        // --- 관리자 API: 수업 유형 생성 ---
         MvcResult lt = mockMvc.perform(post("/api/admin/lesson-types")
-                .header("Authorization", "Bearer " + token).contentType(MediaType.APPLICATION_JSON)
+                .header("Authorization", "Bearer " + adminToken).contentType(MediaType.APPLICATION_JSON)
                 .content("{\"name\":\"동시성유형" + System.currentTimeMillis() + "\",\"maxCapacity\":8,\"durationMinutes\":50,\"deductionCount\":1}")).andExpect(status().isOk()).andReturn();
         Long ltId = objectMapper.readTree(lt.getResponse().getContentAsString()).get("data").get("id").asLong();
 
+        // --- 관리자 API: 수강권 템플릿 생성 ---
         MvcResult mp = mockMvc.perform(post("/api/admin/membership-passes")
-                .header("Authorization", "Bearer " + token).contentType(MediaType.APPLICATION_JSON)
+                .header("Authorization", "Bearer " + adminToken).contentType(MediaType.APPLICATION_JSON)
                 .content("{\"name\":\"동시성패스" + System.currentTimeMillis() + "\",\"price\":100000,\"totalCount\":1,\"validityDays\":90,\"unlimited\":false,\"lessonTypeIds\":[" + ltId + "]}")).andExpect(status().isOk()).andReturn();
         Long passId = objectMapper.readTree(mp.getResponse().getContentAsString()).get("data").get("id").asLong();
 
+        // --- 관리자 API: 회원 수강권 부여 ---
         mockMvc.perform(post("/api/admin/memberships")
-                .header("Authorization", "Bearer " + token).contentType(MediaType.APPLICATION_JSON)
+                .header("Authorization", "Bearer " + adminToken).contentType(MediaType.APPLICATION_JSON)
                 .content("{\"memberId\":" + memberId + ",\"totalCount\":1,\"price\":100000,\"validityDays\":90,\"unlimited\":false,\"lessonTypeIds\":[" + ltId + "],\"membershipPassId\":" + passId + "}")).andExpect(status().isOk());
 
+        // --- 관리자 API: 수업 일정 2건 생성 ---
         LocalDate futureDate = LocalDate.now().plusDays(9);
         MvcResult cs1 = mockMvc.perform(post("/api/admin/class-schedules")
-                .header("Authorization", "Bearer " + token).contentType(MediaType.APPLICATION_JSON)
+                .header("Authorization", "Bearer " + adminToken).contentType(MediaType.APPLICATION_JSON)
                 .content("{\"instructorId\":" + instrId + ",\"lessonTypeId\":" + ltId + ",\"classDate\":\"" + futureDate + "\",\"startTime\":\"09:00\",\"endTime\":\"09:50\",\"maxCapacity\":8}")).andExpect(status().isOk()).andReturn();
         Long classId1 = objectMapper.readTree(cs1.getResponse().getContentAsString()).get("data").get("id").asLong();
 
         MvcResult cs2 = mockMvc.perform(post("/api/admin/class-schedules")
-                .header("Authorization", "Bearer " + token).contentType(MediaType.APPLICATION_JSON)
+                .header("Authorization", "Bearer " + adminToken).contentType(MediaType.APPLICATION_JSON)
                 .content("{\"instructorId\":" + instrId + ",\"lessonTypeId\":" + ltId + ",\"classDate\":\"" + futureDate + "\",\"startTime\":\"14:00\",\"endTime\":\"14:50\",\"maxCapacity\":8}")).andExpect(status().isOk()).andReturn();
         Long classId2 = objectMapper.readTree(cs2.getResponse().getContentAsString()).get("data").get("id").asLong();
 
+        // --- 동시성 테스트: 회원 토큰으로 예약 ---
         AtomicInteger successCount = new AtomicInteger(0);
         AtomicInteger failCount = new AtomicInteger(0);
         CountDownLatch ready = new CountDownLatch(2);
@@ -134,7 +135,7 @@ class ReservationConcurrencyIT {
                     ready.countDown();
                     start.await();
                     MvcResult r = mockMvc.perform(post("/api/reservations")
-                            .header("Authorization", "Bearer " + token)
+                            .header("Authorization", "Bearer " + memberToken)
                             .contentType(MediaType.APPLICATION_JSON)
                             .content("{\"classScheduleId\":" + cid + "}")).andReturn();
                     if (r.getResponse().getStatus() == 200) successCount.incrementAndGet();
@@ -152,7 +153,7 @@ class ReservationConcurrencyIT {
         assertThat(failCount.get()).isEqualTo(1);
 
         MvcResult mship = mockMvc.perform(get("/api/members/me/memberships")
-                .header("Authorization", "Bearer " + token)).andReturn();
+                .header("Authorization", "Bearer " + memberToken)).andReturn();
         int remaining = objectMapper.readTree(mship.getResponse().getContentAsString())
                 .get("data").get(0).get("remainingCount").asInt();
         assertThat(remaining).isEqualTo(0);

@@ -2,12 +2,16 @@ package com.pilates.integration;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.pilates.domain.admin.repository.AdminRepository;
+import com.pilates.domain.instructor.repository.InstructorRepository;
+import com.pilates.integration.support.AuthTestHelper;
 import org.junit.jupiter.api.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.http.MediaType;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
@@ -33,28 +37,19 @@ class ClassroomE2ETest {
     @Autowired private MockMvc mockMvc;
     @Autowired private ObjectMapper objectMapper;
     @Autowired private StringRedisTemplate redisTemplate;
+    @Autowired private PasswordEncoder passwordEncoder;
+    @Autowired private AdminRepository adminRepository;
+    @Autowired private InstructorRepository instructorRepository;
 
-    /** 회원 가입 후 access token 획득 */
-    private String getMemberAccessToken(String phone) throws Exception {
+    private AuthTestHelper authHelper;
+
+    @BeforeEach
+    void setUp() {
         Set<String> smsKeys = redisTemplate.keys("sms:*");
         if (smsKeys != null) redisTemplate.delete(smsKeys);
-
-        mockMvc.perform(post("/api/auth/sms/request")
-                .contentType(MediaType.APPLICATION_JSON)
-                .content("{\"phoneNumber\":\"" + phone + "\"}")).andExpect(status().isOk());
-
-        String code = redisTemplate.opsForValue().get("sms:code:" + phone);
-        MvcResult verifyResult = mockMvc.perform(post("/api/auth/sms/verify")
-                .contentType(MediaType.APPLICATION_JSON)
-                .content("{\"phoneNumber\":\"" + phone + "\",\"code\":\"" + code + "\"}")).andReturn();
-        String vtoken = objectMapper.readTree(verifyResult.getResponse().getContentAsString())
-                .get("data").get("verifiedToken").asText();
-
-        MvcResult signupResult = mockMvc.perform(post("/api/auth/signup")
-                .contentType(MediaType.APPLICATION_JSON)
-                .content("{\"verifiedToken\":\"" + vtoken + "\",\"name\":\"E2EUser\",\"password\":\"Test1234!\",\"gender\":\"MALE\"}")).andReturn();
-        return objectMapper.readTree(signupResult.getResponse().getContentAsString())
-                .get("data").get("accessToken").asText();
+        Set<String> authKeys = redisTemplate.keys("auth:*");
+        if (authKeys != null) redisTemplate.delete(authKeys);
+        authHelper = new AuthTestHelper(mockMvc, objectMapper, redisTemplate, passwordEncoder, adminRepository, instructorRepository);
     }
 
     // ═══════════════════════════════════════════
@@ -65,7 +60,7 @@ class ClassroomE2ETest {
     @Order(1)
     @DisplayName("시나리오1: 강사 등록 → 시간대 설정 → 수업 유형 → 고정 스케줄 → 자동 생성")
     void scenario1_fullScheduleFlow() throws Exception {
-        String token = getMemberAccessToken("01088880001");
+        String token = authHelper.loginAsAdmin();
 
         // 1. 강사 등록
         MvcResult instrResult = mockMvc.perform(post("/api/admin/instructors")
@@ -149,7 +144,7 @@ class ClassroomE2ETest {
     @Order(2)
     @DisplayName("시나리오2: 단건 수업 등록 → 취소(휴강) → 조회 시 CANCELLED")
     void scenario2_cancelClass() throws Exception {
-        String token = getMemberAccessToken("01088880002");
+        String token = authHelper.loginAsAdmin();
 
         // 강사 등록
         MvcResult instrResult = mockMvc.perform(post("/api/admin/instructors")
@@ -228,7 +223,7 @@ class ClassroomE2ETest {
     @Order(4)
     @DisplayName("시나리오4: 자동 생성 2회 호출 → 중복 없음 (멱등성)")
     void scenario4_generateIdempotent() throws Exception {
-        String token = getMemberAccessToken("01088880004");
+        String token = authHelper.loginAsAdmin();
 
         // 강사 + 수업 유형 + 고정 스케줄
         MvcResult instrResult = mockMvc.perform(post("/api/admin/instructors")

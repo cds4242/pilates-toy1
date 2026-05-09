@@ -3,12 +3,16 @@ package com.pilates.integration;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.pilates.common.tosspayments.MockTossPaymentClient;
+import com.pilates.domain.admin.repository.AdminRepository;
+import com.pilates.domain.instructor.repository.InstructorRepository;
+import com.pilates.integration.support.AuthTestHelper;
 import org.junit.jupiter.api.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.http.MediaType;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
@@ -32,9 +36,17 @@ class PaymentE2ETest {
     @Autowired private ObjectMapper objectMapper;
     @Autowired private StringRedisTemplate redisTemplate;
     @Autowired private MockTossPaymentClient mockTossClient;
+    @Autowired private PasswordEncoder passwordEncoder;
+    @Autowired private AdminRepository adminRepository;
+    @Autowired private InstructorRepository instructorRepository;
+
+    private AuthTestHelper authHelper;
 
     @BeforeEach
-    void clearRedis() {
+    void setUp() {
+        authHelper = new AuthTestHelper(mockMvc, objectMapper, redisTemplate,
+                passwordEncoder, adminRepository, instructorRepository);
+
         Set<String> keys = redisTemplate.keys("sms:*");
         if (keys != null) redisTemplate.delete(keys);
         Set<String> authKeys = redisTemplate.keys("auth:*");
@@ -44,34 +56,17 @@ class PaymentE2ETest {
         mockTossClient.resetCancelCallCount();
     }
 
-    private String[] signupAndGetTokenWithId(String phone) throws Exception {
-        mockMvc.perform(post("/api/auth/sms/request").contentType(MediaType.APPLICATION_JSON)
-                .content("{\"phoneNumber\":\"" + phone + "\"}")).andExpect(status().isOk());
-        String code = redisTemplate.opsForValue().get("sms:code:" + phone);
-        MvcResult vr = mockMvc.perform(post("/api/auth/sms/verify").contentType(MediaType.APPLICATION_JSON)
-                .content("{\"phoneNumber\":\"" + phone + "\",\"code\":\"" + code + "\"}")).andReturn();
-        String vtoken = objectMapper.readTree(vr.getResponse().getContentAsString()).get("data").get("verifiedToken").asText();
-        MvcResult sr = mockMvc.perform(post("/api/auth/signup").contentType(MediaType.APPLICATION_JSON)
-                .content("{\"verifiedToken\":\"" + vtoken + "\",\"name\":\"PayUser\",\"password\":\"Test1234!\",\"gender\":\"MALE\"}")).andReturn();
-        JsonNode data = objectMapper.readTree(sr.getResponse().getContentAsString()).get("data");
-        String accessToken = data.get("accessToken").asText();
-        String[] parts = accessToken.split("\\.");
-        String payload = new String(java.util.Base64.getUrlDecoder().decode(parts[1]));
-        String memberId = objectMapper.readTree(payload).get("sub").asText();
-        return new String[]{accessToken, memberId};
-    }
-
-    private Long createLessonType(String token, String name) throws Exception {
+    private Long createLessonType(String adminToken, String name) throws Exception {
         MvcResult r = mockMvc.perform(post("/api/admin/lesson-types")
-                .header("Authorization", "Bearer " + token).contentType(MediaType.APPLICATION_JSON)
+                .header("Authorization", "Bearer " + adminToken).contentType(MediaType.APPLICATION_JSON)
                 .content("{\"name\":\"" + name + "\",\"maxCapacity\":8,\"durationMinutes\":50,\"deductionCount\":1}"))
                 .andExpect(status().isOk()).andReturn();
         return objectMapper.readTree(r.getResponse().getContentAsString()).get("data").get("id").asLong();
     }
 
-    private Long createMembershipPass(String token, Long ltId, String suffix) throws Exception {
+    private Long createMembershipPass(String adminToken, Long ltId, String suffix) throws Exception {
         MvcResult r = mockMvc.perform(post("/api/admin/membership-passes")
-                .header("Authorization", "Bearer " + token).contentType(MediaType.APPLICATION_JSON)
+                .header("Authorization", "Bearer " + adminToken).contentType(MediaType.APPLICATION_JSON)
                 .content("{\"name\":\"PAY" + suffix + "\",\"price\":180000,\"totalCount\":8,\"validityDays\":60,\"unlimited\":false,\"lessonTypeIds\":[" + ltId + "]}"))
                 .andExpect(status().isOk()).andReturn();
         return objectMapper.readTree(r.getResponse().getContentAsString()).get("data").get("id").asLong();
@@ -85,15 +80,16 @@ class PaymentE2ETest {
     @Order(1)
     @DisplayName("시나리오1: prepare → confirm → 정기권 발급 확인")
     void scenario1_normalFlow() throws Exception {
-        String[] auth = signupAndGetTokenWithId("01055550001");
-        String token = auth[0];
+        String adminToken = authHelper.loginAsAdmin();
+        String[] memberAuth = authHelper.loginAsMember("01055550001");
+        String memberToken = memberAuth[0];
 
-        Long ltId = createLessonType(token, "PAY그룹S1");
-        Long passId = createMembershipPass(token, ltId, "S1");
+        Long ltId = createLessonType(adminToken, "PAY그룹S1");
+        Long passId = createMembershipPass(adminToken, ltId, "S1");
 
         // 1. prepare
         MvcResult prepResult = mockMvc.perform(post("/api/payments/prepare")
-                        .header("Authorization", "Bearer " + token).contentType(MediaType.APPLICATION_JSON)
+                        .header("Authorization", "Bearer " + memberToken).contentType(MediaType.APPLICATION_JSON)
                         .content("{\"membershipPassId\":" + passId + "}"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.data.orderId").exists())
@@ -113,13 +109,13 @@ class PaymentE2ETest {
 
         // 3. 정기권 발급 확인
         mockMvc.perform(get("/api/members/me/memberships")
-                        .header("Authorization", "Bearer " + token))
+                        .header("Authorization", "Bearer " + memberToken))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.data[0].totalCount").value(8));
 
         // 4. 결제 이력 확인
         mockMvc.perform(get("/api/members/me/payments")
-                        .header("Authorization", "Bearer " + token))
+                        .header("Authorization", "Bearer " + memberToken))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.data[0].amount").value(180000));
     }
@@ -132,14 +128,15 @@ class PaymentE2ETest {
     @Order(2)
     @DisplayName("시나리오2: 같은 orderId 두 번 confirm → 두 번째 거부")
     void scenario2_idempotency() throws Exception {
-        String[] auth = signupAndGetTokenWithId("01055550002");
-        String token = auth[0];
+        String adminToken = authHelper.loginAsAdmin();
+        String[] memberAuth = authHelper.loginAsMember("01055550002");
+        String memberToken = memberAuth[0];
 
-        Long ltId = createLessonType(token, "PAY그룹S2");
-        Long passId = createMembershipPass(token, ltId, "S2");
+        Long ltId = createLessonType(adminToken, "PAY그룹S2");
+        Long passId = createMembershipPass(adminToken, ltId, "S2");
 
         MvcResult prepResult = mockMvc.perform(post("/api/payments/prepare")
-                .header("Authorization", "Bearer " + token).contentType(MediaType.APPLICATION_JSON)
+                .header("Authorization", "Bearer " + memberToken).contentType(MediaType.APPLICATION_JSON)
                 .content("{\"membershipPassId\":" + passId + "}")).andExpect(status().isOk()).andReturn();
         String orderId = objectMapper.readTree(prepResult.getResponse().getContentAsString())
                 .get("data").get("orderId").asText();
@@ -164,14 +161,15 @@ class PaymentE2ETest {
     @Order(3)
     @DisplayName("시나리오3: confirm 시 금액 위변조 → PAYMENT_AMOUNT_MISMATCH")
     void scenario3_amountMismatch() throws Exception {
-        String[] auth = signupAndGetTokenWithId("01055550003");
-        String token = auth[0];
+        String adminToken = authHelper.loginAsAdmin();
+        String[] memberAuth = authHelper.loginAsMember("01055550003");
+        String memberToken = memberAuth[0];
 
-        Long ltId = createLessonType(token, "PAY그룹S3");
-        Long passId = createMembershipPass(token, ltId, "S3");
+        Long ltId = createLessonType(adminToken, "PAY그룹S3");
+        Long passId = createMembershipPass(adminToken, ltId, "S3");
 
         MvcResult prepResult = mockMvc.perform(post("/api/payments/prepare")
-                .header("Authorization", "Bearer " + token).contentType(MediaType.APPLICATION_JSON)
+                .header("Authorization", "Bearer " + memberToken).contentType(MediaType.APPLICATION_JSON)
                 .content("{\"membershipPassId\":" + passId + "}")).andExpect(status().isOk()).andReturn();
         String orderId = objectMapper.readTree(prepResult.getResponse().getContentAsString())
                 .get("data").get("orderId").asText();
@@ -191,15 +189,16 @@ class PaymentE2ETest {
     @Order(4)
     @DisplayName("시나리오4: 결제 후 관리자 전액 환불 → REFUNDED + 정기권 만료")
     void scenario4_fullRefund() throws Exception {
-        String[] auth = signupAndGetTokenWithId("01055550004");
-        String token = auth[0];
+        String adminToken = authHelper.loginAsAdmin();
+        String[] memberAuth = authHelper.loginAsMember("01055550004");
+        String memberToken = memberAuth[0];
 
-        Long ltId = createLessonType(token, "PAY그룹S4");
-        Long passId = createMembershipPass(token, ltId, "S4");
+        Long ltId = createLessonType(adminToken, "PAY그룹S4");
+        Long passId = createMembershipPass(adminToken, ltId, "S4");
 
         // prepare + confirm
         MvcResult prepResult = mockMvc.perform(post("/api/payments/prepare")
-                .header("Authorization", "Bearer " + token).contentType(MediaType.APPLICATION_JSON)
+                .header("Authorization", "Bearer " + memberToken).contentType(MediaType.APPLICATION_JSON)
                 .content("{\"membershipPassId\":" + passId + "}")).andExpect(status().isOk()).andReturn();
         String orderId = objectMapper.readTree(prepResult.getResponse().getContentAsString())
                 .get("data").get("orderId").asText();
@@ -212,13 +211,13 @@ class PaymentE2ETest {
 
         // 관리자 전액 환불
         mockMvc.perform(post("/api/admin/payments/" + paymentId + "/refund")
-                        .header("Authorization", "Bearer " + token).contentType(MediaType.APPLICATION_JSON)
+                        .header("Authorization", "Bearer " + adminToken).contentType(MediaType.APPLICATION_JSON)
                         .content("{\"refundAmount\":180000,\"reason\":\"테스트 환불\"}"))
                 .andExpect(status().isOk());
 
         // 결제 상태 확인
         mockMvc.perform(get("/api/admin/payments/" + paymentId)
-                        .header("Authorization", "Bearer " + token))
+                        .header("Authorization", "Bearer " + adminToken))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.data.status").value("REFUNDED"));
     }
@@ -231,14 +230,15 @@ class PaymentE2ETest {
     @Order(5)
     @DisplayName("시나리오5: 토스 승인 실패 → PAY_004 + 정기권 미발급")
     void scenario5_tossConfirmFail() throws Exception {
-        String[] auth = signupAndGetTokenWithId("01055550005");
-        String token = auth[0];
+        String[] memberAuth = authHelper.loginAsMember("01055550005");
+        String memberToken = memberAuth[0];
+        String adminToken = authHelper.loginAsAdmin();
 
-        Long ltId = createLessonType(token, "PAY그룹S5");
-        Long passId = createMembershipPass(token, ltId, "S5");
+        Long ltId = createLessonType(adminToken, "PAY그룹S5");
+        Long passId = createMembershipPass(adminToken, ltId, "S5");
 
         MvcResult prepResult = mockMvc.perform(post("/api/payments/prepare")
-                .header("Authorization", "Bearer " + token).contentType(MediaType.APPLICATION_JSON)
+                .header("Authorization", "Bearer " + memberToken).contentType(MediaType.APPLICATION_JSON)
                 .content("{\"membershipPassId\":" + passId + "}")).andExpect(status().isOk()).andReturn();
         String orderId = objectMapper.readTree(prepResult.getResponse().getContentAsString())
                 .get("data").get("orderId").asText();
@@ -251,7 +251,7 @@ class PaymentE2ETest {
 
         // 정기권 미발급 확인
         mockMvc.perform(get("/api/members/me/memberships")
-                        .header("Authorization", "Bearer " + token))
+                        .header("Authorization", "Bearer " + memberToken))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.data").isEmpty());
     }
@@ -264,15 +264,16 @@ class PaymentE2ETest {
     @Order(6)
     @DisplayName("시나리오6: 3회 사용 후 부분 환불 → 사용분 차감 검증")
     void scenario6_partialRefundWithUsage() throws Exception {
-        String[] auth = signupAndGetTokenWithId("01055550006");
-        String token = auth[0];
+        String adminToken = authHelper.loginAsAdmin();
+        String[] memberAuth = authHelper.loginAsMember("01055550006");
+        String memberToken = memberAuth[0];
 
-        Long ltId = createLessonType(token, "PAY그룹S6");
-        Long passId = createMembershipPass(token, ltId, "S6");
+        Long ltId = createLessonType(adminToken, "PAY그룹S6");
+        Long passId = createMembershipPass(adminToken, ltId, "S6");
 
         // prepare + confirm
         MvcResult prepResult = mockMvc.perform(post("/api/payments/prepare")
-                .header("Authorization", "Bearer " + token).contentType(MediaType.APPLICATION_JSON)
+                .header("Authorization", "Bearer " + memberToken).contentType(MediaType.APPLICATION_JSON)
                 .content("{\"membershipPassId\":" + passId + "}")).andExpect(status().isOk()).andReturn();
         String orderId = objectMapper.readTree(prepResult.getResponse().getContentAsString())
                 .get("data").get("orderId").asText();
@@ -292,20 +293,20 @@ class PaymentE2ETest {
 
         // 전액보다 1원 더 요청 → PAY_007
         mockMvc.perform(post("/api/admin/payments/" + paymentId + "/refund")
-                        .header("Authorization", "Bearer " + token).contentType(MediaType.APPLICATION_JSON)
+                        .header("Authorization", "Bearer " + adminToken).contentType(MediaType.APPLICATION_JSON)
                         .content("{\"refundAmount\":180001,\"reason\":\"초과 테스트\"}"))
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.error.code").value("PAY_007"));
 
         // 부분 환불 (100000원) → 정상
         mockMvc.perform(post("/api/admin/payments/" + paymentId + "/refund")
-                        .header("Authorization", "Bearer " + token).contentType(MediaType.APPLICATION_JSON)
+                        .header("Authorization", "Bearer " + adminToken).contentType(MediaType.APPLICATION_JSON)
                         .content("{\"refundAmount\":100000,\"reason\":\"부분 환불\"}"))
                 .andExpect(status().isOk());
 
         // 상태: PARTIAL_REFUND
         mockMvc.perform(get("/api/admin/payments/" + paymentId)
-                        .header("Authorization", "Bearer " + token))
+                        .header("Authorization", "Bearer " + adminToken))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.data.status").value("PARTIAL_REFUND"));
     }
@@ -362,22 +363,23 @@ class PaymentE2ETest {
     @Order(8)
     @DisplayName("시나리오8: 토스 승인 후 정기권 발급 실패 → 보상 트랜잭션 (자동 환불)")
     void scenario8_compensatingTransaction() throws Exception {
-        String[] auth = signupAndGetTokenWithId("01055550008");
-        String token = auth[0];
+        String adminToken = authHelper.loginAsAdmin();
+        String[] memberAuth = authHelper.loginAsMember("01055550008");
+        String memberToken = memberAuth[0];
 
-        Long ltId = createLessonType(token, "PAY그룹S8");
-        Long passId = createMembershipPass(token, ltId, "S8");
+        Long ltId = createLessonType(adminToken, "PAY그룹S8");
+        Long passId = createMembershipPass(adminToken, ltId, "S8");
 
         // prepare
         MvcResult prepResult = mockMvc.perform(post("/api/payments/prepare")
-                .header("Authorization", "Bearer " + token).contentType(MediaType.APPLICATION_JSON)
+                .header("Authorization", "Bearer " + memberToken).contentType(MediaType.APPLICATION_JSON)
                 .content("{\"membershipPassId\":" + passId + "}")).andExpect(status().isOk()).andReturn();
         String orderId = objectMapper.readTree(prepResult.getResponse().getContentAsString())
                 .get("data").get("orderId").asText();
 
         // MembershipPass를 비활성화하여 정기권 발급 실패 유도
         mockMvc.perform(delete("/api/admin/membership-passes/" + passId)
-                        .header("Authorization", "Bearer " + token))
+                        .header("Authorization", "Bearer " + adminToken))
                 .andExpect(status().isOk());
 
         int cancelCountBefore = mockTossClient.getCancelCallCount();
@@ -392,7 +394,7 @@ class PaymentE2ETest {
 
         // 정기권 미발급 확인
         mockMvc.perform(get("/api/members/me/memberships")
-                        .header("Authorization", "Bearer " + token))
+                        .header("Authorization", "Bearer " + memberToken))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.data").isEmpty());
     }
