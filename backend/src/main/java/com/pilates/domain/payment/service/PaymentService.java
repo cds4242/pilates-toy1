@@ -170,7 +170,24 @@ public class PaymentService {
             throw new BusinessException(ErrorCode.PAYMENT_NOT_REFUNDABLE);
         }
 
-        if (request.refundAmount().compareTo(payment.getRefundableAmount()) > 0) {
+        // 사용분 차감 계산: 환불 가능 = 결제 금액 - 이미 환불 - 사용분
+        BigDecimal maxRefundable = payment.getRefundableAmount();
+        if (payment.getMembership() != null && !payment.getMembership().isUnlimited()) {
+            int totalCount = payment.getMembership().getTotalCount();
+            int remainingCount = payment.getMembership().getRemainingCount();
+            int usedCount = totalCount - remainingCount;
+            if (usedCount > 0 && totalCount > 0) {
+                BigDecimal usedAmount = payment.getAmount()
+                        .multiply(BigDecimal.valueOf(usedCount))
+                        .divide(BigDecimal.valueOf(totalCount), 0, java.math.RoundingMode.CEILING);
+                BigDecimal afterUsage = payment.getAmount().subtract(usedAmount)
+                        .subtract(payment.getRefundAmount() != null ? payment.getRefundAmount() : BigDecimal.ZERO);
+                if (afterUsage.compareTo(BigDecimal.ZERO) < 0) afterUsage = BigDecimal.ZERO;
+                maxRefundable = afterUsage.min(maxRefundable);
+            }
+        }
+
+        if (request.refundAmount().compareTo(maxRefundable) > 0) {
             throw new BusinessException(ErrorCode.PAYMENT_REFUND_EXCEEDED);
         }
 
@@ -237,6 +254,33 @@ public class PaymentService {
         }
         return payments.stream()
                 .map(this::toPaymentResponse)
+                .toList();
+    }
+
+    /**
+     * 매출 통계 조회 (관리자). 날짜별 집계.
+     */
+    @Transactional(readOnly = true)
+    public List<PaymentStatisticsResponse> getStatistics(java.time.LocalDate from, java.time.LocalDate to) {
+        List<Payment> payments = paymentRepository.findAllByPaidAtBetween(
+                from.atStartOfDay(), to.plusDays(1).atStartOfDay());
+
+        return payments.stream()
+                .filter(p -> p.getStatus() != PaymentStatus.FAILED && p.getStatus() != PaymentStatus.PENDING)
+                .collect(java.util.stream.Collectors.groupingBy(p -> p.getPaidAt().toLocalDate()))
+                .entrySet().stream()
+                .map(e -> {
+                    java.time.LocalDate date = e.getKey();
+                    List<Payment> dayPayments = e.getValue();
+                    long count = dayPayments.size();
+                    BigDecimal total = dayPayments.stream()
+                            .map(Payment::getAmount).reduce(BigDecimal.ZERO, BigDecimal::add);
+                    BigDecimal refund = dayPayments.stream()
+                            .map(p -> p.getRefundAmount() != null ? p.getRefundAmount() : BigDecimal.ZERO)
+                            .reduce(BigDecimal.ZERO, BigDecimal::add);
+                    return new PaymentStatisticsResponse(date, count, total, refund, total.subtract(refund));
+                })
+                .sorted(java.util.Comparator.comparing(PaymentStatisticsResponse::date))
                 .toList();
     }
 
