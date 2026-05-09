@@ -25,6 +25,11 @@ public class MemberClassScheduleController {
 
     private final ClassScheduleService classScheduleService;
 
+    // TODO [STEP 8 reservation]: 회원 시간표 조회 시 본인 예약 상태 표시
+    // 1. ClassScheduleResponse에 myReservationStatus 필드 추가
+    //    - NOT_RESERVED / RESERVED / CANCELLED / FULL (정원 마감)
+    // 2. ClassSchedule 조회 시 회원 ID로 reservations 조인
+    // 3. 의뢰인 시안 A의 "예약 가능/마감" UX 반영
     @Operation(summary = "수업 목록 조회", description = "날짜 범위로 예약 가능한 수업 목록을 조회한다 (취소 제외).")
     @ApiResponses({
             @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "조회 성공")
@@ -36,6 +41,7 @@ public class MemberClassScheduleController {
         return ApiResponse.success(classScheduleService.listByDateRange(from, to));
     }
 
+    // TODO [STEP 8 reservation]: 수업 상세에서 본인 예약 여부 + 예약자 수 표시
     @Operation(summary = "수업 상세 조회", description = "수업 ID로 상세 정보를 조회한다.")
     @ApiResponses({
             @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "조회 성공"),
