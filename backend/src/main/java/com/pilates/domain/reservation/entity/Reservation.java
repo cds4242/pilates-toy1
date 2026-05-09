@@ -69,20 +69,47 @@ public class Reservation extends BaseEntity {
         this.waitOrder = waitOrder;
     }
 
-    // ── 도메인 메서드 (placeholder) ──
+    // ── 도메인 메서드 ──
 
-    /** 예약 취소 */
+    /** 예약 취소. CONFIRMED → CANCELLED. */
     public void cancel(String reason) {
-        // TODO: 상태 검증 + 취소 + 정기권 복구 판단
+        if (this.status != ReservationStatus.CONFIRMED) {
+            throw new IllegalStateException("확정 상태만 취소 가능. 현재: " + this.status);
+        }
+        this.status = ReservationStatus.CANCELLED;
+        this.cancelReason = reason;
+        this.cancelledAt = java.time.LocalDateTime.now();
     }
 
-    /** 노쇼 처리 */
+    /** 노쇼 처리. CONFIRMED → NO_SHOW. */
     public void markNoShow() {
-        // TODO: 상태 → NO_SHOW
+        if (this.status != ReservationStatus.CONFIRMED) {
+            throw new IllegalStateException("확정 상태만 노쇼 가능. 현재: " + this.status);
+        }
+        this.status = ReservationStatus.NO_SHOW;
     }
 
-    /** 대기 → 확정 승격 */
+    /** 대기 → 확정 승격 (v2). */
     public void promote() {
-        // TODO: WAITING → CONFIRMED, waitOrder = null
+        if (this.status != ReservationStatus.WAITING) {
+            throw new IllegalStateException("대기 상태만 승격 가능. 현재: " + this.status);
+        }
+        this.status = ReservationStatus.CONFIRMED;
+        this.waitOrder = null;
+    }
+
+    /** 취소 가능 여부 (수업 시작 2시간 전까지). */
+    public boolean canCancel(java.time.LocalDateTime now) {
+        if (this.status != ReservationStatus.CONFIRMED) return false;
+        java.time.LocalDateTime classStart = this.classSchedule.getClassDate()
+                .atTime(this.classSchedule.getStartTime());
+        return now.isBefore(classStart.minusHours(2));
+    }
+
+    /** 미래 수업인지. */
+    public boolean isUpcoming(java.time.LocalDateTime now) {
+        java.time.LocalDateTime classStart = this.classSchedule.getClassDate()
+                .atTime(this.classSchedule.getStartTime());
+        return now.isBefore(classStart);
     }
 }

@@ -106,6 +106,17 @@ public enum ErrorCode {
     WEBHOOK_SIGNATURE_INVALID(HttpStatus.UNAUTHORIZED, "HOOK_001", "웹훅 시그니처가 유효하지 않습니다."),
     WEBHOOK_DUPLICATE_EVENT(HttpStatus.OK, "HOOK_002", "이미 처리된 웹훅 이벤트입니다."),
 
+    // ── 예약 ──
+    RESERVATION_CLASS_NOT_RESERVABLE(HttpStatus.BAD_REQUEST, "RES_001", "예약할 수 없는 수업입니다."),
+    RESERVATION_DUPLICATE(HttpStatus.CONFLICT, "RES_002", "이미 예약한 수업입니다."),
+    RESERVATION_NO_MEMBERSHIP(HttpStatus.BAD_REQUEST, "RES_003", "사용 가능한 정기권이 없습니다."),
+    RESERVATION_CAPACITY_EXCEEDED(HttpStatus.CONFLICT, "RES_004", "정원이 가득 찼습니다."),
+    RESERVATION_NOT_FOUND(HttpStatus.NOT_FOUND, "RES_005", "예약을 찾을 수 없습니다."),
+    RESERVATION_NOT_CANCELLABLE(HttpStatus.BAD_REQUEST, "RES_006", "취소 가능 시간이 지났습니다."),
+    RESERVATION_NOT_OWNED(HttpStatus.FORBIDDEN, "RES_007", "본인의 예약이 아닙니다."),
+    RESERVATION_ALREADY_CANCELLED(HttpStatus.BAD_REQUEST, "RES_008", "이미 취소된 예약입니다."),
+    RESERVATION_MONTHLY_LIMIT(HttpStatus.BAD_REQUEST, "RES_009", "이번 달 예약 한도를 초과했습니다."),
+
     ;
 
     private final HttpStatus httpStatus;
