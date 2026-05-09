@@ -61,7 +61,30 @@ http://localhost:8080/swagger-ui.html
 
 # 특정 테스트 클래스 실행
 ./gradlew test --tests "com.pilates.common.controller.HealthControllerTest"
+
+# 의뢰인 인수 시나리오
+./gradlew test --tests "com.pilates.integration.AcceptanceE2ETest"
+
+# 보안 점검
+./gradlew test --tests "com.pilates.integration.SecurityAcceptanceTest"
 ```
+
+### E2E 테스트 클래스 목록
+| 클래스 | 시나리오 | 설명 |
+|--------|---------|------|
+| AcceptanceE2ETest | 3 | 의뢰인 인수 (회원 풀플로우, 강사 일과, 관리자 일과) |
+| SecurityAcceptanceTest | 7 | 보안 (JWT, 권한, SQL Injection, XSS) |
+| MemberE2ETest | 6 | 회원 CRUD |
+| ReservationE2ETest | 8 | 예약·취소·대기 |
+| PaymentE2ETest | 5 | 결제·환불 |
+| AttendanceE2ETest | 6 | 출석·노쇼 |
+| MembershipE2ETest | 6 | 정기권·홀딩 |
+| NotificationE2ETest | 5 | 알림톡·SMS |
+| AdminDashboardE2ETest | 3 | 대시보드 |
+| AdminMemberE2ETest | 6 | 회원 관리 |
+| AdminStatisticsE2ETest | 5 | 통계 |
+| AdminBulkImportE2ETest | 5 | 엑셀 일괄 |
+| AdminSettingsE2ETest | 4 | 학원 설정 |
 
 ## 운영 빌드 및 실행
 ```bash
