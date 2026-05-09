@@ -53,6 +53,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                 if ("access".equals(tokenType)) {
                     Long memberId = jwtTokenProvider.getMemberIdFromToken(token);
                     String role = jwtTokenProvider.getRoleFromToken(token);
+                    Long instructorId = jwtTokenProvider.getInstructorIdFromToken(token);
 
                     // SecurityContext 설정
                     var authorities = List.of(new SimpleGrantedAuthority("ROLE_" + role));
@@ -61,7 +62,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
                     // @LoginMember 리졸버용 attribute 설정
                     request.setAttribute(LoginMemberArgumentResolver.LOGIN_MEMBER_ATTRIBUTE,
-                            new LoginMember(memberId, role));
+                            new LoginMember(memberId, role, instructorId));
                 }
             } catch (JwtAuthenticationException e) {
                 log.debug("JWT 인증 실패: {}", e.getMessage());

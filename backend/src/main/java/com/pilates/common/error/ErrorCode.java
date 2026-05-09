@@ -49,6 +49,10 @@ public enum ErrorCode {
     // ── 로그인 ──
     AUTH_LOGIN_FAILED(HttpStatus.UNAUTHORIZED, "AUTH_010", "휴대폰 번호 또는 비밀번호가 올바르지 않습니다."),
 
+    // ── 관리자 인증 ──
+    ADMIN_LOGIN_FAILED(HttpStatus.UNAUTHORIZED, "ADMIN_001", "아이디 또는 비밀번호가 올바르지 않습니다."),
+    ADMIN_NOT_FOUND(HttpStatus.NOT_FOUND, "ADMIN_002", "관리자를 찾을 수 없습니다."),
+
     // ── 프로필 이미지 ──
     PROFILE_IMAGE_EMPTY(HttpStatus.BAD_REQUEST, "IMG_001", "이미지 파일을 선택해주세요."),
     PROFILE_IMAGE_TOO_LARGE(HttpStatus.BAD_REQUEST, "IMG_002", "이미지 크기는 5MB 이하여야 합니다."),

@@ -34,6 +34,7 @@ public class SecurityConfig {
     private static final String[] PUBLIC_URLS = {
             "/api/health",
             "/api/auth/**",
+            "/api/admin/auth/**",
             "/api/test/**",
             "/api/instructors/**",
             "/api/lesson-types/**",
@@ -55,10 +56,9 @@ public class SecurityConfig {
                 .csrf(AbstractHttpConfigurer::disable)
                 .sessionManagement(session ->
                         session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
-                // TODO: /api/admin/** 경로에 ROLE_ADMIN 권한 제한 추가 (admin auth 구현 후)
-                //       현재 v1에서는 인증된 사용자 모두 접근 가능
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers(PUBLIC_URLS).permitAll()
+                        .requestMatchers("/api/instructor/**").hasAnyRole("INSTRUCTOR", "SUPER_ADMIN")
                         .anyRequest().authenticated()
                 )
                 .headers(headers -> headers

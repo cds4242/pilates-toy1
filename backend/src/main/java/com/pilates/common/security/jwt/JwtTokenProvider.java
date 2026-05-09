@@ -22,6 +22,7 @@ public class JwtTokenProvider {
 
     private static final String CLAIM_TYPE = "type";
     private static final String CLAIM_ROLE = "role";
+    private static final String CLAIM_INSTRUCTOR_ID = "instructorId";
     private static final String TOKEN_TYPE_ACCESS = "access";
     private static final String TOKEN_TYPE_REFRESH = "refresh";
 
@@ -41,16 +42,33 @@ public class JwtTokenProvider {
 
     /**
      * Access Token 생성 (30분).
-     * @param memberId 회원 ID
-     * @param role 역할 (MEMBER, INSTRUCTOR, ADMIN 등)
+     * @param userId 사용자 ID (members.id 또는 admins.id)
+     * @param role 역할 (MEMBER, INSTRUCTOR, ADMIN, SUPER_ADMIN)
      * @return JWT 문자열
      */
-    public String createAccessToken(Long memberId, String role) {
+    public String createAccessToken(Long userId, String role) {
+        return createAccessToken(userId, role, null);
+    }
+
+    /**
+     * Access Token 생성 (30분) - instructorId 포함.
+     * @param userId 사용자 ID (members.id 또는 admins.id)
+     * @param role 역할
+     * @param instructorId 강사 ID (강사인 경우만, nullable)
+     * @return JWT 문자열
+     */
+    public String createAccessToken(Long userId, String role, Long instructorId) {
         Date now = new Date();
-        return Jwts.builder()
-                .subject(String.valueOf(memberId))
+        var builder = Jwts.builder()
+                .subject(String.valueOf(userId))
                 .claim(CLAIM_TYPE, TOKEN_TYPE_ACCESS)
-                .claim(CLAIM_ROLE, role)
+                .claim(CLAIM_ROLE, role);
+
+        if (instructorId != null) {
+            builder.claim(CLAIM_INSTRUCTOR_ID, instructorId);
+        }
+
+        return builder
                 .issuedAt(now)
                 .expiration(new Date(now.getTime() + accessTokenExpiration))
                 .signWith(secretKey)
@@ -59,14 +77,14 @@ public class JwtTokenProvider {
 
     /**
      * Refresh Token 생성 (14일).
-     * @param memberId 회원 ID
+     * @param userId 사용자 ID
      * @return JWT 문자열
      */
-    public String createRefreshToken(Long memberId) {
+    public String createRefreshToken(Long userId) {
         Date now = new Date();
         return Jwts.builder()
-                .id(java.util.UUID.randomUUID().toString()) // jti: 매번 고유한 토큰 보장
-                .subject(String.valueOf(memberId))
+                .id(java.util.UUID.randomUUID().toString())
+                .subject(String.valueOf(userId))
                 .claim(CLAIM_TYPE, TOKEN_TYPE_REFRESH)
                 .issuedAt(now)
                 .expiration(new Date(now.getTime() + refreshTokenExpiration))
@@ -76,9 +94,6 @@ public class JwtTokenProvider {
 
     /**
      * 토큰 유효성 검증.
-     * @param token JWT 문자열
-     * @return 유효하면 true
-     * @throws JwtAuthenticationException 만료, 잘못된 형식, 서명 불일치 시
      */
     public boolean validateToken(String token) {
         parseClaims(token);
@@ -86,7 +101,7 @@ public class JwtTokenProvider {
     }
 
     /**
-     * 토큰에서 회원 ID 추출.
+     * 토큰에서 사용자 ID 추출.
      */
     public Long getMemberIdFromToken(String token) {
         Claims claims = parseClaims(token);
@@ -99,6 +114,17 @@ public class JwtTokenProvider {
     public String getRoleFromToken(String token) {
         Claims claims = parseClaims(token);
         return claims.get(CLAIM_ROLE, String.class);
+    }
+
+    /**
+     * 토큰에서 강사 ID 추출 (nullable).
+     */
+    public Long getInstructorIdFromToken(String token) {
+        Claims claims = parseClaims(token);
+        Object value = claims.get(CLAIM_INSTRUCTOR_ID);
+        if (value == null) return null;
+        if (value instanceof Number) return ((Number) value).longValue();
+        return Long.parseLong(value.toString());
     }
 
     /**
