@@ -93,6 +93,15 @@ public enum ErrorCode {
     MEMBERSHIP_PASS_DUPLICATE_NAME(HttpStatus.CONFLICT, "MPASS_004", "같은 이름의 정기권 종류가 있습니다."),
     MEMBERSHIP_PASS_UNLIMITED_LESSON_INVALID(HttpStatus.BAD_REQUEST, "MPASS_005", "무제한권은 그룹 수업만 매핑 가능합니다."),
 
+    // ── 결제 ──
+    PAYMENT_ORDER_NOT_FOUND(HttpStatus.NOT_FOUND, "PAY_001", "결제 정보를 찾을 수 없습니다."),
+    PAYMENT_ALREADY_PROCESSED(HttpStatus.CONFLICT, "PAY_002", "이미 처리된 결제입니다."),
+    PAYMENT_AMOUNT_MISMATCH(HttpStatus.BAD_REQUEST, "PAY_003", "결제 금액이 일치하지 않습니다."),
+    PAYMENT_TOSS_CONFIRM_FAILED(HttpStatus.BAD_GATEWAY, "PAY_004", "결제 승인에 실패했습니다."),
+    PAYMENT_TOSS_REFUND_FAILED(HttpStatus.BAD_GATEWAY, "PAY_005", "환불 처리에 실패했습니다."),
+    PAYMENT_NOT_REFUNDABLE(HttpStatus.BAD_REQUEST, "PAY_006", "환불 가능한 상태가 아닙니다."),
+    PAYMENT_REFUND_EXCEEDED(HttpStatus.BAD_REQUEST, "PAY_007", "환불 금액이 환불 가능 금액을 초과합니다."),
+
     ;
 
     private final HttpStatus httpStatus;

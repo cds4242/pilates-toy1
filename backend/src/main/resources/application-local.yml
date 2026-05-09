@@ -53,3 +53,5 @@ app:
     secret: ${JWT_SECRET:dGVzdC1qd3Qtc2VjcmV0LWtleS0zMi1ieXRlcyEhISE=}
     access-token-expiration: 1800
     refresh-token-expiration: 1209600
+  toss:
+    secret-key: test_sk_DUMMY

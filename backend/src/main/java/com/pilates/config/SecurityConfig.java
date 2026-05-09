@@ -39,6 +39,7 @@ public class SecurityConfig {
             "/api/lesson-types/**",
             "/api/class-schedules/**",
             "/api/membership-passes/**",
+            "/api/payments/confirm",
             "/actuator/health",
             "/actuator/info",
             "/swagger-ui/**",
