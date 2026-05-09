@@ -7,6 +7,7 @@ import com.pilates.domain.notification.dto.NotificationStatisticsResponse;
 import com.pilates.domain.notification.entity.Notification;
 import com.pilates.domain.notification.entity.NotificationStatus;
 import com.pilates.domain.notification.entity.NotificationType;
+import com.pilates.domain.notification.entity.RecipientType;
 import com.pilates.domain.notification.repository.NotificationRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -28,7 +29,8 @@ public class NotificationQueryService {
 
     /** 회원 본인 알림 목록 */
     public Page<NotificationResponse> getMyNotifications(Long memberId, int page, int size) {
-        return notificationRepository.findAllByMemberIdOrderByCreatedAtDesc(memberId, PageRequest.of(page, size))
+        return notificationRepository.findAllByRecipientTypeAndRecipientIdOrderByCreatedAtDesc(
+                        RecipientType.MEMBER, memberId, PageRequest.of(page, size))
                 .map(this::toResponse);
     }
 
@@ -37,7 +39,8 @@ public class NotificationQueryService {
         Notification notification = notificationRepository.findById(notificationId)
                 .orElseThrow(() -> new BusinessException(ErrorCode.NOTIFICATION_NOT_FOUND));
 
-        if (!notification.getMember().getId().equals(memberId)) {
+        if (notification.getRecipientType() != RecipientType.MEMBER
+                || !notification.getRecipientId().equals(memberId)) {
             throw new BusinessException(ErrorCode.ACCESS_DENIED);
         }
 
@@ -45,13 +48,13 @@ public class NotificationQueryService {
     }
 
     /** 관리자: 필터 조회 */
-    public Page<NotificationResponse> getAdminNotifications(Long memberId, String status, String type,
+    public Page<NotificationResponse> getAdminNotifications(Long recipientId, String status, String type,
                                                              LocalDateTime from, LocalDateTime to,
                                                              int page, int size) {
         NotificationStatus statusEnum = status != null ? NotificationStatus.valueOf(status) : null;
         NotificationType typeEnum = type != null ? NotificationType.valueOf(type) : null;
 
-        return notificationRepository.findAllWithFilters(memberId, statusEnum, typeEnum, from, to,
+        return notificationRepository.findAllWithFilters(recipientId, statusEnum, typeEnum, from, to,
                         PageRequest.of(page, size))
                 .map(this::toResponse);
     }
