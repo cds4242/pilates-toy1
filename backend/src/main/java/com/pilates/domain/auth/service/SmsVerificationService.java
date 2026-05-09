@@ -53,6 +53,7 @@ public class SmsVerificationService {
             checkRateLimit(phoneNumber);
 
             String code = generateCode();
+            log.info("[SMS 인증] {} → 인증번호: {}", phoneNumber, code);
 
             // Redis에 인증번호 저장 (기존 코드 덮어쓰기)
             redisTemplate.opsForValue().set(KEY_CODE + phoneNumber, code, CODE_TTL);

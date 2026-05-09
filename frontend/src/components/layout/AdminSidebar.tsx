@@ -48,17 +48,22 @@ export function AdminSidebar() {
         })}
       </nav>
 
-      {/* 사용자 정보 */}
-      <div className="px-4 py-4 border-t border-[var(--color-border)] flex items-center gap-3">
-        <div className="w-8 h-8 rounded-full bg-[var(--color-pilates-light)] flex items-center justify-center text-[13px] font-bold text-[var(--color-pilates-dark)]">
-          {user?.name?.charAt(0) || "관"}
+      {/* 사용자 정보 + 로그아웃 */}
+      <div className="px-4 py-4 border-t border-[var(--color-border)]">
+        <div className="flex items-center gap-3 mb-3">
+          <div className="w-8 h-8 rounded-full bg-[var(--color-pilates-light)] flex items-center justify-center text-[13px] font-bold text-[var(--color-pilates-dark)]">
+            {user?.name?.charAt(0) || "관"}
+          </div>
+          <div className="flex-1 min-w-0">
+            <p className="text-[13px] font-semibold text-[var(--color-text-title)] truncate">
+              {user?.name || "관리자"}
+            </p>
+            <p className="text-[11px] text-[var(--color-text-sub)]">관리자</p>
+          </div>
         </div>
-        <div className="flex-1 min-w-0">
-          <p className="text-[13px] font-semibold text-[var(--color-text-title)] truncate">
-            {user?.name || "관리자"}
-          </p>
-          <p className="text-[11px] text-[var(--color-text-sub)]">관리자</p>
-        </div>
+        <button onClick={logout} className="w-full text-left px-3 py-2 rounded-[8px] text-[13px] text-[var(--color-text-sub)] hover:bg-[var(--color-bg-section)] hover:text-[var(--color-text-body)] transition-colors">
+          로그아웃
+        </button>
       </div>
     </aside>
   );

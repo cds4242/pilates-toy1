@@ -26,7 +26,7 @@ export default function SignupPage() {
     setLoading(true);
     try {
       await authApi.requestSms(phone.replace(/-/g, ""));
-      toast.success("인증번호가 발송되었습니다.");
+      toast.success("인증번호가 발송되었습니다. (백엔드 콘솔 로그 확인)");
       setStep("verify");
     } catch (err: unknown) {
       toast.error(err instanceof Error ? err.message : "발송 실패");

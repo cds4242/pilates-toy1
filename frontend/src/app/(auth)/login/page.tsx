@@ -42,9 +42,7 @@ export default function LoginPage() {
     <div className="max-w-[480px] mx-auto min-h-screen bg-white flex flex-col justify-center px-6">
       {/* 스튜디오 이미지 */}
       <div className="mb-6">
-        <div className="bg-gradient-to-br from-pilates to-pilates-dark rounded-[18px] h-[160px] flex items-center justify-center text-white text-[15px] font-semibold">
-          Pilates Studio
-        </div>
+        <img src="/studio.jpg" alt="학원 사진" className="w-full h-[160px] object-cover rounded-[18px]" />
       </div>
 
       {/* 헤더 */}

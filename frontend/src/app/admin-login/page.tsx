@@ -41,8 +41,8 @@ export default function AdminLoginPage() {
       <div className="flex max-w-[900px] w-full min-h-[500px] bg-white rounded-[18px] overflow-hidden shadow-[0_4px_24px_rgba(0,0,0,0.06)] flex-col md:flex-row">
         {/* 히어로 */}
         <div className="flex-1 bg-gradient-to-br from-pilates to-pilates-dark p-10 md:p-[60px] flex flex-col justify-center text-white">
-          <div className="rounded-[18px] h-[160px] bg-white/15 flex items-center justify-center text-[15px] font-semibold mb-6">
-            학원 사진 영역
+          <div className="rounded-[18px] h-[160px] overflow-hidden mb-6">
+            <img src="/studio3.jpg" alt="학원 사진" className="w-full h-full object-cover object-[center_30%] rounded-[18px]" />
           </div>
           <h1 className="text-[28px] md:text-[28px] font-bold mb-4 leading-tight">
             필라테스 OO점<br />관리 시스템

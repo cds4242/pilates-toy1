@@ -42,7 +42,7 @@ export default function ReservationsPage() {
   };
 
   return (
-    <div className="max-w-[480px] mx-auto min-h-screen bg-white pb-20">
+    <div className="max-w-[560px] mx-auto min-h-screen bg-white pb-20">
       <header className="sticky top-0 z-50 bg-white px-6 py-4 border-b border-[var(--color-border)]">
         <h1 className="text-[20px] font-bold text-[var(--color-text-title)]">예약 내역</h1>
       </header>

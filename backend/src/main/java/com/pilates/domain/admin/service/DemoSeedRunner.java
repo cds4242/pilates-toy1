@@ -202,8 +202,8 @@ public class DemoSeedRunner implements ApplicationRunner {
         int insIdx = 0;
 
         for (LocalDate d = start; !d.isAfter(end); d = d.plusDays(1)) {
-            if (d.getDayOfWeek() == DayOfWeek.SUNDAY) continue;
-            int slotsPerDay = d.getDayOfWeek() == DayOfWeek.SATURDAY ? 2 : 4;
+            // 일요일도 2슬롯 (시연용)
+            int slotsPerDay = (d.getDayOfWeek() == DayOfWeek.SATURDAY || d.getDayOfWeek() == DayOfWeek.SUNDAY) ? 2 : 4;
             for (int s = 0; s < slotsPerDay; s++) {
                 LessonType lt = lessonTypes.get(random.nextInt(Math.min(3, lessonTypes.size())));
                 Instructor ins = instructors.get(insIdx % instructors.size());

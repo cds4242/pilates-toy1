@@ -66,11 +66,11 @@ function AttendanceContent() {
   };
 
   if (!classId) {
-    return <div className="max-w-[480px] mx-auto min-h-screen bg-white flex items-center justify-center"><p className="text-text-sub">수업을 선택해주세요</p></div>;
+    return <div className="max-w-[560px] mx-auto min-h-screen bg-white flex items-center justify-center"><p className="text-text-sub">수업을 선택해주세요</p></div>;
   }
 
   return (
-    <div className="max-w-[480px] mx-auto min-h-screen bg-white pb-24">
+    <div className="max-w-[560px] mx-auto min-h-screen bg-white pb-24">
       <header className="sticky top-0 z-50 bg-white px-6 py-4 flex items-center gap-4 border-b border-border">
         <button onClick={() => router.back()} className="text-text-title"><ChevronLeft className="h-6 w-6" /></button>
         <h1 className="text-[20px] font-bold text-text-title">출석 체크</h1>
@@ -93,7 +93,7 @@ function AttendanceContent() {
         ))}
       </div>
       <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-border p-4">
-        <div className="max-w-[480px] mx-auto">
+        <div className="max-w-[560px] mx-auto">
           <button onClick={handleComplete} disabled={submitting}
             className="w-full bg-instructor hover:bg-[#6A7DC2] text-white rounded-[8px] py-4 text-[16px] font-semibold transition-colors disabled:opacity-60">
             {submitting ? "저장 중..." : "출석 체크 완료"}

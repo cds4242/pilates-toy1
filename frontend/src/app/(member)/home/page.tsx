@@ -49,7 +49,7 @@ export default function MemberHomePage() {
   const dateStr = `${today.getMonth() + 1}월 ${today.getDate()}일 ${["일", "월", "화", "수", "목", "금", "토"][today.getDay()]}요일`;
 
   return (
-    <div className="max-w-[480px] mx-auto min-h-screen bg-white pb-20">
+    <div className="max-w-[560px] mx-auto min-h-screen bg-white pb-20">
       {/* Header */}
       <header className="sticky top-0 z-50 bg-white px-6 py-4 flex items-center justify-between border-b border-[var(--color-border)]">
         <span className="text-[20px] font-bold text-[var(--color-text-title)]">

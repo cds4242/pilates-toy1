@@ -34,7 +34,7 @@ export default function InstructorSchedulePage() {
   }, [activeTab]);
 
   return (
-    <div className="max-w-[480px] mx-auto min-h-screen bg-white">
+    <div className="max-w-[560px] mx-auto min-h-screen bg-white">
       <header className="sticky top-0 z-50 bg-white px-6 py-4 flex items-center justify-between border-b border-border">
         <h1 className="text-[20px] font-bold text-text-title">{user?.name || "강사"}님</h1>
         <button onClick={logout} className="text-[13px] text-text-sub hover:underline">로그아웃</button>

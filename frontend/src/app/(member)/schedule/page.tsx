@@ -57,7 +57,7 @@ export default function SchedulePage() {
   };
 
   return (
-    <div className="max-w-[480px] mx-auto min-h-screen bg-white pb-20">
+    <div className="max-w-[560px] mx-auto min-h-screen bg-white pb-20">
       {/* Header */}
       <header className="sticky top-0 z-50 bg-white px-6 py-4 flex items-center gap-4 border-b border-[var(--color-border)]">
         <button onClick={() => router.back()} className="text-[var(--color-text-title)]">
