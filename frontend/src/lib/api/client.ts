@@ -33,9 +33,11 @@ apiClient.interceptors.response.use(
   (response) => response,
   async (error: AxiosError<ApiResponse<unknown>>) => {
     const original = error.config;
+    const isAuthUrl = original?.url?.includes("/auth/login") || original?.url?.includes("/auth/signup") || original?.url?.includes("/auth/sms");
     if (
       error.response?.status === 401 &&
       original &&
+      !isAuthUrl &&
       !(original as unknown as Record<string, unknown>)._retry
     ) {
       (original as unknown as Record<string, unknown>)._retry = true;
