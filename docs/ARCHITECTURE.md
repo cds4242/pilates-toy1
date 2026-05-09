@@ -16,6 +16,8 @@ com.pilates/
 │   │   ├── hash/       — SHA-256 해시, 전화번호 정규화
 │   │   ├── jwt/        — JWT 발급/검증 (JwtTokenProvider)
 │   │   └── password/   — 비밀번호 정책 (PasswordPolicy)
+│   ├── notification/
+│   │   └── kakao/      — KakaoAlimtalkClient, Mock/Real 구현체
 │   ├── sms/            — SmsService 인터페이스, MockSmsService
 │   └── util/           — MaskingUtil
 ├── config/
@@ -456,3 +458,92 @@ sequenceDiagram
 | GET | /api/members/me/attendance-rate | MEMBER | 내 출석률 |
 | GET | /api/admin/members/{id}/attendance-rate | ADMIN | 회원 출석률 |
 | GET | /api/admin/attendances/no-show-counts | ADMIN | 회원별 노쇼 횟수 |
+
+## 10. notification 도메인
+
+### 10.1 패키지 구조
+
+```
+domain/notification/
+├── controller/
+│   ├── MyNotificationController     — 회원 알림 조회 API
+│   └── AdminNotificationController  — 관리자 알림 관리 API
+├── dto/
+│   ├── NotificationResponse         — 알림 응답 DTO
+│   └── NotificationStatisticsResponse — 알림 통계 DTO
+├── entity/
+│   ├── Notification         — 알림 발송 이력 Entity
+│   ├── NotificationTemplate — 알림 템플릿 Entity
+│   ├── NotificationType     — 알림 유형 Enum
+│   ├── NotificationStatus   — 발송 상태 Enum (PENDING, SENT, FAILED, FALLBACK_SENT)
+│   └── NotificationChannel  — 발송 채널 Enum (ALIMTALK, SMS)
+├── event/
+│   ├── ReservationCreatedEvent     — 예약 생성 이벤트
+│   ├── ReservationCancelledEvent   — 예약 취소 이벤트
+│   └── NotificationEventListener   — 이벤트 리스너 (@TransactionalEventListener)
+├── repository/
+│   ├── NotificationRepository
+│   └── NotificationTemplateRepository
+├── scheduler/
+│   ├── ReservationReminderScheduler       — 수업 1시간 전 리마인드
+│   └── MembershipExpirationReminderScheduler — 정기권 3일 전 만료 알림
+└── service/
+    ├── NotificationService       — 발송 서비스 (알림톡 → SMS 폴백)
+    └── NotificationQueryService  — 조회 서비스
+```
+
+### 10.2 알림 발송 시퀀스
+
+```mermaid
+sequenceDiagram
+    participant RS as ReservationService
+    participant EP as EventPublisher
+    participant NL as NotificationEventListener
+    participant NS as NotificationService
+    participant DB as Database
+    participant AK as KakaoAlimtalkClient
+    participant SMS as SmsService
+
+    RS->>EP: publishEvent(ReservationCreatedEvent)
+    Note over RS: 트랜잭션 커밋
+    EP->>NL: @TransactionalEventListener(AFTER_COMMIT)
+    NL->>NS: createNotificationByMemberId()
+    NS->>DB: INSERT notification (PENDING)
+    NL->>NS: send(notificationId) [@Async]
+
+    alt 알림톡 성공
+        NS->>AK: sendAlimtalk(phone, templateCode, params)
+        AK-->>NS: success + messageId
+        NS->>DB: UPDATE notification → SENT
+    else 알림톡 실패 → SMS 폴백
+        NS->>AK: sendAlimtalk() → 실패
+        NS->>SMS: send(phone, content)
+        alt SMS 성공
+            NS->>DB: UPDATE notification → FALLBACK_SENT
+        else SMS도 실패
+            NS->>DB: UPDATE notification → FAILED + failureReason
+        end
+    end
+```
+
+### 10.3 스케줄러 흐름
+
+| 스케줄러 | 주기 | 대상 | 알림 유형 |
+|---------|------|------|----------|
+| ReservationReminderScheduler | 10분마다 | 1시간 후 시작 수업의 CONFIRMED 예약 | REMINDER_1HOUR |
+| MembershipExpirationReminderScheduler | 매일 09:00 | 3일 후 만료 ACTIVE 정기권 | MEMBERSHIP_EXPIRING |
+
+### 10.4 권한 매트릭스 (알림)
+
+| Method | Path | MEMBER | ADMIN |
+|--------|------|--------|-------|
+| GET | /api/members/me/notifications | O (본인만) | - |
+| GET | /api/members/me/notifications/{id} | O (본인만) | - |
+| GET | /api/admin/notifications | - | O |
+| GET | /api/admin/notifications/statistics | - | O |
+| POST | /api/admin/notifications/{id}/resend | - | O |
+
+### 10.5 의뢰인 정책
+
+- **휴강 처리 시 알림 X**: `cancelAllByClassSchedule`은 이벤트를 발행하지 않음
+- **알림톡 실패 → SMS 자동 폴백**: Mock에서는 `FAIL_` prefix로 실패 시뮬레이션
