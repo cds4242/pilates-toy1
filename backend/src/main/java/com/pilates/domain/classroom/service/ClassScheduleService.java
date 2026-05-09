@@ -41,6 +41,13 @@ public class ClassScheduleService {
         LessonType lessonType = lessonTypeRepository.findById(request.lessonTypeId())
                 .orElseThrow(() -> new BusinessException(ErrorCode.LESSON_TYPE_NOT_FOUND));
 
+        // 시간 충돌 검증 (같은 강사, 같은 날짜, CANCELLED 제외)
+        List<ClassSchedule> overlapping = classScheduleRepository.findOverlappingClasses(
+                request.instructorId(), request.classDate(), request.startTime(), request.endTime());
+        if (!overlapping.isEmpty()) {
+            throw new BusinessException(ErrorCode.CLASS_TIME_CONFLICT);
+        }
+
         ClassSchedule schedule = ClassSchedule.builder()
                 .instructor(instructor)
                 .lessonType(lessonType)
@@ -72,7 +79,10 @@ public class ClassScheduleService {
         }
 
         schedule.cancel();
-        // TODO: 해당 수업의 예약 건들 일괄 취소 + 정기권 복구 (reservation 도메인 구현 후 연결)
+        // TODO [STEP 8 reservation]: 휴강 처리 시 다음 작업 연결 필요
+        // 1. 해당 수업의 모든 예약 → status=CANCELLED, cancel_reason="강사 휴강"
+        // 2. 각 예약에 사용된 정기권 → remaining_count + 1 (자동 복구)
+        // 3. 알림 발송 X (의뢰인 정책: 관리자 직접 통보)
         log.info("수업 취소: id={}, date={}", id, schedule.getClassDate());
     }
 
@@ -91,7 +101,7 @@ public class ClassScheduleService {
         }
 
         schedule.complete();
-        // TODO: 노쇼 처리 (attendance 도메인 구현 후 연결)
+        // TODO [STEP 8 reservation]: 수업 완료 시 미출석 예약을 NO_SHOW로 자동 전환 + 정기권 차감
         log.info("수업 완료: id={}, date={}", id, schedule.getClassDate());
     }
 
@@ -126,6 +136,19 @@ public class ClassScheduleService {
     @Transactional(readOnly = true)
     public ClassScheduleResponse getClassDetail(Long id) {
         return toResponse(findById(id));
+    }
+
+    /**
+     * 강사 본인 수업 상세 조회. 본인 담당이 아니면 예외.
+     */
+    @Transactional(readOnly = true)
+    public ClassScheduleResponse getDetailForInstructor(Long instructorId, Long classScheduleId) {
+        ClassSchedule cs = findById(classScheduleId);
+        if (!cs.getInstructor().getId().equals(instructorId)) {
+            throw new BusinessException(ErrorCode.CLASS_NOT_FOUND);
+        }
+        // TODO [STEP 8 reservation]: 예약자 리스트를 응답에 포함
+        return toResponse(cs);
     }
 
     // ── private ──
