@@ -98,12 +98,17 @@ public class Reservation extends BaseEntity {
         this.waitOrder = null;
     }
 
-    /** 취소 가능 여부 (수업 시작 2시간 전까지). */
-    public boolean canCancel(java.time.LocalDateTime now) {
+    /** 취소 가능 여부 (수업 시작 N시간 전까지). */
+    public boolean canCancel(java.time.LocalDateTime now, int deadlineHours) {
         if (this.status != ReservationStatus.CONFIRMED) return false;
         java.time.LocalDateTime classStart = this.classSchedule.getClassDate()
                 .atTime(this.classSchedule.getStartTime());
-        return now.isBefore(classStart.minusHours(2));
+        return now.isBefore(classStart.minusHours(deadlineHours));
+    }
+
+    /** 하위 호환용 (기본 2시간) */
+    public boolean canCancel(java.time.LocalDateTime now) {
+        return canCancel(now, 2);
     }
 
     /** 미래 수업인지. */

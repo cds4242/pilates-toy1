@@ -122,15 +122,20 @@ public class Attendance {
 
     /**
      * 출석 체크 가능 여부.
-     * 수업 시작 시각 ~ 종료 30분 후 사이만 가능.
+     * 수업 시작 시각 ~ 종료 N분 후 사이만 가능.
      */
-    public boolean isCheckable(LocalDateTime now) {
+    public boolean isCheckable(LocalDateTime now, int afterEndMinutes) {
         LocalDateTime classStart = classSchedule.getClassDate()
                 .atTime(classSchedule.getStartTime());
-        LocalDateTime classEndPlus30 = classSchedule.getClassDate()
+        LocalDateTime classEndPlus = classSchedule.getClassDate()
                 .atTime(classSchedule.getEndTime())
-                .plusMinutes(30);
-        return !now.isBefore(classStart) && !now.isAfter(classEndPlus30);
+                .plusMinutes(afterEndMinutes);
+        return !now.isBefore(classStart) && !now.isAfter(classEndPlus);
+    }
+
+    /** 하위 호환 (기본 30분) */
+    public boolean isCheckable(LocalDateTime now) {
+        return isCheckable(now, 30);
     }
 
     /** 강사가 이미 출석/지각/결석 마킹한 상태인지 */

@@ -54,6 +54,7 @@ public class ReservationService {
     private final AttendanceRepository attendanceRepository;
     private final ApplicationEventPublisher eventPublisher;
     private final EncryptionService encryptionService;
+    private final com.pilates.domain.admin.service.StudioSettingService studioSettingService;
 
     /**
      * 예약 생성.
@@ -122,8 +123,8 @@ public class ReservationService {
         if (usableMembership.isUnlimited()) {
             YearMonth currentMonth = YearMonth.from(today);
             long monthlyUsage = countMonthlyUsage(memberId, currentMonth);
-            // 무제한권 월 한도는 30회로 설정 (studio_settings로 관리 가능하지만 현재 하드코딩)
-            if (monthlyUsage >= 30) {
+            int monthlyLimit = studioSettingService.getUnlimitedMonthlyLimit();
+            if (monthlyUsage >= monthlyLimit) {
                 throw new BusinessException(ErrorCode.RESERVATION_MONTHLY_LIMIT);
             }
         }
@@ -180,8 +181,9 @@ public class ReservationService {
             throw new BusinessException(ErrorCode.RESERVATION_ALREADY_CANCELLED);
         }
 
-        // 취소 가능 시간 검증 (수업 시작 2시간 전)
-        if (!reservation.canCancel(LocalDateTime.now())) {
+        // 취소 가능 시간 검증 (studio_settings.CANCEL_DEADLINE_HOURS)
+        int deadlineHours = studioSettingService.getCancelDeadlineHours();
+        if (!reservation.canCancel(LocalDateTime.now(), deadlineHours)) {
             throw new BusinessException(ErrorCode.RESERVATION_NOT_CANCELLABLE);
         }
 

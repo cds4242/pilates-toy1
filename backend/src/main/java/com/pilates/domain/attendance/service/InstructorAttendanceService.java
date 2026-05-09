@@ -26,6 +26,7 @@ public class InstructorAttendanceService {
     private final AttendanceRepository attendanceRepository;
     private final ClassScheduleRepository classScheduleRepository;
     private final EncryptionService encryptionService;
+    private final com.pilates.domain.admin.service.StudioSettingService studioSettingService;
 
     /**
      * 단건 출석 체크.
@@ -114,7 +115,8 @@ public class InstructorAttendanceService {
     }
 
     private void validateCheckable(Attendance attendance) {
-        if (!attendance.isCheckable(LocalDateTime.now())) {
+        int afterEndMinutes = studioSettingService.getNoShowAutoMarkMinutes();
+        if (!attendance.isCheckable(LocalDateTime.now(), afterEndMinutes)) {
             throw new BusinessException(ErrorCode.ATTENDANCE_NOT_CHECKABLE);
         }
     }

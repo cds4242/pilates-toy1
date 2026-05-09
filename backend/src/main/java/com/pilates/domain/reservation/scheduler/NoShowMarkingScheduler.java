@@ -28,15 +28,17 @@ public class NoShowMarkingScheduler {
 
     private final ReservationRepository reservationRepository;
     private final AttendanceRepository attendanceRepository;
+    private final com.pilates.domain.admin.service.StudioSettingService studioSettingService;
 
     /**
-     * 10분 간격으로 수업 종료 후 30분 이상 경과한 CONFIRMED 예약을 NO_SHOW 처리.
+     * 10분 간격으로 수업 종료 후 N분(studio_settings) 이상 경과한 CONFIRMED 예약을 NO_SHOW 처리.
      */
     @Scheduled(fixedRate = 600_000)
     @Transactional
     public void markOverdueReservations() {
         LocalDate today = LocalDate.now();
-        LocalTime cutoffTime = LocalTime.now().minusMinutes(30);
+        int noShowMinutes = studioSettingService.getNoShowAutoMarkMinutes();
+        LocalTime cutoffTime = LocalTime.now().minusMinutes(noShowMinutes);
 
         // 자정 직후에는 cutoff가 음수가 될 수 있으므로 스킵
         if (cutoffTime.isAfter(LocalTime.now())) {
