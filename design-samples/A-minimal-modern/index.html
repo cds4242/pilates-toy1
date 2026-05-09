@@ -7,19 +7,19 @@
 <title>시안 A: 미니멀 모던 - 필라테스 예약 시스템</title>
 <link rel="stylesheet" as="style" crossorigin href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css">
 <style>
-:root{--color-primary:#F8C8DC;--color-primary-dark:#F0A8C4;--color-primary-light:#FCE4EC;--color-bg:#FFFFFF;--color-bg-section:#F8F8F8;--color-text-title:#2D2D2D;--color-text-body:#6B6B6B;--color-text-sub:#9B9B9B;--color-border:#EEEEEE;--radius-sm:8px;--radius-md:12px;--spacing-md:16px;--spacing-lg:24px}
+:root{--color-primary:#F0A0B5;--color-primary-dark:#D88A9E;--color-primary-light:#FAD4DE;--color-bg:#FFFFFF;--color-bg-section:#F8F8F8;--color-text-title:#2D2D2D;--color-text-body:#6B6B6B;--color-text-sub:#9B9B9B;--color-border:#EEEEEE;--radius-sm:8px;--radius-md:18px;--spacing-md:16px;--spacing-lg:24px}
 *{margin:0;padding:0;box-sizing:border-box}
-body{font-family:'Pretendard',-apple-system,BlinkMacSystemFont,sans-serif;background:var(--color-bg-section);color:var(--color-text-body);-webkit-font-smoothing:antialiased;padding:var(--spacing-lg)}
+body{font-family:'Pretendard',-apple-system,BlinkMacSystemFont,sans-serif;background:var(--color-bg-section);color:var(--color-text-body);-webkit-font-smoothing:antialiased;padding:var(--spacing-lg);font-size:15px}
 .container{max-width:720px;margin:0 auto}
 .hero{background:var(--color-primary-light);border-radius:var(--radius-md);padding:40px var(--spacing-lg) 32px;text-align:center;margin-bottom:var(--spacing-lg)}
-.hero-badge{display:inline-block;background:var(--color-primary);color:var(--color-text-title);font-size:12px;font-weight:600;padding:4px 12px;border-radius:20px;margin-bottom:var(--spacing-md)}
-.hero-title{font-size:24px;font-weight:700;color:var(--color-text-title);margin-bottom:8px}
-.hero-sub{font-size:14px;color:var(--color-text-body);line-height:1.5}
+.hero-badge{display:inline-block;background:var(--color-primary);color:var(--color-text-title);font-size:13px;font-weight:600;padding:4px 12px;border-radius:20px;margin-bottom:var(--spacing-md)}
+.hero-title{font-size:26px;font-weight:700;color:var(--color-text-title);margin-bottom:8px}
+.hero-sub{font-size:15px;color:var(--color-text-body);line-height:1.5}
 .section{margin-bottom:var(--spacing-lg)}
-.section-title{font-size:18px;font-weight:700;color:var(--color-text-title);margin-bottom:var(--spacing-md);padding-bottom:8px;border-bottom:2px solid var(--color-primary)}
+.section-title{font-size:20px;font-weight:700;color:var(--color-text-title);margin-bottom:var(--spacing-md);padding-bottom:8px;border-bottom:2px solid var(--color-primary)}
 .page-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:var(--spacing-md)}
 .page-card{display:flex;align-items:center;gap:var(--spacing-md);padding:16px;background:var(--color-bg);border:1px solid var(--color-border);border-radius:var(--radius-md);text-decoration:none;color:inherit;transition:all .2s}
-.page-card:hover{border-color:var(--color-primary);box-shadow:0 2px 12px rgba(248,200,220,.3)}
+.page-card:hover{border-color:var(--color-primary);box-shadow:0 2px 12px rgba(240,160,181,.3)}
 .page-icon{width:40px;height:40px;border-radius:10px;background:var(--color-primary-light);display:flex;align-items:center;justify-content:center;flex-shrink:0}
 .page-icon svg{width:20px;height:20px;color:var(--color-primary-dark)}
 .page-icon.instructor{background:#EEF0FF}
@@ -27,9 +27,9 @@ body{font-family:'Pretendard',-apple-system,BlinkMacSystemFont,sans-serif;backgr
 .page-icon.admin{background:#F0F0F0}
 .page-icon.admin svg{color:#2D2D2D}
 .page-info{flex:1}
-.page-name{font-size:14px;font-weight:600;color:var(--color-text-title)}
-.page-desc{font-size:12px;color:var(--color-text-sub);margin-top:2px}
-.footer{text-align:center;padding:var(--spacing-md);font-size:12px;color:var(--color-text-sub)}
+.page-name{font-size:15px;font-weight:600;color:var(--color-text-title)}
+.page-desc{font-size:13px;color:var(--color-text-sub);margin-top:2px}
+.footer{text-align:center;padding:var(--spacing-md);font-size:13px;color:var(--color-text-sub)}
 </style>
 </head>
 <body>
@@ -44,6 +44,7 @@ body{font-family:'Pretendard',-apple-system,BlinkMacSystemFont,sans-serif;backgr
     <h2 class="section-title">회원 (모바일)</h2>
     <div class="page-grid">
       <a href="member/login.html" class="page-card"><div class="page-icon"><svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M16.5 10.5V6.75a4.5 4.5 0 1 0-9 0v3.75m-.75 11.25h10.5a2.25 2.25 0 0 0 2.25-2.25v-6.75a2.25 2.25 0 0 0-2.25-2.25H6.75a2.25 2.25 0 0 0-2.25 2.25v6.75a2.25 2.25 0 0 0 2.25 2.25Z"/></svg></div><div class="page-info"><div class="page-name">로그인</div><div class="page-desc">휴대폰 + 비밀번호</div></div></a>
+      <a href="member/signup.html" class="page-card"><div class="page-icon"><svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M18 7.5v3m0 0v3m0-3h3m-3 0h-3m-2.25-4.125a3.375 3.375 0 1 1-6.75 0 3.375 3.375 0 0 1 6.75 0ZM3 19.235v-.11a6.375 6.375 0 0 1 12.75 0v.109A12.318 12.318 0 0 1 9.374 21c-2.331 0-4.512-.645-6.374-1.766Z"/></svg></div><div class="page-info"><div class="page-name">회원가입</div><div class="page-desc">프로필, 정보 입력</div></div></a>
       <a href="member/home.html" class="page-card"><div class="page-icon"><svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="m2.25 12 8.954-8.955a1.126 1.126 0 0 1 1.591 0L21.75 12M4.5 9.75v10.125c0 .621.504 1.125 1.125 1.125H9.75v-4.875c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125V21h4.125c.621 0 1.125-.504 1.125-1.125V9.75M8.25 21h8.25"/></svg></div><div class="page-info"><div class="page-name">홈</div><div class="page-desc">정기권 현황, 다음 예약</div></div></a>
       <a href="member/reservation.html" class="page-card"><div class="page-icon"><svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 0 1 2.25-2.25h13.5A2.25 2.25 0 0 1 21 7.5v11.25m-18 0A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75m-18 0v-7.5A2.25 2.25 0 0 1 5.25 9h13.5A2.25 2.25 0 0 1 21 11.25v7.5"/></svg></div><div class="page-info"><div class="page-name">수업 예약</div><div class="page-desc">날짜 선택, 시간표, 모달</div></div></a>
       <a href="member/mypage.html" class="page-card"><div class="page-icon"><svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M15.75 6a3.75 3.75 0 1 1-7.5 0 3.75 3.75 0 0 1 7.5 0ZM4.501 20.118a7.5 7.5 0 0 1 14.998 0A17.933 17.933 0 0 1 12 21.75c-2.676 0-5.216-.584-7.499-1.632Z"/></svg></div><div class="page-info"><div class="page-name">마이페이지</div><div class="page-desc">프로필, 출석, 설정</div></div></a>

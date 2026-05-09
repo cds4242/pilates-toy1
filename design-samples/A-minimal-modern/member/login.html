@@ -8,9 +8,9 @@
 <link rel="stylesheet" as="style" crossorigin href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css">
 <style>
 :root {
-  --color-primary: #F8C8DC;
-  --color-primary-dark: #F0A8C4;
-  --color-primary-light: #FCE4EC;
+  --color-primary: #F0A0B5;
+  --color-primary-dark: #D88A9E;
+  --color-primary-light: #FAD4DE;
   --color-bg: #FFFFFF;
   --color-bg-section: #F8F8F8;
   --color-text-title: #2D2D2D;
@@ -22,7 +22,7 @@
   --color-warning: #F4A261;
   --color-error: #E76F51;
   --radius-sm: 8px;
-  --radius-md: 12px;
+  --radius-md: 18px;
   --spacing-xs: 8px;
   --spacing-sm: 12px;
   --spacing-md: 16px;
@@ -38,6 +38,7 @@ body {
   background: var(--color-bg-section);
   color: var(--color-text-body);
   -webkit-font-smoothing: antialiased;
+  font-size: 15px;
 }
 
 .mobile-frame {
@@ -51,21 +52,42 @@ body {
   padding: var(--spacing-lg);
 }
 
+.studio-image {
+  margin-bottom: var(--spacing-lg);
+}
+
+.studio-image img {
+  width: 100%;
+  border-radius: var(--radius-md);
+  display: none;
+}
+
+.studio-image-placeholder {
+  background: linear-gradient(135deg, #F0A0B5, #D88A9E);
+  border-radius: 18px;
+  height: 160px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #fff;
+  font-size: 15px;
+  font-weight: 600;
+}
+
 .login-header {
   text-align: center;
   margin-bottom: var(--spacing-xxl);
-  padding-top: var(--spacing-xxl);
 }
 
 .logo-text {
-  font-size: 24px;
+  font-size: 26px;
   font-weight: 700;
   color: var(--color-text-title);
   margin-bottom: var(--spacing-xs);
 }
 
 .logo-sub {
-  font-size: 14px;
+  font-size: 15px;
   color: var(--color-text-body);
 }
 
@@ -139,7 +161,7 @@ body {
 }
 
 .login-links a {
-  font-size: 14px;
+  font-size: 15px;
   text-decoration: none;
   font-weight: 400;
 }
@@ -159,6 +181,11 @@ body {
 </head>
 <body>
 <div class="mobile-frame">
+  <div class="studio-image">
+    <img src="" alt="학원 사진" style="display:none">
+    <div class="studio-image-placeholder">학원 사진 영역</div>
+  </div>
+
   <div class="login-header">
     <div class="logo-text">필라테스 OO점</div>
     <div class="logo-sub">회원 로그인</div>
@@ -177,7 +204,7 @@ body {
   </form>
 
   <div class="login-links">
-    <a href="#" class="link-signup">회원가입</a>
+    <a href="signup.html" class="link-signup">회원가입</a>
     <a href="#" class="link-forgot">비밀번호 찾기</a>
   </div>
 </div>

@@ -7,14 +7,17 @@
 <title>강사 로그인 - 필라테스 OO점</title>
 <link rel="stylesheet" as="style" crossorigin href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css">
 <style>
-:root{--color-primary:#F8C8DC;--color-primary-dark:#F0A8C4;--color-primary-light:#FCE4EC;--color-bg:#FFFFFF;--color-bg-section:#F8F8F8;--color-text-title:#2D2D2D;--color-text-body:#6B6B6B;--color-text-sub:#9B9B9B;--color-border:#EEEEEE;--color-input-border:#DDDDDD;--color-instructor-bg:#F0F4FF;--color-instructor-accent:#7C8FD4;--radius-sm:8px;--radius-md:12px;--spacing-xs:8px;--spacing-sm:12px;--spacing-md:16px;--spacing-lg:24px;--spacing-xl:32px;--spacing-xxl:48px}
+:root{--color-primary:#F0A0B5;--color-primary-dark:#D88A9E;--color-primary-light:#FAD4DE;--color-bg:#FFFFFF;--color-bg-section:#F8F8F8;--color-text-title:#2D2D2D;--color-text-body:#6B6B6B;--color-text-sub:#9B9B9B;--color-border:#EEEEEE;--color-input-border:#DDDDDD;--color-instructor-bg:#F0F4FF;--color-instructor-accent:#7C8FD4;--radius-sm:8px;--radius-md:18px;--spacing-xs:8px;--spacing-sm:12px;--spacing-md:16px;--spacing-lg:24px;--spacing-xl:32px;--spacing-xxl:48px}
 *{margin:0;padding:0;box-sizing:border-box}
-body{font-family:'Pretendard',-apple-system,BlinkMacSystemFont,sans-serif;background:var(--color-instructor-bg);color:var(--color-text-body);-webkit-font-smoothing:antialiased}
+body{font-family:'Pretendard',-apple-system,BlinkMacSystemFont,sans-serif;background:var(--color-instructor-bg);color:var(--color-text-body);-webkit-font-smoothing:antialiased;font-size:15px}
 .mobile-frame{max-width:480px;margin:0 auto;min-height:100vh;background:var(--color-bg);display:flex;flex-direction:column;justify-content:center;padding:var(--spacing-lg)}
-.login-header{text-align:center;margin-bottom:var(--spacing-xxl);padding-top:var(--spacing-xxl)}
-.logo-badge{display:inline-block;background:var(--color-instructor-accent);color:#fff;font-size:12px;font-weight:600;padding:4px 12px;border-radius:20px;margin-bottom:var(--spacing-md)}
-.logo-text{font-size:24px;font-weight:700;color:var(--color-text-title);margin-bottom:var(--spacing-xs)}
-.logo-sub{font-size:14px;color:var(--color-text-body)}
+.studio-image{margin-bottom:var(--spacing-lg)}
+.studio-image img{width:100%;border-radius:var(--radius-md);display:none}
+.studio-image-placeholder{background:linear-gradient(135deg,#F0A0B5,#D88A9E);border-radius:18px;height:160px;display:flex;align-items:center;justify-content:center;color:#fff;font-size:15px;font-weight:600}
+.login-header{text-align:center;margin-bottom:var(--spacing-xxl)}
+.logo-badge{display:inline-block;background:var(--color-instructor-accent);color:#fff;font-size:13px;font-weight:600;padding:4px 12px;border-radius:20px;margin-bottom:var(--spacing-md)}
+.logo-text{font-size:26px;font-weight:700;color:var(--color-text-title);margin-bottom:var(--spacing-xs)}
+.logo-sub{font-size:15px;color:var(--color-text-body)}
 .login-form{display:flex;flex-direction:column;gap:var(--spacing-md);margin-bottom:var(--spacing-lg)}
 .input-group{display:flex;flex-direction:column;gap:6px}
 .input-group label{font-size:13px;font-weight:600;color:var(--color-text-title)}
@@ -24,12 +27,17 @@ body{font-family:'Pretendard',-apple-system,BlinkMacSystemFont,sans-serif;backgr
 .btn-primary{background:var(--color-instructor-accent);color:#fff;border:none;border-radius:var(--radius-sm);padding:16px;font-size:16px;font-weight:600;font-family:'Pretendard',sans-serif;cursor:pointer;transition:background .2s;width:100%}
 .btn-primary:hover{background:#6A7DC2}
 .login-links{display:flex;justify-content:center;gap:var(--spacing-lg);margin-top:var(--spacing-lg)}
-.login-links a{font-size:14px;text-decoration:none;color:var(--color-text-sub)}
+.login-links a{font-size:15px;text-decoration:none;color:var(--color-text-sub)}
 .login-links a:hover{text-decoration:underline}
 </style>
 </head>
 <body>
 <div class="mobile-frame">
+  <div class="studio-image">
+    <img src="" alt="학원 사진" style="display:none">
+    <div class="studio-image-placeholder">학원 사진 영역</div>
+  </div>
+
   <div class="login-header">
     <span class="logo-badge">강사용</span>
     <div class="logo-text">필라테스 OO점</div>
