@@ -28,7 +28,7 @@ ON DUPLICATE KEY UPDATE setting_value = setting_value;
 
 -- ── 개발용 관리자 계정 (비밀번호: admin1234 → BCrypt 해시) ──
 INSERT INTO admins (login_id, password_hash, name, role, is_active) VALUES
-    ('admin', '$2a$10$dXJ3SW6G7P50lGmMQoeKhOelZJ2FG.VZL3ug0fE4ypyBHzDhFOKSS', '시스템관리자', 'SUPER_ADMIN', 1)
+    ('admin', '$2a$12$pMjw7nM3uimwmexOxQ8WmuS4jUQvOtPswedJ.9fPkssqnDJv/hLXu', '시스템관리자', 'SUPER_ADMIN', 1)
 ON DUPLICATE KEY UPDATE name = name;
 
 -- ── 개발용 강사 ──
