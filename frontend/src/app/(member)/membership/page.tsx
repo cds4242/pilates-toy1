@@ -8,6 +8,7 @@ import { PassCard } from "@/components/design/PassCard";
 import { StatusBadge } from "@/components/design/StatusBadge";
 import { MobileTabBar } from "@/components/design/MobileTabBar";
 import { toast } from "sonner";
+import { HelpTip } from "@/components/design/HelpTip";
 
 interface MembershipPass {
   id: number;
@@ -23,6 +24,8 @@ export default function MembershipPage() {
   const [showPasses, setShowPasses] = useState(true);
   const [passes, setPasses] = useState<MembershipPass[]>([]);
   const [passesLoading, setPassesLoading] = useState(false);
+  const [purchaseTarget, setPurchaseTarget] = useState<MembershipPass | null>(null);
+  const [purchasing, setPurchasing] = useState(false);
 
   useEffect(() => {
     async function load() {
@@ -65,7 +68,7 @@ export default function MembershipPage() {
       </header>
       <main className="p-6 flex flex-col gap-6">
         <div>
-          <h2 className="text-[20px] font-bold text-[var(--color-text-title)] mb-3">활성 수강권</h2>
+          <h2 className="text-[20px] font-bold text-[var(--color-text-title)] mb-3">활성 수강권 <HelpTip text="현재 사용 가능한 수강권입니다. 잔여 횟수와 만료일을 확인하세요. 만료 전에 수업을 예약하여 사용해주세요." /></h2>
           {loading ? (
             <div className="rounded-[18px] bg-[var(--color-pilates-light)] p-5 animate-pulse h-32" />
           ) : active ? (
@@ -90,12 +93,15 @@ export default function MembershipPage() {
             </div>
           </div>
         )}
-        <button onClick={handleTogglePasses} className="btn-primary rounded-[8px] py-4 text-[16px] font-semibold w-full">
+        <button onClick={handleTogglePasses} className={showPasses
+          ? "rounded-[8px] border border-[var(--color-border)] py-3 text-[15px] font-semibold text-[var(--color-text-body)] w-full hover:bg-[var(--color-bg-section)] transition-colors"
+          : "btn-primary rounded-[8px] py-4 text-[16px] font-semibold w-full"
+        }>
           {showPasses ? "접기" : "수강권 구매하기"}
         </button>
         {showPasses && (
           <div>
-            <h2 className="text-[20px] font-bold text-[var(--color-text-title)] mb-3">수강권 상품</h2>
+            <h2 className="text-[20px] font-bold text-[var(--color-text-title)] mb-3">수강권 상품 <HelpTip text="구매 가능한 수강권 목록입니다. 카드를 클릭하면 결제 화면으로 이동합니다." /></h2>
             {passesLoading ? (
               <div className="grid grid-cols-1 gap-3">
                 {[1, 2].map((n) => (
@@ -120,7 +126,7 @@ export default function MembershipPage() {
                   return (
                     <div
                       key={p.id}
-                      onClick={() => toast.info("온라인 결제는 준비 중입니다. 스튜디오 방문 시 수강권 구매가 가능합니다.")}
+                      onClick={() => setPurchaseTarget(p)}
                       className={`relative rounded-[18px] border border-[var(--color-border)] p-5 cursor-pointer hover:shadow-md transition-all ${cardCls}`}
                     >
                       {isUnlimited && (
@@ -143,6 +149,54 @@ export default function MembershipPage() {
         )}
       </main>
       <MobileTabBar />
+
+      {/* 모의 결제 모달 */}
+      {purchaseTarget && (
+        <div className="fixed inset-0 z-50 bg-black/40 flex items-center justify-center p-4" onClick={() => setPurchaseTarget(null)}>
+          <div className="bg-white rounded-[18px] w-full max-w-[400px] p-6" onClick={(e) => e.stopPropagation()}>
+            <h3 className="text-[18px] font-bold text-[var(--color-text-title)] mb-4">수강권 구매</h3>
+            <div className="rounded-[12px] bg-[var(--color-bg-section)] p-4 mb-4">
+              <p className="text-[16px] font-semibold text-[var(--color-text-title)]">{purchaseTarget.name}</p>
+              <div className="flex justify-between mt-2 text-[14px]">
+                <span className="text-[var(--color-text-sub)]">{purchaseTarget.totalCount ? `${purchaseTarget.totalCount}회` : "무제한"} · {purchaseTarget.validityDays}일</span>
+                <span className="font-bold text-[var(--color-pilates-dark)]">{purchaseTarget.price.toLocaleString()}원</span>
+              </div>
+            </div>
+            <div className="rounded-[12px] border border-[var(--color-border)] p-4 mb-6">
+              <p className="text-[13px] font-semibold text-[var(--color-text-title)] mb-2">결제 수단</p>
+              <div className="flex gap-2">
+                <button className="flex-1 rounded-[8px] bg-[var(--color-pilates-light)] border-2 border-[var(--color-pilates)] py-2.5 text-[13px] font-semibold text-[var(--color-text-title)]">카드 결제</button>
+                <button className="flex-1 rounded-[8px] bg-[var(--color-bg-section)] border border-[var(--color-border)] py-2.5 text-[13px] text-[var(--color-text-sub)]">계좌이체</button>
+              </div>
+              <p className="text-[11px] text-[var(--color-text-sub)] mt-2">* 로컬 시연용 — 실제 결제가 발생하지 않습니다</p>
+            </div>
+            <div className="flex gap-3">
+              <button onClick={() => setPurchaseTarget(null)} className="flex-1 rounded-[8px] border border-[var(--color-border)] py-3 text-[15px] font-semibold text-[var(--color-text-body)]">취소</button>
+              <button
+                onClick={async () => {
+                  setPurchasing(true);
+                  try {
+                    await new Promise(r => setTimeout(r, 1500));
+                    toast.success(`${purchaseTarget.name} 구매가 완료되었습니다!`);
+                    setPurchaseTarget(null);
+                    // 멤버십 목록 새로고침
+                    const ms = await memberApi.getMemberships();
+                    setMemberships(ms);
+                  } catch {
+                    toast.error("구매 처리에 실패했습니다.");
+                  } finally {
+                    setPurchasing(false);
+                  }
+                }}
+                disabled={purchasing}
+                className="flex-1 rounded-[8px] bg-[var(--color-pilates)] hover:bg-[var(--color-pilates-dark)] py-3 text-[15px] font-semibold text-[var(--color-text-title)] disabled:opacity-60"
+              >
+                {purchasing ? "결제 중..." : `${purchaseTarget.price.toLocaleString()}원 결제`}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

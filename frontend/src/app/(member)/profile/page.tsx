@@ -10,6 +10,7 @@ import type { Member, Membership, Reservation } from "@/lib/types/domain";
 import { PassCard } from "@/components/design/PassCard";
 import { MobileTabBar } from "@/components/design/MobileTabBar";
 import { toast } from "sonner";
+import { HelpTip } from "@/components/design/HelpTip";
 
 interface AttendanceRecord {
   id: number;
@@ -112,7 +113,7 @@ export default function MyPage() {
     { icon: Ticket, label: "수강권 구매", href: "/membership" },
     { icon: CreditCard, label: "예약 내역", href: "/reservations" },
     { icon: Lock, label: "비밀번호 변경", href: "/reset-password" },
-    { icon: Bell, label: "알림 설정 (준비 중)", href: "" },
+    { icon: Bell, label: "알림 설정", href: "/notifications" },
   ];
 
   return (
@@ -142,7 +143,7 @@ export default function MyPage() {
         {/* 출석 이력 — 달력 히트맵 */}
         <div>
           <div className="flex items-center justify-between mb-3">
-            <h2 className="text-[18px] font-bold text-[var(--color-text-title)]">출석 이력</h2>
+            <h2 className="text-[18px] font-bold text-[var(--color-text-title)]">출석 이력 <HelpTip text="수업에 참석하면 강사가 출석을 체크합니다. 핑크색 점은 출석, 빨간색 점은 노쇼입니다." /></h2>
             {recentHistory.length > 0 && (() => {
               const attended = recentHistory.filter(r => r.status === "PRESENT" || r.status === "LATE").length;
               const rate = Math.round((attended / recentHistory.length) * 100);
@@ -163,6 +164,7 @@ export default function MyPage() {
         </div>
 
         {/* 메뉴 */}
+        <p className="text-[12px] text-[var(--color-text-sub)] mb-2">수강권 구매, 예약 확인, 비밀번호 변경 등을 할 수 있습니다.</p>
         <div className="flex flex-col">
           {menuItems.map(({ icon: Icon, label, href }) => (
             <button key={label} onClick={() => { if (href) router.push(href); }} className="flex items-center gap-4 py-4 border-b border-[var(--color-border)] hover:text-[var(--color-pilates-dark)] transition-colors">

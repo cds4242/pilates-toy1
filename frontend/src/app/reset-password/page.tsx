@@ -59,8 +59,11 @@ export default function ResetPasswordPage() {
     }
     setLoading(true);
     try {
-      // 비밀번호 재설정 API (백엔드에 별도 엔드포인트 필요)
-      // 현재는 알림으로 안내
+      const { api: callApi } = await import("@/lib/api/client");
+      await callApi("post", "/api/auth/reset-password", {
+        verifiedToken,
+        newPassword,
+      });
       toast.success("비밀번호가 변경되었습니다. 새 비밀번호로 로그인해주세요.");
       router.push("/login");
     } catch (err: unknown) {

@@ -62,14 +62,19 @@ export default function ReservationsPage() {
           {loading ? (
             <div className="animate-pulse h-20 bg-[var(--color-bg-section)] rounded-[18px]" />
           ) : upcoming.length === 0 ? (
-            <div className="flex flex-col items-center gap-3 py-8">
-              <Calendar className="h-10 w-10 text-[var(--color-text-sub)]" />
-              <p className="text-[15px] text-[var(--color-text-sub)]">예정된 예약이 없습니다</p>
-              <Link href="/schedule"
-                className="mt-1 inline-block rounded-[8px] bg-[var(--color-pilates)] px-5 py-2.5 text-[14px] font-semibold text-[var(--color-text-title)] hover:bg-[var(--color-pilates-dark)] transition-colors">
-                수업 예약하러 가기
-              </Link>
-            </div>
+            <>
+              <div className="flex flex-col items-center gap-3 py-12">
+                <Calendar className="h-10 w-10 text-[var(--color-text-sub)]" />
+                <p className="text-[15px] text-[var(--color-text-sub)]">예정된 예약이 없습니다</p>
+                <Link href="/schedule"
+                  className="mt-1 inline-block rounded-[8px] bg-[var(--color-pilates)] px-5 py-2.5 text-[14px] font-semibold text-[var(--color-text-title)] hover:bg-[var(--color-pilates-dark)] transition-colors">
+                  수업 예약하러 가기
+                </Link>
+              </div>
+              <div className="section-card p-4 mt-4 animate-fade-in">
+                <p className="text-[13px] text-[var(--color-text-sub)] text-center">예약한 수업 내역이 여기에 표시됩니다</p>
+              </div>
+            </>
           ) : (
             <div className="flex flex-col gap-2">
               {upcoming.map((r) => (
@@ -96,7 +101,10 @@ export default function ReservationsPage() {
             <h2 className="text-[20px] font-bold text-[var(--color-text-title)] mb-3">지난 예약</h2>
             <div className="flex flex-col gap-2">
               {past.slice(0, 20).map((r) => {
-                const s = statusMap[r.status] || { status: "active" as const, label: r.status };
+                const isPastConfirmed = r.status === "CONFIRMED" && r.classDate < todayStr;
+                const s = isPastConfirmed
+                  ? { status: "present" as const, label: "완료" }
+                  : statusMap[r.status] || { status: "active" as const, label: r.status };
                 return (
                   <div key={r.id} className="flex items-center justify-between rounded-[18px] border border-[var(--color-border)] p-4">
                     <div>

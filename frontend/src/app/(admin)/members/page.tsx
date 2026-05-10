@@ -7,6 +7,7 @@ import { api } from "@/lib/api/client";
 import { adminApi } from "@/lib/api/admin";
 import type { PageResponse } from "@/lib/types/api";
 import { StatusBadge } from "@/components/design/StatusBadge";
+import { HelpTip, PageGuide } from "@/components/design/HelpTip";
 import { toast } from "sonner";
 
 interface AdminMember {
@@ -140,8 +141,9 @@ export default function AdminMembersPage() {
           <h1 className="text-[26px] font-bold text-[var(--color-text-title)]">회원 관리</h1>
           {!loading && <span className="text-[14px] text-text-sub">총 {total}명</span>}
         </div>
-        <div className="flex gap-3">
+        <div className="flex items-center gap-3">
           <button onClick={() => setShowAddModal(true)} className="rounded-[8px] bg-pilates hover:bg-pilates-dark px-4 py-2.5 text-[13px] font-semibold text-text-title transition-colors">+ 회원 등록</button>
+          <HelpTip text="이름과 전화번호만으로 회원을 등록할 수 있습니다. 대량 등록은 엑셀 파일을 이용하세요." />
           <button onClick={() => fileRef.current?.click()} className="rounded-[8px] border border-border hover:border-pilates bg-white px-4 py-2.5 text-[13px] font-semibold text-text-body transition-colors">엑셀 일괄 등록</button>
           <input ref={fileRef} type="file" accept=".xlsx,.xls" className="hidden" onChange={handleExcelUpload} />
           <button onClick={() => {
@@ -157,6 +159,8 @@ export default function AdminMembersPage() {
           </button>
         </div>
       </div>
+
+      <PageGuide text="회원을 클릭하면 상세 정보를 확인하고 수강권을 발급할 수 있습니다. 상단 필터와 정렬을 활용하여 원하는 회원을 빠르게 찾아보세요." />
 
       <form onSubmit={handleSearch} className="flex flex-wrap gap-3 mb-6">
         <div className="flex-1 min-w-[200px] relative">
@@ -377,7 +381,7 @@ function MemberDetailModal({ memberId, onClose, onUpdate }: { memberId: number; 
       setIsEditing(false);
       onUpdate();
     } catch {
-      toast.error("수정 API 미구현");
+      toast.error("회원 정보 수정에 실패했습니다.");
       setSaving(false);
     }
   };
