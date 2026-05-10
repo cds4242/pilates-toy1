@@ -16,6 +16,7 @@ interface MembershipPass {
   price: number;
   totalCount: number | null;
   validityDays: number;
+  lessonTypes?: { id: number; name: string }[];
 }
 
 export default function MembershipPage() {
@@ -168,7 +169,7 @@ export default function MembershipPage() {
                 <button className="flex-1 rounded-[8px] bg-[var(--color-pilates-light)] border-2 border-[var(--color-pilates)] py-2.5 text-[13px] font-semibold text-[var(--color-text-title)]">카드 결제</button>
                 <button className="flex-1 rounded-[8px] bg-[var(--color-bg-section)] border border-[var(--color-border)] py-2.5 text-[13px] text-[var(--color-text-sub)]">계좌이체</button>
               </div>
-              <p className="text-[11px] text-[var(--color-text-sub)] mt-2">* 로컬 시연용 — 실제 결제가 발생하지 않습니다</p>
+              <p className="text-[11px] text-[var(--color-text-sub)] mt-2">* 결제 후 수강권이 즉시 발급됩니다</p>
             </div>
             <div className="flex gap-3">
               <button onClick={() => setPurchaseTarget(null)} className="flex-1 rounded-[8px] border border-[var(--color-border)] py-3 text-[15px] font-semibold text-[var(--color-text-body)]">취소</button>
@@ -176,14 +177,22 @@ export default function MembershipPage() {
                 onClick={async () => {
                   setPurchasing(true);
                   try {
-                    await new Promise(r => setTimeout(r, 1500));
+                    // 실제 수강권 발급 API 호출
+                    await api("post", "/api/members/me/memberships/purchase", {
+                      totalCount: purchaseTarget.totalCount ?? 0,
+                      price: purchaseTarget.price,
+                      validityDays: purchaseTarget.validityDays,
+                      unlimited: !purchaseTarget.totalCount,
+                      lessonTypeIds: purchaseTarget.lessonTypes?.map((lt: { id: number }) => lt.id) || [],
+                      membershipPassId: purchaseTarget.id,
+                    });
                     toast.success(`${purchaseTarget.name} 구매가 완료되었습니다!`);
                     setPurchaseTarget(null);
                     // 멤버십 목록 새로고침
                     const ms = await memberApi.getMemberships();
                     setMemberships(ms);
-                  } catch {
-                    toast.error("구매 처리에 실패했습니다.");
+                  } catch (err: unknown) {
+                    toast.error(err instanceof Error ? err.message : "구매 처리에 실패했습니다.");
                   } finally {
                     setPurchasing(false);
                   }
