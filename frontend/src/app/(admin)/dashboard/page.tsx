@@ -97,17 +97,18 @@ export default function AdminDashboardPage() {
       {/* KPI */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
         {[
-          { icon: Calendar, label: "오늘 수업", value: loading ? "—" : `${data?.todayClasses.count ?? 0}건`, onClick: () => todayClassRef.current?.scrollIntoView({ behavior: "smooth" }) },
-          { icon: Users, label: "오늘 예약", value: loading ? "—" : `${data?.todayClasses.schedules.reduce((s, c) => s + c.reservedCount, 0) ?? 0}명`, onClick: () => router.push("/classes") },
-          { icon: Banknote, label: "이번 주 매출", value: loading ? "—" : `${Number(data?.thisWeekRevenue.total ?? 0).toLocaleString()}원`, onClick: () => revenueRef.current?.scrollIntoView({ behavior: "smooth" }) },
-          { icon: Clock, label: "만료 임박", value: loading ? "—" : `${data?.expiringMemberships.length ?? 0}명`, onClick: () => router.push("/members") },
-        ].map(({ icon: Icon, label, value, onClick }) => (
+          { icon: Calendar, label: "오늘 수업", value: loading ? "—" : `${data?.todayClasses.count ?? 0}건`, sub: "클릭하여 시간표 보기", onClick: () => router.push("/classes") },
+          { icon: Users, label: "오늘 예약", value: loading ? "—" : `${data?.todayClasses.schedules.reduce((s, c) => s + c.reservedCount, 0) ?? 0}명`, sub: "클릭하여 회원 보기", onClick: () => router.push("/members") },
+          { icon: Banknote, label: "이번 주 매출", value: loading ? "—" : `${Number(data?.thisWeekRevenue.total ?? 0).toLocaleString()}원`, sub: "아래 차트에서 상세 확인", onClick: () => revenueRef.current?.scrollIntoView({ behavior: "smooth" }) },
+          { icon: Clock, label: "만료 임박", value: loading ? "—" : `${data?.expiringMemberships.length ?? 0}명`, sub: "클릭하여 회원 보기", onClick: () => router.push("/members") },
+        ].map(({ icon: Icon, label, value, sub, onClick }) => (
           <div key={label} onClick={onClick} className="cursor-pointer rounded-[18px] kpi-card p-5 card-hover">
             <div className="flex items-center gap-2 mb-2">
               <Icon className="h-5 w-5 text-pilates-dark" />
               <p className="text-[13px] font-semibold text-[var(--color-text-body)]">{label}</p>
             </div>
             <p className="text-[28px] font-bold text-[var(--color-text-title)]">{value}</p>
+            <p className="text-[11px] text-[var(--color-text-sub)] mt-1">{sub}</p>
           </div>
         ))}
       </div>
@@ -182,6 +183,10 @@ export default function AdminDashboardPage() {
                 onClick={() => { setRevPeriod("month"); setRevOffset(0); }}
                 className={`px-3 py-1.5 text-[12px] font-semibold transition-colors ${revPeriod === "month" ? "bg-[var(--color-pilates)] text-[var(--color-text-title)]" : "text-[var(--color-text-sub)] hover:bg-[var(--color-bg-section)]"}`}
               >월간</button>
+              <button
+                onClick={() => { setRevPeriod("month"); setRevOffset(-2); }}
+                className={`px-3 py-1.5 text-[12px] font-semibold transition-colors ${revPeriod === "month" && revOffset === -2 ? "bg-[var(--color-pilates)] text-[var(--color-text-title)]" : "text-[var(--color-text-sub)] hover:bg-[var(--color-bg-section)]"}`}
+              >3개월</button>
             </div>
           </div>
           <div className="flex items-center gap-2">

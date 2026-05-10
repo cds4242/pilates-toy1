@@ -128,7 +128,15 @@ export default function SignupPage() {
           <ChevronLeft className="h-6 w-6" />
         </button>
         <h1 className="text-[20px] font-bold text-[var(--color-text-title)]">회원가입</h1>
+        <span className="ml-auto text-[13px] text-[var(--color-text-sub)]">
+          {step === "phone" ? "1" : step === "verify" ? "2" : "3"} / 3
+        </span>
       </header>
+
+      {/* 진행 바 */}
+      <div className="h-1 bg-[var(--color-bg-section)]">
+        <div className="h-1 bg-[var(--color-pilates)] transition-all duration-300" style={{ width: step === "phone" ? "33%" : step === "verify" ? "66%" : "100%" }} />
+      </div>
 
       <main className="p-6">
         {step === "info" && (

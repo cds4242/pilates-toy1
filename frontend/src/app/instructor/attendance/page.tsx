@@ -75,7 +75,14 @@ function AttendanceContent() {
         <button onClick={() => router.back()} className="text-text-title"><ChevronLeft className="h-6 w-6" /></button>
         <h1 className="text-[20px] font-bold text-text-title">출석 체크</h1>
       </header>
-      <div className="bg-bg-section px-6 py-4 border-b border-border text-[13px] text-text-body">수업 #{classId}</div>
+      <div className="bg-bg-section px-6 py-4 border-b border-border">
+        <p className="text-[13px] text-text-body">수업 #{classId}</p>
+        <div className="flex gap-4 mt-2 text-[11px]">
+          <span className="flex items-center gap-1"><span className="w-2 h-2 rounded-full bg-[#4CAF50]" />출석 = 정상 참석</span>
+          <span className="flex items-center gap-1"><span className="w-2 h-2 rounded-full bg-[#F4A261]" />지각 = 출석 인정 (지각 기록)</span>
+          <span className="flex items-center gap-1"><span className="w-2 h-2 rounded-full bg-[#E76F51]" />결석 = 노쇼 처리</span>
+        </div>
+      </div>
       <div className="p-6 flex flex-col gap-3">
         {loading ? <div className="text-center py-16 text-text-sub">로딩 중...</div>
         : attendances.length === 0 ? <div className="text-center py-16 text-text-sub">예약자가 없습니다</div>
