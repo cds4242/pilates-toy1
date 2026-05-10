@@ -101,7 +101,15 @@ export default function LoginPage() {
         <Link href="/reset-password" className="text-[15px] text-text-body hover:underline">비밀번호 찾기</Link>
       </div>
 
-      {/* 강사/관리자 링크 — 일반 회원에게 노출하지 않음 */}
+      {/* 강사/관리자 링크 */}
+      <div className="flex justify-center gap-6 mt-12">
+        <Link href="/instructor-login" className="text-[13px] text-instructor hover:underline">
+          강사 로그인
+        </Link>
+        <Link href="/admin-login" className="text-[13px] text-text-sub hover:text-text-body transition-colors">
+          관리자 로그인
+        </Link>
+      </div>
     </div>
   );
 }

@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { X } from "lucide-react";
+import { Search, X, Phone, User } from "lucide-react";
 import { api } from "@/lib/api/client";
 import { StatusBadge } from "@/components/design/StatusBadge";
 import { toast } from "sonner";
@@ -35,6 +35,9 @@ export default function AdminInstructorsPage() {
   const [loading, setLoading] = useState(true);
   const [showAddModal, setShowAddModal] = useState(false);
   const [editTarget, setEditTarget] = useState<Instructor | null>(null);
+  const [search, setSearch] = useState("");
+  const [statusFilter, setStatusFilter] = useState("");
+  const [sortBy, setSortBy] = useState<"name" | "createdAt">("name");
 
   const load = async () => {
     setLoading(true);
@@ -47,60 +50,131 @@ export default function AdminInstructorsPage() {
 
   useEffect(() => { load(); }, []);
 
+  const filtered = instructors
+    .filter((ins) => {
+      if (statusFilter && ins.status !== statusFilter) return false;
+      if (search) {
+        const q = search.toLowerCase();
+        const nameMatch = ins.name.toLowerCase().includes(q);
+        const phoneMatch = (ins.phone || "").replace(/\D/g, "").includes(q.replace(/\D/g, ""));
+        if (!nameMatch && !phoneMatch) return false;
+      }
+      return true;
+    })
+    .sort((a, b) => {
+      if (sortBy === "name") return a.name.localeCompare(b.name);
+      return (b.createdAt || "").localeCompare(a.createdAt || "");
+    });
+
+  const activeCount = instructors.filter((i) => i.status === "ACTIVE").length;
+  const inactiveCount = instructors.filter((i) => i.status !== "ACTIVE").length;
+
   return (
     <div>
-      <div className="flex items-center justify-between mb-6">
-        <h1 className="text-[26px] font-bold text-text-title">강사 관리</h1>
+      <div className="flex flex-wrap items-center justify-between gap-4 mb-6">
+        <div className="flex items-baseline gap-3">
+          <h1 className="text-[26px] font-bold text-text-title">강사 관리</h1>
+          {!loading && <span className="text-[14px] text-text-sub">총 {instructors.length}명 (활성 {activeCount} · 비활성 {inactiveCount})</span>}
+        </div>
         <button onClick={() => setShowAddModal(true)} className="rounded-[8px] bg-pilates hover:bg-pilates-dark px-4 py-2.5 text-[13px] font-semibold text-text-title transition-colors">+ 강사 등록</button>
       </div>
 
-      <div className="rounded-[18px] border border-border bg-white overflow-hidden">
+      <div className="flex flex-wrap gap-3 mb-6">
+        <div className="flex-1 min-w-[200px] relative">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-text-sub" />
+          <input type="text" placeholder="이름 또는 전화번호 검색" value={search} onChange={(e) => setSearch(e.target.value)}
+            className="w-full border border-[#DDDDDD] rounded-[8px] pl-9 pr-3.5 py-2.5 text-[15px] outline-none focus:border-pilates transition-colors" />
+        </div>
+        <select value={statusFilter} onChange={(e) => setStatusFilter(e.target.value)}
+          className="border border-[#DDDDDD] rounded-[8px] px-3.5 py-2.5 text-[15px] outline-none bg-white min-w-[120px]">
+          <option value="">전체 상태</option>
+          <option value="ACTIVE">활성</option>
+          <option value="INACTIVE">비활성</option>
+        </select>
+        <select value={sortBy} onChange={(e) => setSortBy(e.target.value as "name" | "createdAt")}
+          className="border border-[#DDDDDD] rounded-[8px] px-3.5 py-2.5 text-[15px] outline-none bg-white min-w-[120px]">
+          <option value="name">이름순</option>
+          <option value="createdAt">최근 등록순</option>
+        </select>
+      </div>
+
+      {/* PC 테이블 */}
+      <div className="hidden md:block rounded-[18px] border border-border bg-white overflow-hidden">
         <table className="w-full border-collapse">
           <thead>
             <tr className="bg-bg-section border-b border-border">
-              {["프로필","이름","전화번호","전문 분야","상태","등록일"].map(h=>(
+              {["프로필", "이름", "전화번호", "전문 분야", "상태", "등록일", ""].map(h => (
                 <th key={h} className="text-left px-4 py-3.5 text-[13px] font-semibold text-text-sub">{h}</th>
               ))}
             </tr>
           </thead>
           <tbody>
-            {loading ? <tr><td colSpan={6} className="text-center py-8 text-text-sub">로딩 중...</td></tr>
-            : instructors.length === 0 ? <tr><td colSpan={6} className="text-center py-8 text-text-sub">등록된 강사가 없습니다</td></tr>
-            : instructors.map(ins=>(
-              <tr key={ins.id} className="border-b border-border last:border-0 hover:bg-bg-section cursor-pointer transition-colors" onDoubleClick={() => setEditTarget(ins)}>
-                <td className="px-4 py-3.5"><div className="w-8 h-8 rounded-full bg-instructor-light flex items-center justify-center text-[13px] font-bold text-instructor">{ins.name.charAt(0)}</div></td>
+            {loading ? <tr><td colSpan={7} className="text-center py-8 text-text-sub">로딩 중...</td></tr>
+            : filtered.length === 0 ? <tr><td colSpan={7} className="text-center py-8 text-text-sub">{search || statusFilter ? "검색 결과가 없습니다" : "등록된 강사가 없습니다"}</td></tr>
+            : filtered.map(ins => (
+              <tr key={ins.id} className="border-b border-border last:border-0 hover:bg-bg-section cursor-pointer transition-colors" onClick={() => setEditTarget(ins)}>
+                <td className="px-4 py-3.5">
+                  <div className="w-9 h-9 rounded-full bg-instructor-light flex items-center justify-center text-[14px] font-bold text-instructor">{ins.name.charAt(0)}</div>
+                </td>
                 <td className="px-4 py-3.5 text-[15px] text-text-title font-semibold">{ins.name}</td>
-                <td className="px-4 py-3.5 text-[15px] text-text-body">{ins.phone && ins.phone !== "-" ? <a href={`tel:${ins.phone.replace(/\D/g,"")}`} className="text-pilates-dark hover:underline" onClick={(e) => e.stopPropagation()}>{formatPhone(ins.phone)}</a> : formatPhone(ins.phone)}</td>
-                <td className="px-4 py-3.5 text-[15px] text-text-body">{ins.specialty || "-"}</td>
-                <td className="px-4 py-3.5"><StatusBadge status={ins.status==="ACTIVE"?"active":"expired"} label={ins.status==="ACTIVE"?"활성":"비활성"}/></td>
-                <td className="px-4 py-3.5 text-[13px] text-text-sub">{ins.createdAt?.slice(0,10)}</td>
+                <td className="px-4 py-3.5 text-[15px] text-text-body">
+                  {ins.phone && ins.phone !== "-" ? (
+                    <a href={`tel:${ins.phone.replace(/\D/g, "")}`} className="text-pilates-dark hover:underline" onClick={(e) => e.stopPropagation()}>{formatPhone(ins.phone)}</a>
+                  ) : (
+                    <span className="text-text-sub">미등록</span>
+                  )}
+                </td>
+                <td className="px-4 py-3.5 text-[15px] text-text-body">{ins.specialty || <span className="text-text-sub">-</span>}</td>
+                <td className="px-4 py-3.5"><StatusBadge status={ins.status === "ACTIVE" ? "active" : "expired"} label={ins.status === "ACTIVE" ? "활성" : "비활성"} /></td>
+                <td className="px-4 py-3.5 text-[13px] text-text-sub">{ins.createdAt?.slice(0, 10)}</td>
+                <td className="px-4 py-3.5 text-text-sub">›</td>
               </tr>
             ))}
           </tbody>
         </table>
       </div>
 
-      {instructors.length <= 3 && !loading && (
-        <div className="mt-6 rounded-[18px] border-2 border-dashed border-[var(--color-border)] p-6 text-center">
+      {/* 모바일 카드 */}
+      <div className="md:hidden flex flex-col gap-3">
+        {loading ? (
+          <div className="text-center py-8 text-text-sub">로딩 중...</div>
+        ) : filtered.length === 0 ? (
+          <div className="text-center py-8 text-text-sub">{search || statusFilter ? "검색 결과가 없습니다" : "등록된 강사가 없습니다"}</div>
+        ) : filtered.map(ins => (
+          <div key={ins.id} className="rounded-[18px] border border-border bg-white p-4 cursor-pointer hover:border-pilates transition-colors" onClick={() => setEditTarget(ins)}>
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-full bg-instructor-light flex items-center justify-center text-[15px] font-bold text-instructor shrink-0">{ins.name.charAt(0)}</div>
+              <div className="flex-1 min-w-0">
+                <div className="flex items-center gap-2">
+                  <p className="text-[15px] font-semibold text-text-title">{ins.name}</p>
+                  <StatusBadge status={ins.status === "ACTIVE" ? "active" : "expired"} label={ins.status === "ACTIVE" ? "활성" : "비활성"} />
+                </div>
+                <div className="flex gap-3 mt-1 text-[13px] text-text-sub">
+                  {ins.phone && ins.phone !== "-" && (
+                    <span className="flex items-center gap-1"><Phone className="h-3 w-3" />{formatPhone(ins.phone)}</span>
+                  )}
+                  {ins.specialty && (
+                    <span className="flex items-center gap-1"><User className="h-3 w-3" />{ins.specialty}</span>
+                  )}
+                </div>
+              </div>
+              <span className="text-text-sub text-[18px]">›</span>
+            </div>
+          </div>
+        ))}
+      </div>
+
+      {instructors.length > 0 && instructors.length <= 3 && !loading && (
+        <div className="mt-6 rounded-[18px] border-2 border-dashed border-border p-6 text-center">
           <p className="text-[15px] text-text-sub">더 많은 강사를 등록하여 다양한 수업을 운영해보세요</p>
         </div>
       )}
 
       {showAddModal && (
-        <InstructorModal
-          mode="add"
-          onClose={() => setShowAddModal(false)}
-          onSuccess={() => { setShowAddModal(false); load(); }}
-        />
+        <InstructorModal mode="add" onClose={() => setShowAddModal(false)} onSuccess={() => { setShowAddModal(false); load(); }} />
       )}
-
       {editTarget && (
-        <InstructorModal
-          mode="edit"
-          instructor={editTarget}
-          onClose={() => setEditTarget(null)}
-          onSuccess={() => { setEditTarget(null); load(); }}
-        />
+        <InstructorModal mode="edit" instructor={editTarget} onClose={() => setEditTarget(null)} onSuccess={() => { setEditTarget(null); load(); }} />
       )}
     </div>
   );
@@ -121,7 +195,6 @@ function InstructorModal({ mode, instructor, onClose, onSuccess }: {
   const [deleting, setDeleting] = useState(false);
 
   const inputCls = "border border-[#DDDDDD] rounded-[8px] px-3.5 py-3 text-[15px] outline-none focus:border-pilates transition-colors w-full";
-
   const update = (key: keyof InstructorForm, value: string) => setForm(prev => ({ ...prev, [key]: value }));
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -152,7 +225,7 @@ function InstructorModal({ mode, instructor, onClose, onSuccess }: {
   };
 
   const handleDeactivate = async () => {
-    if (!confirm("이 강사를 비활성화하시겠습니까?")) return;
+    if (!confirm("이 강사를 비활성화하시겠습니까?\n\n• 배정된 수업은 유지되지만 새 수업 배정이 불가합니다\n• 강사 계정 로그인이 제한됩니다")) return;
     setDeleting(true);
     try {
       await api("delete", `/api/admin/instructors/${instructor!.id}`);
@@ -167,12 +240,31 @@ function InstructorModal({ mode, instructor, onClose, onSuccess }: {
 
   return (
     <div className="fixed inset-0 z-50 bg-black/40 flex items-center justify-center p-4" onClick={onClose}>
-      <div className="bg-white rounded-[18px] w-full max-w-[400px] p-6" onClick={(e) => e.stopPropagation()}>
-        <div className="flex items-center justify-between mb-6">
-          <h2 className="text-[20px] font-bold text-text-title">{mode === "add" ? "강사 등록" : "강사 수정"}</h2>
+      <div className="bg-white rounded-[18px] w-full max-w-[440px] max-h-[85vh] flex flex-col" onClick={(e) => e.stopPropagation()}>
+        <div className="flex items-center justify-between px-6 pt-6 pb-4 border-b border-border shrink-0">
+          <h2 className="text-[20px] font-bold text-text-title">{mode === "add" ? "강사 등록" : "강사 정보"}</h2>
           <button onClick={onClose}><X className="h-5 w-5 text-text-sub" /></button>
         </div>
-        <form onSubmit={handleSubmit} className="flex flex-col gap-4">
+
+        {mode === "edit" && instructor && (
+          <div className="px-6 py-4 flex items-center gap-4 border-b border-border shrink-0">
+            <div className="w-12 h-12 rounded-full bg-instructor-light flex items-center justify-center text-[18px] font-bold text-instructor shrink-0">
+              {instructor.name.charAt(0)}
+            </div>
+            <div>
+              <div className="flex items-center gap-2">
+                <p className="text-[15px] font-semibold text-text-title">{instructor.name}</p>
+                <StatusBadge status={instructor.status === "ACTIVE" ? "active" : "expired"} label={instructor.status === "ACTIVE" ? "활성" : "비활성"} />
+              </div>
+              <p className="text-[13px] text-text-sub mt-0.5">
+                등록일 {instructor.createdAt?.slice(0, 10)}
+                {instructor.phone && ` · ${formatPhone(instructor.phone)}`}
+              </p>
+            </div>
+          </div>
+        )}
+
+        <form onSubmit={handleSubmit} className="flex-1 overflow-y-auto px-6 py-4 flex flex-col gap-4">
           <div className="flex flex-col gap-1.5">
             <label className="text-[13px] font-semibold text-text-title">이름 <span className="text-red-500">*</span></label>
             <input type="text" placeholder="강사 이름" value={form.name} onChange={(e) => update("name", e.target.value)} className={inputCls} required />
@@ -192,12 +284,15 @@ function InstructorModal({ mode, instructor, onClose, onSuccess }: {
           <button type="submit" disabled={saving} className="bg-pilates hover:bg-pilates-dark text-text-title rounded-[8px] py-3.5 text-[15px] font-semibold transition-all disabled:opacity-60">
             {saving ? "저장 중..." : mode === "add" ? "등록하기" : "수정하기"}
           </button>
-          {mode === "edit" && (
-            <button type="button" onClick={handleDeactivate} disabled={deleting} className="border border-red-300 text-red-500 hover:bg-red-50 rounded-[8px] py-3 text-[15px] font-semibold transition-all disabled:opacity-60">
-              {deleting ? "처리 중..." : "비활성화"}
-            </button>
-          )}
         </form>
+
+        {mode === "edit" && (
+          <div className="px-6 py-4 border-t border-border shrink-0">
+            <button type="button" onClick={handleDeactivate} disabled={deleting} className="w-full border border-red-300 text-red-500 hover:bg-red-50 rounded-[8px] py-3 text-[15px] font-semibold transition-all disabled:opacity-60">
+              {deleting ? "처리 중..." : "강사 비활성화"}
+            </button>
+          </div>
+        )}
       </div>
     </div>
   );
