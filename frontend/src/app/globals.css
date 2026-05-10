@@ -112,17 +112,114 @@
   }
 }
 
-/* 공통 카드 그림자 */
+/* ─── 디자인 시스템 유틸리티 ─── */
+
+/* 카드 그림자 3단계 */
 .card-elevated {
-  box-shadow: 0 1px 3px rgba(0,0,0,0.04), 0 1px 2px rgba(0,0,0,0.06);
+  box-shadow: 0 1px 3px rgba(0,0,0,0.06), 0 1px 2px rgba(0,0,0,0.04);
+}
+.card-elevated-md {
+  box-shadow: 0 4px 12px rgba(0,0,0,0.06), 0 1px 4px rgba(0,0,0,0.04);
+}
+.card-elevated-lg {
+  box-shadow: 0 8px 24px rgba(0,0,0,0.08), 0 2px 8px rgba(0,0,0,0.04);
+}
+
+/* 호버 시 살짝 올라오는 효과 */
+.card-hover {
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+.card-hover:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 24px rgba(0,0,0,0.1), 0 2px 8px rgba(0,0,0,0.06);
 }
 
 /* 프리미엄 수강권 카드 */
 .card-premium {
-  background: linear-gradient(135deg, #F0A0B5 0%, #D88A9E 100%);
+  background: linear-gradient(135deg, #F0A0B5 0%, #E88DA3 50%, #D88A9E 100%);
   color: white;
 }
 .card-premium-gold {
-  background: linear-gradient(135deg, #C9A96E 0%, #A8884D 100%);
+  background: linear-gradient(135deg, #D4B679 0%, #C9A96E 50%, #A8884D 100%);
   color: white;
+}
+
+/* 히어로 그라데이션 */
+.hero-gradient {
+  background: linear-gradient(135deg, #FAD4DE 0%, #F0A0B5 40%, #D88A9E 100%);
+}
+.hero-gradient-soft {
+  background: linear-gradient(135deg, #FFF5F7 0%, #FAD4DE 50%, #F0E8EB 100%);
+}
+
+/* 배경 패턴 — 소프트 도트 */
+.bg-pattern-dots {
+  background-image: radial-gradient(circle, #F0A0B5 0.5px, transparent 0.5px);
+  background-size: 24px 24px;
+  opacity: 0.3;
+}
+
+/* KPI 카드 그라데이션 */
+.kpi-card {
+  background: linear-gradient(145deg, #FFFFFF 0%, #FFF8FA 100%);
+  border: 1px solid #F5E0E6;
+}
+
+/* 관리자 섹션 카드 */
+.section-card {
+  background: white;
+  border: 1px solid #EEEEEE;
+  border-radius: 18px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+}
+
+/* 버튼 — Primary 강화 */
+.btn-primary {
+  background: linear-gradient(135deg, #F0A0B5 0%, #D88A9E 100%);
+  color: white;
+  font-weight: 600;
+  border: none;
+  transition: all 0.2s ease;
+}
+.btn-primary:hover {
+  background: linear-gradient(135deg, #E88DA3 0%, #C97D8F 100%);
+  box-shadow: 0 4px 12px rgba(216,138,158,0.3);
+}
+
+/* 입력 필드 포커스 강화 */
+input:focus, select:focus, textarea:focus {
+  box-shadow: 0 0 0 3px rgba(240,160,181,0.15);
+}
+
+/* 페이지 전환 애니메이션 */
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+.animate-fade-in {
+  animation: fadeIn 0.3s ease-out;
+}
+
+/* 숫자 카운트업 효과 */
+@keyframes countUp {
+  from { opacity: 0; transform: scale(0.8); }
+  to { opacity: 1; transform: scale(1); }
+}
+.animate-count {
+  animation: countUp 0.4s ease-out;
+}
+
+/* 스크롤바 커스텀 (관리자) */
+::-webkit-scrollbar {
+  width: 6px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: #E0E0E0;
+  border-radius: 3px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #D0D0D0;
 }

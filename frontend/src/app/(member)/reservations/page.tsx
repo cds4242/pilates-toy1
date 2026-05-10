@@ -26,14 +26,20 @@ export default function ReservationsPage() {
   const upcoming = reservations.filter((r) => r.status === "CONFIRMED" && r.classDate >= todayStr);
   const past = reservations.filter((r) => r.status !== "CONFIRMED" || r.classDate < todayStr);
 
+  const [cancelTarget, setCancelTarget] = useState<number | null>(null);
+  const [cancelling, setCancelling] = useState(false);
+
   const handleCancel = async (id: number) => {
-    if (!confirm("예약을 취소하시겠습니까?")) return;
+    setCancelling(true);
     try {
       await reservationApi.cancel(id, "회원 요청 취소");
       toast.success("예약이 취소되었습니다.");
+      setCancelTarget(null);
       load();
     } catch (err: unknown) {
       toast.error(err instanceof Error ? err.message : "취소 실패");
+    } finally {
+      setCancelling(false);
     }
   };
 
@@ -75,7 +81,7 @@ export default function ReservationsPage() {
                     </p>
                     <p className="text-[13px] text-[var(--color-text-body)]">{r.lessonTypeName} · {r.instructorName}</p>
                   </div>
-                  <button onClick={() => handleCancel(r.id)} className="rounded-[8px] border border-[var(--color-border)] px-3 py-2 text-[13px] text-[var(--color-text-body)] hover:border-[var(--color-error)] hover:text-[var(--color-error)] transition-colors">
+                  <button onClick={() => setCancelTarget(r.id)} className="rounded-[8px] border border-[var(--color-border)] px-3 py-2 text-[13px] text-[var(--color-text-body)] hover:border-[var(--color-error)] hover:text-[var(--color-error)] transition-colors">
                     취소
                   </button>
                 </div>
@@ -106,6 +112,24 @@ export default function ReservationsPage() {
         )}
       </main>
       <MobileTabBar />
+
+      {/* 취소 확인 모달 */}
+      {cancelTarget !== null && (
+        <div className="fixed inset-0 z-50 bg-black/40 flex items-center justify-center p-4" onClick={() => setCancelTarget(null)}>
+          <div className="bg-white rounded-[18px] w-full max-w-[360px] p-6" onClick={(e) => e.stopPropagation()}>
+            <h3 className="text-[18px] font-bold text-[var(--color-text-title)] mb-2">예약을 취소하시겠습니까?</h3>
+            <p className="text-[14px] text-[var(--color-text-sub)] mb-6">취소된 예약은 복구할 수 없으며, 수강권 횟수가 복원됩니다.</p>
+            <div className="flex gap-3">
+              <button onClick={() => setCancelTarget(null)} className="flex-1 rounded-[8px] border border-[var(--color-border)] py-3 text-[15px] font-semibold text-[var(--color-text-body)] transition-colors hover:bg-[var(--color-bg-section)]">
+                돌아가기
+              </button>
+              <button onClick={() => handleCancel(cancelTarget)} disabled={cancelling} className="flex-1 rounded-[8px] bg-[var(--color-error)] py-3 text-[15px] font-semibold text-white transition-colors hover:opacity-90 disabled:opacity-60">
+                {cancelling ? "취소 중..." : "예약 취소"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

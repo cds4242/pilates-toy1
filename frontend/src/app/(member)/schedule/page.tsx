@@ -37,9 +37,9 @@ export default function SchedulePage() {
   const [reserving, setReserving] = useState<number | null>(null);
   const [confirmClassId, setConfirmClassId] = useState<number | null>(null);
 
-  const dates = Array.from({ length: 7 }, (_, i) => addDays(new Date(), i));
+  const dates = Array.from({ length: 14 }, (_, i) => addDays(new Date(), i));
   const from = format(dates[0], "yyyy-MM-dd");
-  const to = format(dates[6], "yyyy-MM-dd");
+  const to = format(dates[13], "yyyy-MM-dd");
 
   useEffect(() => {
     async function load() {
@@ -93,7 +93,7 @@ export default function SchedulePage() {
   return (
     <div className="max-w-[560px] mx-auto min-h-screen bg-white pb-20">
       {/* Header */}
-      <header className="sticky top-0 z-50 bg-white px-6 py-4 flex items-center gap-4 border-b border-[var(--color-border)]">
+      <header className="sticky top-0 z-50 bg-gradient-to-r from-white to-[#FFF5F7] px-6 py-4 flex items-center gap-4 border-b border-[var(--color-border)]">
         <button onClick={() => router.push("/home")} className="text-[var(--color-text-title)]">
           <ChevronLeft className="h-6 w-6" />
         </button>
@@ -111,7 +111,7 @@ export default function SchedulePage() {
               onClick={() => setSelectedDate(d)}
               className={`flex flex-col items-center min-w-[56px] rounded-[18px] py-2.5 px-3 text-center border transition-all ${
                 isSelected
-                  ? "bg-[var(--color-pilates)] border-[var(--color-pilates)] text-[var(--color-text-title)]"
+                  ? "bg-[var(--color-pilates)] border-[var(--color-pilates)] text-[var(--color-text-title)] card-elevated"
                   : "bg-white border-[var(--color-border)] text-[var(--color-text-body)]"
               }`}
             >
@@ -134,11 +134,10 @@ export default function SchedulePage() {
           daySchedules.map((cs) => {
             const isFull = cs.currentCount >= cs.maxCapacity;
             const remaining = cs.maxCapacity - cs.currentCount;
-            const now = new Date();
             const classStart = new Date(`${cs.classDate}T${cs.startTime}`);
             const isPast = classStart <= now;
             return (
-              <div key={cs.id} className={`rounded-[18px] border border-[var(--color-border)] overflow-hidden flex ${isToday && new Date(`${cs.classDate}T${cs.endTime}`) <= now ? "opacity-50" : ""}`}>
+              <div key={cs.id} className={`rounded-[18px] border border-[var(--color-border)] overflow-hidden flex card-elevated card-hover ${isToday && new Date(`${cs.classDate}T${cs.endTime}`) <= now ? "opacity-50" : ""}`}>
                 <div className={`w-1 self-stretch rounded-l-[18px] ${lessonColor[cs.lessonTypeName] || "bg-pilates"}`} />
                 <div className="flex-1 p-4 flex items-center justify-between">
                   <div className="flex-1">
@@ -192,7 +191,7 @@ export default function SchedulePage() {
         if (!cs) return null;
         return (
           <div className="fixed inset-0 z-50 bg-black/40 flex items-center justify-center p-4" onClick={() => setConfirmClassId(null)}>
-            <div className="bg-white rounded-[18px] max-w-[360px] w-full p-6" onClick={e => e.stopPropagation()}>
+            <div className="bg-white rounded-[18px] max-w-[360px] w-full p-6 card-elevated-lg" onClick={e => e.stopPropagation()}>
               <h3 className="text-[18px] font-bold text-[var(--color-text-title)] mb-4">예약 확인</h3>
               <div className="rounded-[12px] bg-[var(--color-bg-section)] p-4 mb-4">
                 <p className="text-[15px] font-semibold text-[var(--color-text-title)]">{formatTime(cs.startTime)}~{formatTime(cs.endTime)} {cs.lessonTypeName}</p>

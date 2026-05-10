@@ -77,15 +77,15 @@ export default function InstructorSchedulePage() {
 
       {!loading && activeTab === 0 && schedules.length > 0 && (
         <div className="flex gap-3 px-6 pt-4">
-          <div className="flex-1 rounded-[12px] bg-white border border-border p-3 text-center">
+          <div className="flex-1 rounded-[12px] bg-white border border-border p-3 text-center card-elevated">
             <p className="text-[18px] font-bold text-text-title">{schedules.length}</p>
             <p className="text-[11px] text-text-sub">오늘 수업</p>
           </div>
-          <div className="flex-1 rounded-[12px] bg-white border border-border p-3 text-center">
+          <div className="flex-1 rounded-[12px] bg-white border border-border p-3 text-center card-elevated">
             <p className="text-[18px] font-bold text-text-title">{schedules.reduce((sum, s) => sum + s.currentCount, 0)}</p>
             <p className="text-[11px] text-text-sub">총 수강생</p>
           </div>
-          <div className="flex-1 rounded-[12px] bg-white border border-border p-3 text-center">
+          <div className="flex-1 rounded-[12px] bg-white border border-border p-3 text-center card-elevated">
             <p className="text-[18px] font-bold text-instructor">{schedules.filter(s => s.currentCount >= s.maxCapacity).length}</p>
             <p className="text-[11px] text-text-sub">마감 수업</p>
           </div>
@@ -96,7 +96,7 @@ export default function InstructorSchedulePage() {
         {loading ? (
           <div className="text-center py-16 text-text-sub">로딩 중...</div>
         ) : schedules.length === 0 ? (
-          <div className="text-center py-16">
+          <div className="text-center py-16 animate-fade-in">
             <div className="text-[48px] mb-3">☕</div>
             <p className="text-[16px] font-semibold text-text-title mb-1">오늘은 배정된 수업이 없어요</p>
             <p className="text-[14px] text-text-sub">편하게 쉬세요! 내일 수업을 확인하려면<br/>&quot;내일&quot; 탭을 눌러보세요.</p>
@@ -134,7 +134,7 @@ export default function InstructorSchedulePage() {
               const isExpanded = expandedId === cs.id;
               return (<div key={cs.id}>
               {dateLabel && <h3 className="text-[15px] font-bold text-text-title mt-2 mb-2">{dateLabel}</h3>}
-              <div className={`rounded-[18px] border border-border bg-white p-5 flex flex-col gap-3 ${isActive ? "ring-2 ring-green-400" : ""}`}>
+              <div className={`rounded-[18px] border border-border bg-white p-5 flex flex-col gap-3 card-elevated card-hover ${isActive ? "ring-2 ring-green-400" : ""}`}>
                 <div className="cursor-pointer" onClick={() => setExpandedId(isExpanded ? null : cs.id)}>
                   <div className="flex items-center justify-between">
                     <span className="text-[16px] font-bold text-text-title">{formatTime(cs.startTime)}~{formatTime(cs.endTime)}</span>
@@ -184,8 +184,9 @@ export default function InstructorSchedulePage() {
                   </div>
                 )}
                 <button onClick={(e) => { e.stopPropagation(); router.push(`/instructor/attendance?classId=${cs.id}`); }}
-                  className="w-full rounded-[8px] bg-instructor hover:bg-[#6A7DC2] py-3 text-[15px] font-semibold text-white transition-colors">
-                  출석 체크
+                  disabled={cs.currentCount === 0}
+                  className={`w-full rounded-[8px] py-3 text-[15px] font-semibold transition-colors ${cs.currentCount === 0 ? "bg-[var(--color-bg-section)] text-[var(--color-text-sub)] cursor-not-allowed" : "bg-gradient-to-r from-[var(--color-instructor)] to-[#6A7DC2] text-white"}`}>
+                  {cs.currentCount === 0 ? "예약 없음" : "출석 체크"}
                 </button>
               </div>
               </div>);

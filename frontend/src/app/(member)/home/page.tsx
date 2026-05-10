@@ -85,7 +85,7 @@ export default function MemberHomePage() {
   return (
     <div className="max-w-[560px] mx-auto min-h-screen bg-white pb-20">
       {/* Header */}
-      <header className="sticky top-0 z-50 bg-white px-6 py-4 flex items-center justify-between border-b border-[var(--color-border)]">
+      <header className="sticky top-0 z-50 bg-gradient-to-r from-white to-[#FFF5F7] px-6 py-4 flex items-center justify-between border-b border-[var(--color-border)]">
         <span className="text-[20px] font-bold text-[var(--color-text-title)]">
           필라테스 OO점
         </span>
@@ -96,7 +96,7 @@ export default function MemberHomePage() {
 
       <main className="p-6 flex flex-col gap-6">
         {/* 인사 */}
-        <div>
+        <div className="hero-gradient-soft rounded-[18px] p-5 -mx-1">
           <h1 className="text-[22px] font-semibold text-[var(--color-text-title)]">
             {greeting}, {member?.name || "회원"}님
           </h1>
@@ -105,10 +105,11 @@ export default function MemberHomePage() {
 
         {isNewMember ? (
           /* 신규 회원 웰컴 카드 */
-          <div className="rounded-[18px] bg-gradient-to-br from-[var(--color-pilates-light)] to-white p-6 text-center">
+          <div className="rounded-[18px] bg-gradient-to-br from-[var(--color-pilates-light)] to-white p-6 text-center card-elevated-md">
             <div className="text-[40px] mb-3">🧘‍♀️</div>
             <h3 className="text-[18px] font-bold text-[var(--color-text-title)] mb-2">첫 수업을 시작해보세요!</h3>
             <p className="text-[14px] text-[var(--color-text-body)] mb-4">수강권을 구매하고 원하는 시간에<br/>수업을 예약할 수 있어요</p>
+            <p className="text-[13px] text-[var(--color-text-sub)] mb-3">8회권 180,000원부터</p>
             <Link href="/membership" className="inline-block bg-[var(--color-pilates)] hover:bg-[var(--color-pilates-dark)] text-[var(--color-text-title)] rounded-[8px] px-6 py-3 text-[15px] font-semibold transition-colors">
               수강권 둘러보기
             </Link>
@@ -118,20 +119,20 @@ export default function MemberHomePage() {
             {/* 이번 달 출석 요약 */}
             {!loading && (
               <div className="flex gap-3">
-                <div className="flex-1 rounded-[12px] bg-[var(--color-bg-section)] p-3 text-center">
-                  <p className="text-[20px] font-bold text-[var(--color-text-title)]">{reservations.filter(r => {
+                <div className="flex-1 rounded-[12px] bg-[var(--color-bg-section)] p-3 text-center card-elevated card-hover">
+                  <p className="text-[20px] font-bold text-[var(--color-text-title)] animate-count">{reservations.filter(r => {
                     const d = new Date(r.classDate);
                     const now = new Date();
                     return d.getMonth() === now.getMonth() && d.getFullYear() === now.getFullYear() && r.status !== "CANCELLED";
                   }).length}</p>
                   <p className="text-[11px] text-[var(--color-text-sub)]">이번 달 수업</p>
                 </div>
-                <div className="flex-1 rounded-[12px] bg-[var(--color-bg-section)] p-3 text-center">
-                  <p className="text-[20px] font-bold text-[var(--color-text-title)]">{upcomingReservations.length}</p>
+                <div className="flex-1 rounded-[12px] bg-[var(--color-bg-section)] p-3 text-center card-elevated card-hover">
+                  <p className="text-[20px] font-bold text-[var(--color-text-title)] animate-count">{upcomingReservations.length}</p>
                   <p className="text-[11px] text-[var(--color-text-sub)]">예정 예약</p>
                 </div>
-                <div className="flex-1 rounded-[12px] bg-[var(--color-bg-section)] p-3 text-center">
-                  <p className="text-[20px] font-bold text-[var(--color-pilates-dark)]">{activeMembership ? (activeMembership.unlimited ? "\u221E" : activeMembership.remainingCount) : 0}</p>
+                <div className="flex-1 rounded-[12px] bg-[var(--color-bg-section)] p-3 text-center card-elevated card-hover">
+                  <p className="text-[20px] font-bold text-[var(--color-pilates-dark)] animate-count">{activeMembership ? (activeMembership.unlimited ? "\u221E" : activeMembership.remainingCount) : 0}</p>
                   <p className="text-[11px] text-[var(--color-text-sub)]">잔여 횟수</p>
                 </div>
               </div>
@@ -141,7 +142,7 @@ export default function MemberHomePage() {
             {loading ? (
               <div className="rounded-[18px] bg-[var(--color-pilates-light)] p-5 animate-pulse h-32" />
             ) : activeMembership ? (
-              <div>
+              <div className="card-elevated-md rounded-[18px]">
                 <PassCard
                   name={activeMembership.passName}
                   remaining={activeMembership.remainingCount}
@@ -178,9 +179,9 @@ export default function MemberHomePage() {
                   {upcomingReservations.map((r, idx) => (
                     <div
                       key={r.id}
-                      className="rounded-[18px] border border-[var(--color-border)] p-4 flex items-center gap-4"
+                      className="rounded-[18px] border border-[var(--color-border)] p-4 flex items-center gap-4 card-elevated card-hover"
                     >
-                      <div className="w-1 h-12 rounded-full bg-[var(--color-pilates)]" />
+                      <div className="w-1.5 h-14 rounded-full bg-gradient-to-b from-[var(--color-pilates)] to-[var(--color-pilates-dark)]" />
                       <div className="flex-1">
                         <p className="text-[15px] font-semibold text-[var(--color-text-title)]">
                           {r.classDate} {formatTime(r.startTime)}
@@ -212,7 +213,7 @@ export default function MemberHomePage() {
 
             {/* CTA */}
             <Link href="/schedule">
-              <button className="w-full bg-[var(--color-pilates)] hover:bg-[var(--color-pilates-dark)] text-[var(--color-text-title)] rounded-[8px] py-4 text-[16px] font-semibold transition-all">
+              <button className="btn-primary rounded-[8px] py-4 text-[16px] font-semibold w-full">
                 수업 예약하기
               </button>
             </Link>
@@ -245,7 +246,7 @@ export default function MemberHomePage() {
         )}
 
         {/* 학원 운영 안내 */}
-        <div className="rounded-[18px] bg-[var(--color-bg-section)] p-4">
+        <div className="section-card p-4 animate-fade-in">
           <h3 className="text-[14px] font-bold text-[var(--color-text-title)] mb-2">학원 안내</h3>
           <div className="flex flex-col gap-1 text-[13px] text-[var(--color-text-body)]">
             <p>운영시간: 평일 09:00 ~ 21:00 / 토 09:00 ~ 17:00</p>

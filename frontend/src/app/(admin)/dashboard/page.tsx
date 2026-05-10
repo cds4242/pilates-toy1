@@ -8,6 +8,7 @@ import type { DashboardData } from "@/lib/types/domain";
 import { formatTime } from "@/lib/utils/format";
 import { AlertTriangle, Banknote, Calendar, ChevronLeft, ChevronRight, Clock, User, Users } from "lucide-react";
 import { usePageTitle } from "@/lib/hooks/use-page-title";
+import { useAuth } from "@/lib/hooks/use-auth";
 
 interface RevenueData {
   total: number;
@@ -17,6 +18,7 @@ interface RevenueData {
 export default function AdminDashboardPage() {
   usePageTitle("대시보드");
   const router = useRouter();
+  const { user } = useAuth();
   const revenueRef = useRef<HTMLDivElement>(null);
   const todayClassRef = useRef<HTMLDivElement>(null);
 
@@ -59,11 +61,21 @@ export default function AdminDashboardPage() {
 
   return (
     <div>
-      <h1 className="hidden md:block text-[26px] font-bold text-[var(--color-text-title)] mb-6">대시보드</h1>
+      <div className="hero-gradient-soft rounded-[18px] p-6 mb-6 animate-fade-in hidden md:block">
+        <div className="flex items-center justify-between">
+          <div>
+            <h1 className="text-[24px] font-bold text-[var(--color-text-title)]">안녕하세요, {user?.name || "관리자"}님</h1>
+            <p className="text-[14px] text-[var(--color-text-body)] mt-1">오늘의 학원 현황을 한눈에 확인하세요</p>
+          </div>
+          <div className="text-[14px] text-[var(--color-text-sub)]">
+            {new Date().toLocaleDateString("ko-KR", { year: "numeric", month: "long", day: "numeric", weekday: "long" })}
+          </div>
+        </div>
+      </div>
 
       {/* 시작 가이드 — 데이터가 적을 때 표시 */}
       {!loading && data && data.todayClasses.count === 0 && (
-        <div className="rounded-[18px] border-2 border-dashed border-[var(--color-pilates)] bg-[var(--color-pilates-light)] p-5 mb-6">
+        <div className="rounded-[18px] hero-gradient-soft card-elevated-md p-5 mb-6">
           <h2 className="text-[16px] font-bold text-[var(--color-text-title)] mb-3">처음이신가요? 시작 가이드</h2>
           <div className="flex flex-col gap-2">
             <button onClick={() => router.push("/instructors")} className="flex items-center gap-3 text-left rounded-[8px] bg-white px-4 py-3 border border-[var(--color-border)] hover:border-[var(--color-pilates)] transition-colors">
@@ -90,7 +102,7 @@ export default function AdminDashboardPage() {
           { icon: Banknote, label: "이번 주 매출", value: loading ? "—" : `${Number(data?.thisWeekRevenue.total ?? 0).toLocaleString()}원`, onClick: () => revenueRef.current?.scrollIntoView({ behavior: "smooth" }) },
           { icon: Clock, label: "만료 임박", value: loading ? "—" : `${data?.expiringMemberships.length ?? 0}명`, onClick: () => router.push("/members") },
         ].map(({ icon: Icon, label, value, onClick }) => (
-          <div key={label} onClick={onClick} className="cursor-pointer rounded-[18px] border border-[var(--color-border)] bg-white p-5 card-elevated">
+          <div key={label} onClick={onClick} className="cursor-pointer rounded-[18px] kpi-card p-5 card-hover">
             <div className="flex items-center gap-2 mb-2">
               <Icon className="h-5 w-5 text-pilates-dark" />
               <p className="text-[13px] font-semibold text-[var(--color-text-body)]">{label}</p>
@@ -102,7 +114,7 @@ export default function AdminDashboardPage() {
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* 오늘의 수업 */}
-        <div ref={todayClassRef} className="rounded-[18px] border border-[var(--color-border)] bg-white p-5">
+        <div ref={todayClassRef} className="section-card p-5 animate-fade-in">
           <h2 className="text-[18px] font-bold text-[var(--color-text-title)] mb-4">오늘의 수업</h2>
           {!data || data.todayClasses.schedules.length === 0 ? (
             <p className="text-[15px] text-[var(--color-text-sub)] py-4">예정된 수업이 없습니다</p>
@@ -128,7 +140,7 @@ export default function AdminDashboardPage() {
         </div>
 
         {/* 알림 */}
-        <div className="rounded-[18px] border border-[var(--color-border)] bg-white p-5">
+        <div className="section-card p-5 animate-fade-in">
           <h2 className="text-[18px] font-bold text-[var(--color-text-title)] mb-4">알림</h2>
           <div className="flex flex-col gap-3">
             {data?.alerts.noShowMembers.map((m) => (
@@ -144,8 +156,8 @@ export default function AdminDashboardPage() {
               </div>
             ))}
             {data?.alerts.lowMembershipMembers.slice(0, 3).map((m) => (
-              <div key={m.memberId} onClick={() => router.push("/members")} className="flex items-center gap-3 rounded-[8px] bg-[#FFF3E0] px-4 py-3 cursor-pointer hover:opacity-80 transition-opacity">
-                <User className="h-4 w-4 text-[var(--color-warning)] shrink-0" />
+              <div key={m.memberId} onClick={() => router.push("/members")} className="flex items-center gap-3 rounded-[8px] bg-[#EBF5FB] px-4 py-3 cursor-pointer hover:opacity-80 transition-opacity">
+                <User className="h-4 w-4 text-[#2563EB] shrink-0" />
                 <span className="text-[13px] text-[var(--color-text-title)]">{m.memberName} — 수강권 잔여 {m.remainingCount}회</span>
               </div>
             ))}
@@ -157,7 +169,7 @@ export default function AdminDashboardPage() {
       </div>
 
       {/* 매출 추이 */}
-      <div ref={revenueRef} className="mt-6 rounded-[18px] border border-[var(--color-border)] bg-white p-5">
+      <div ref={revenueRef} className="mt-6 section-card p-5 animate-fade-in">
         <div className="flex flex-wrap items-center justify-between gap-3 mb-4">
           <div className="flex items-center gap-3">
             <h2 className="text-[18px] font-bold text-[var(--color-text-title)]">매출 추이</h2>
@@ -204,7 +216,7 @@ export default function AdminDashboardPage() {
                     </div>
                     <span className="text-[10px] font-semibold text-[var(--color-text-body)] mb-0.5">{amt === 0 ? "0원" : amt >= 10000 ? `${Math.round(amt/10000)}만` : amt.toLocaleString()}</span>
                     <div
-                      className="w-full rounded-t-[4px] bg-[var(--color-pilates)] hover:bg-[var(--color-pilates-dark)] transition-colors cursor-pointer"
+                      className="w-full rounded-t-[4px] bg-gradient-to-t from-[var(--color-pilates-dark)] to-[var(--color-pilates)] hover:bg-[var(--color-pilates-dark)] transition-colors cursor-pointer"
                       style={{ height: barH, maxWidth: 40 }}
                     />
                     <span className="text-[10px] text-[var(--color-text-sub)] mt-1">{d.date.slice(5)} {["일","월","화","수","목","금","토"][new Date(d.date).getDay()]}</span>

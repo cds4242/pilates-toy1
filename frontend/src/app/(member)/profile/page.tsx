@@ -117,14 +117,14 @@ export default function MyPage() {
 
   return (
     <div className="max-w-[560px] mx-auto min-h-screen bg-white pb-20">
-      <header className="sticky top-0 z-50 bg-white px-6 py-4 border-b border-[var(--color-border)]">
+      <header className="sticky top-0 z-50 bg-gradient-to-r from-white to-[#FFF5F7] px-6 py-4 border-b border-[var(--color-border)]">
         <h1 className="text-[20px] font-bold text-[var(--color-text-title)]">마이페이지</h1>
       </header>
       <main className="p-6 flex flex-col gap-6">
         {/* 프로필 */}
-        <div className="text-center py-5">
+        <div className="text-center py-6 hero-gradient-soft rounded-[18px] -mx-1 px-4">
           <div className="inline-block mb-3">
-            <div className="w-[72px] h-[72px] rounded-full bg-[var(--color-pilates)] flex items-center justify-center text-white text-[24px] font-bold">
+            <div className="w-[80px] h-[80px] rounded-full bg-gradient-to-br from-[var(--color-pilates)] to-[var(--color-pilates-dark)] flex items-center justify-center text-white text-[26px] font-bold shadow-lg">
               {member?.name?.charAt(0) || "회"}
             </div>
           </div>
@@ -141,7 +141,14 @@ export default function MyPage() {
 
         {/* 출석 이력 — 달력 히트맵 */}
         <div>
-          <h2 className="text-[18px] font-bold text-[var(--color-text-title)] mb-3">출석 이력</h2>
+          <div className="flex items-center justify-between mb-3">
+            <h2 className="text-[18px] font-bold text-[var(--color-text-title)]">출석 이력</h2>
+            {recentHistory.length > 0 && (() => {
+              const attended = recentHistory.filter(r => r.status === "PRESENT" || r.status === "LATE").length;
+              const rate = Math.round((attended / recentHistory.length) * 100);
+              return <span className={`text-[14px] font-semibold ${rate >= 80 ? "text-green-600" : rate >= 50 ? "text-amber-600" : "text-red-600"}`}>출석률 {rate}%</span>;
+            })()}
+          </div>
           {recentHistory.length === 0 ? (
             <div className="rounded-[18px] bg-[var(--color-bg-section)] p-5 text-center">
               <Calendar className="h-8 w-8 text-[var(--color-text-sub)] mx-auto mb-2" />

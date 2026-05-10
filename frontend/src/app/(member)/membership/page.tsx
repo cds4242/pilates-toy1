@@ -60,7 +60,7 @@ export default function MembershipPage() {
 
   return (
     <div className="max-w-[560px] mx-auto min-h-screen bg-white pb-20">
-      <header className="sticky top-0 z-50 bg-white px-6 py-4 border-b border-[var(--color-border)]">
+      <header className="sticky top-0 z-50 bg-gradient-to-r from-white to-[#FFF5F7] px-6 py-4 border-b border-[var(--color-border)]">
         <h1 className="text-[20px] font-bold text-[var(--color-text-title)]">수강권</h1>
       </header>
       <main className="p-6 flex flex-col gap-6">
@@ -69,7 +69,7 @@ export default function MembershipPage() {
           {loading ? (
             <div className="rounded-[18px] bg-[var(--color-pilates-light)] p-5 animate-pulse h-32" />
           ) : active ? (
-            <PassCard name={active.passName} remaining={active.remainingCount} total={active.totalCount} unlimited={active.unlimited} endDate={active.endDate} />
+            <div className="card-elevated-md"><PassCard name={active.passName} remaining={active.remainingCount} total={active.totalCount} unlimited={active.unlimited} endDate={active.endDate} /></div>
           ) : (
             <div className="rounded-[18px] bg-[var(--color-bg-section)] p-5 text-center text-[15px] text-[var(--color-text-sub)]">활성 수강권이 없습니다</div>
           )}
@@ -90,7 +90,7 @@ export default function MembershipPage() {
             </div>
           </div>
         )}
-        <button onClick={handleTogglePasses} className="w-full bg-pilates hover:bg-pilates-dark text-text-title rounded-[8px] py-4 text-[16px] font-semibold transition-all">
+        <button onClick={handleTogglePasses} className="btn-primary rounded-[8px] py-4 text-[16px] font-semibold w-full">
           {showPasses ? "접기" : "수강권 구매하기"}
         </button>
         {showPasses && (
@@ -113,7 +113,7 @@ export default function MembershipPage() {
                     ? "card-premium-gold"
                     : isPersonal10
                     ? "card-premium"
-                    : "bg-white card-elevated";
+                    : "bg-white card-elevated card-hover";
                   const textCls = isUnlimited || isPersonal10 ? "text-white" : "text-[var(--color-text-title)]";
                   const subCls = isUnlimited || isPersonal10 ? "text-white/80" : "text-[var(--color-text-sub)]";
                   const priceCls = isUnlimited || isPersonal10 ? "text-white" : "text-[var(--color-pilates-dark)]";
