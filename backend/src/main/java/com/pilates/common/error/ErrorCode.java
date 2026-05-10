@@ -113,7 +113,7 @@ public enum ErrorCode {
     // ── 예약 ──
     RESERVATION_CLASS_NOT_RESERVABLE(HttpStatus.BAD_REQUEST, "RES_001", "예약할 수 없는 수업입니다."),
     RESERVATION_DUPLICATE(HttpStatus.CONFLICT, "RES_002", "이미 예약한 수업입니다."),
-    RESERVATION_NO_MEMBERSHIP(HttpStatus.BAD_REQUEST, "RES_003", "사용 가능한 정기권이 없습니다."),
+    RESERVATION_NO_MEMBERSHIP(HttpStatus.BAD_REQUEST, "RES_003", "해당 수업 유형에 사용 가능한 정기권이 없습니다. 정기권의 수업 유형을 확인해주세요."),
     RESERVATION_CAPACITY_EXCEEDED(HttpStatus.CONFLICT, "RES_004", "정원이 가득 찼습니다."),
     RESERVATION_NOT_FOUND(HttpStatus.NOT_FOUND, "RES_005", "예약을 찾을 수 없습니다."),
     RESERVATION_NOT_CANCELLABLE(HttpStatus.BAD_REQUEST, "RES_006", "취소 가능 시간이 지났습니다."),

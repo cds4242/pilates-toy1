@@ -14,6 +14,8 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.web.bind.annotation.*;
 
+import com.pilates.domain.reservation.service.ReservationService;
+
 import java.time.LocalDate;
 import java.util.List;
 import java.util.Map;
@@ -29,6 +31,7 @@ public class AdminClassScheduleController {
 
     private final ClassScheduleService classScheduleService;
     private final ClassScheduleGenerator classScheduleGenerator;
+    private final ReservationService reservationService;
 
     @Operation(summary = "수업 단건 생성", description = "ad-hoc 수업을 수동 생성한다.")
     @ApiResponses({
@@ -72,6 +75,12 @@ public class AdminClassScheduleController {
     public ApiResponse<Void> cancel(@PathVariable Long id) {
         classScheduleService.cancelClass(id);
         return ApiResponse.success();
+    }
+
+    @Operation(summary = "수업 예약자 명단 조회", description = "수업에 예약된 회원 명단을 조회한다.")
+    @GetMapping("/{id}/reservations")
+    public ApiResponse<List<Map<String, Object>>> getReservations(@PathVariable Long id) {
+        return ApiResponse.success(reservationService.getReservationsByClassSchedule(id));
     }
 
     @Operation(summary = "수업 자동 생성", description = "고정 스케줄 기반으로 향후 N주간 수업을 자동 생성한다.")

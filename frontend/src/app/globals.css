@@ -56,6 +56,8 @@
   --color-success: #4CAF50;
   --color-warning: #F4A261;
   --color-error: #E76F51;
+  --color-gold: #C9A96E;
+  --color-gold-light: #F5ECD7;
   --color-text-title: #2D2D2D;
   --color-text-body: #6B6B6B;
   --color-text-sub: #9B9B9B;
@@ -103,8 +105,24 @@
   }
   body {
     @apply bg-background text-foreground;
+    font-variant-numeric: tabular-nums;
   }
   html {
     @apply font-sans;
   }
+}
+
+/* 공통 카드 그림자 */
+.card-elevated {
+  box-shadow: 0 1px 3px rgba(0,0,0,0.04), 0 1px 2px rgba(0,0,0,0.06);
+}
+
+/* 프리미엄 수강권 카드 */
+.card-premium {
+  background: linear-gradient(135deg, #F0A0B5 0%, #D88A9E 100%);
+  color: white;
+}
+.card-premium-gold {
+  background: linear-gradient(135deg, #C9A96E 0%, #A8884D 100%);
+  color: white;
 }

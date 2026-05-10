@@ -1,7 +1,9 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import Link from "next/link";
 import { toast } from "sonner";
+import { Calendar } from "lucide-react";
 import { memberApi } from "@/lib/api/member";
 import { reservationApi } from "@/lib/api/reservation";
 import type { Reservation } from "@/lib/types/domain";
@@ -20,8 +22,9 @@ export default function ReservationsPage() {
 
   useEffect(() => { load(); }, []);
 
-  const upcoming = reservations.filter((r) => r.status === "CONFIRMED");
-  const past = reservations.filter((r) => r.status !== "CONFIRMED");
+  const todayStr = new Date().toISOString().split("T")[0];
+  const upcoming = reservations.filter((r) => r.status === "CONFIRMED" && r.classDate >= todayStr);
+  const past = reservations.filter((r) => r.status !== "CONFIRMED" || r.classDate < todayStr);
 
   const handleCancel = async (id: number) => {
     if (!confirm("예약을 취소하시겠습니까?")) return;
@@ -53,7 +56,14 @@ export default function ReservationsPage() {
           {loading ? (
             <div className="animate-pulse h-20 bg-[var(--color-bg-section)] rounded-[18px]" />
           ) : upcoming.length === 0 ? (
-            <p className="text-[15px] text-[var(--color-text-sub)] py-4">예정된 예약이 없습니다</p>
+            <div className="flex flex-col items-center gap-3 py-8">
+              <Calendar className="h-10 w-10 text-[var(--color-text-sub)]" />
+              <p className="text-[15px] text-[var(--color-text-sub)]">예정된 예약이 없습니다</p>
+              <Link href="/schedule"
+                className="mt-1 inline-block rounded-[8px] bg-[var(--color-pilates)] px-5 py-2.5 text-[14px] font-semibold text-[var(--color-text-title)] hover:bg-[var(--color-pilates-dark)] transition-colors">
+                수업 예약하러 가기
+              </Link>
+            </div>
           ) : (
             <div className="flex flex-col gap-2">
               {upcoming.map((r) => (

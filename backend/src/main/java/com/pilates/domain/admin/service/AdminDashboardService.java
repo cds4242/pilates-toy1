@@ -52,6 +52,58 @@ public class AdminDashboardService {
         );
     }
 
+    /**
+     * 매출 추이 조회 (주간/월간, offset 지원).
+     * period="week": offset=0 이번 주, offset=-1 지난 주, offset=1 다음 주
+     * period="month": offset=0 이번 달, offset=-1 지난 달
+     */
+    public DashboardResponse.ThisWeekRevenue getRevenue(String period, int offset) {
+        LocalDate today = LocalDate.now();
+
+        LocalDate start;
+        LocalDate end;
+
+        if ("month".equals(period)) {
+            LocalDate refMonth = today.plusMonths(offset).withDayOfMonth(1);
+            start = refMonth;
+            end = refMonth.plusMonths(1).minusDays(1);
+        } else {
+            LocalDate refWeekStart = today.with(TemporalAdjusters.previousOrSame(DayOfWeek.MONDAY)).plusWeeks(offset);
+            start = refWeekStart;
+            end = refWeekStart.plusDays(6);
+        }
+
+        List<Payment> payments = paymentRepository.findAllByPaidAtBetween(
+                start.atStartOfDay(), end.atTime(LocalTime.MAX));
+
+        List<Payment> completed = payments.stream()
+                .filter(p -> p.getStatus() == PaymentStatus.COMPLETED
+                        || p.getStatus() == PaymentStatus.PARTIAL_REFUND
+                        || p.getStatus() == PaymentStatus.REFUNDED)
+                .toList();
+
+        Map<LocalDate, BigDecimal> dailyMap = new LinkedHashMap<>();
+        for (LocalDate d = start; !d.isAfter(end); d = d.plusDays(1)) {
+            dailyMap.put(d, BigDecimal.ZERO);
+        }
+
+        for (Payment p : completed) {
+            if (p.getPaidAt() != null) {
+                LocalDate day = p.getPaidAt().toLocalDate();
+                BigDecimal netAmount = p.getAmount().subtract(
+                        p.getRefundAmount() != null ? p.getRefundAmount() : BigDecimal.ZERO);
+                dailyMap.merge(day, netAmount, BigDecimal::add);
+            }
+        }
+
+        BigDecimal total = dailyMap.values().stream().reduce(BigDecimal.ZERO, BigDecimal::add);
+        List<DashboardResponse.DailyRevenue> breakdown = dailyMap.entrySet().stream()
+                .map(e -> new DashboardResponse.DailyRevenue(e.getKey(), e.getValue()))
+                .toList();
+
+        return new DashboardResponse.ThisWeekRevenue(total, breakdown);
+    }
+
     private TodayClasses getTodayClasses() {
         LocalDate today = LocalDate.now();
         List<ClassSchedule> schedules = classScheduleRepository

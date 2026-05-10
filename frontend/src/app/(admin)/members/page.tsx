@@ -1,7 +1,8 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { Search, X } from "lucide-react";
+import { Search, X, Save, Trash2, User, CreditCard, FileText } from "lucide-react";
+import { usePageTitle } from "@/lib/hooks/use-page-title";
 import { api } from "@/lib/api/client";
 import { adminApi } from "@/lib/api/admin";
 import type { PageResponse } from "@/lib/types/api";
@@ -12,20 +13,65 @@ interface AdminMember {
   id: number; name: string; phone: string; gender: string; status: string; activeMembership: string | null; remainingInfo: string; expiryDate: string | null; attendanceRate: string; createdAt: string;
 }
 
+interface MembershipInfo {
+  id: number; passName: string; status: string; totalCount: number; remainingCount: number; unlimited: boolean; startDate: string | null; endDate: string | null;
+}
+
+interface MemoInfo {
+  id: number; content: string; writerName: string; createdAt: string; updatedAt: string;
+}
+
+interface MemberDetail {
+  id: number; name: string; phone: string; birthDate: string | null; gender: string; status: string; profileImageUrl: string | null; createdAt: string;
+  memberships: MembershipInfo[];
+  attendanceRate: { overallRate: number; recent90DayRate: number } | null;
+  noShowCount: number;
+  memos: MemoInfo[];
+}
+
+function formatExpiry(dateStr: string | null) {
+  if (!dateStr) return { text: "-", color: "" };
+  const diff = Math.ceil((new Date(dateStr).getTime() - Date.now()) / 86400000);
+  const short = dateStr.slice(5).replace("-","/");
+  if (diff < 0) return { text: "만료됨", color: "text-[var(--color-error)] font-semibold" };
+  if (diff <= 7) return { text: `${short} (D-${diff})`, color: "text-[var(--color-error)] font-semibold" };
+  if (diff <= 30) return { text: `${short} (D-${diff})`, color: "text-[var(--color-warning)]" };
+  return { text: short, color: "text-text-body" };
+}
+
+function AttendanceBar({ rate }: { rate: string }) {
+  if (!rate || rate === "-") return <span className="text-text-sub">-</span>;
+  const pct = parseInt(rate);
+  const color = pct >= 80 ? "bg-green-500" : pct >= 50 ? "bg-yellow-500" : "bg-red-500";
+  return (
+    <div>
+      <span className="text-[14px] text-text-body">{rate}</span>
+      <div className="w-[60px] h-[3px] bg-gray-200 rounded-full mt-1">
+        <div className={`h-full rounded-full ${color}`} style={{ width: `${pct}%` }} />
+      </div>
+    </div>
+  );
+}
+
 export default function AdminMembersPage() {
+  usePageTitle("회원 관리");
   const [members, setMembers] = useState<AdminMember[]>([]);
   const [total, setTotal] = useState(0);
   const [search, setSearch] = useState("");
   const [page, setPage] = useState(0);
   const [loading, setLoading] = useState(true);
   const [showAddModal, setShowAddModal] = useState(false);
+  const [detailMemberId, setDetailMemberId] = useState<number | null>(null);
   const [statusFilter, setStatusFilter] = useState("");
   const fileRef = useRef<HTMLInputElement>(null);
+
+  const searchRef = useRef(search);
+  searchRef.current = search;
 
   const load = async () => {
     setLoading(true);
     try {
-      const params: Record<string, unknown> = { search, page, size: 10 };
+      const params: Record<string, unknown> = { search: searchRef.current, page, size: 10 };
       if (statusFilter) params.status = statusFilter;
       const res = await api<PageResponse<AdminMember>>("get", "/api/admin/members", params);
       setMembers(res.content); setTotal(res.totalElements);
@@ -33,7 +79,13 @@ export default function AdminMembersPage() {
     finally { setLoading(false); }
   };
 
-  useEffect(() => { load(); }, [page, statusFilter]);
+  // debounce search: re-fetch 300ms after typing stops
+  useEffect(() => {
+    const timer = setTimeout(() => { setPage(0); load(); }, 300);
+    return () => clearTimeout(timer);
+  }, [search]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  useEffect(() => { load(); }, [page, statusFilter]); // eslint-disable-line react-hooks/exhaustive-deps
   const handleSearch = (e: React.FormEvent) => { e.preventDefault(); setPage(0); load(); };
 
   const handleExcelUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -52,7 +104,10 @@ export default function AdminMembersPage() {
   return (
     <div>
       <div className="flex flex-wrap items-center justify-between gap-4 mb-6">
-        <h1 className="text-[26px] font-bold text-[var(--color-text-title)]">회원 관리</h1>
+        <div className="flex items-baseline gap-3">
+          <h1 className="text-[26px] font-bold text-[var(--color-text-title)]">회원 관리</h1>
+          <span className="text-[14px] text-text-sub">총 {total}명</span>
+        </div>
         <div className="flex gap-3">
           <button onClick={() => setShowAddModal(true)} className="rounded-[8px] bg-pilates hover:bg-pilates-dark px-4 py-2.5 text-[13px] font-semibold text-text-title transition-colors">+ 회원 등록</button>
           <button onClick={() => fileRef.current?.click()} className="rounded-[8px] border border-border hover:border-pilates bg-white px-4 py-2.5 text-[13px] font-semibold text-text-body transition-colors">엑셀 일괄 등록</button>
@@ -77,7 +132,7 @@ export default function AdminMembersPage() {
         <table className="w-full border-collapse">
           <thead>
             <tr className="bg-bg-section border-b border-border">
-              {["프로필","이름","휴대폰","정기권","잔여","만료일","출석률","상태"].map(h=>(
+              {["프로필","이름","휴대폰","정기권","잔여","만료일","출석률","상태",""].map(h=>(
                 <th key={h} className="text-left px-4 py-3.5 text-[13px] font-semibold text-text-sub">{h}</th>
               ))}
             </tr>
@@ -85,18 +140,24 @@ export default function AdminMembersPage() {
           <tbody>
             {loading ? <tr><td colSpan={8} className="text-center py-8 text-text-sub">로딩 중...</td></tr>
             : members.length === 0 ? <tr><td colSpan={8} className="text-center py-8 text-text-sub">회원이 없습니다</td></tr>
-            : members.map(m=>(
-              <tr key={m.id} className="border-b border-border last:border-0 hover:bg-bg-section cursor-pointer transition-colors">
-                <td className="px-4 py-3.5"><div className="w-8 h-8 rounded-full bg-pilates-light flex items-center justify-center text-[13px] font-bold text-pilates-dark">{m.name.charAt(0)}</div></td>
+            : members.map(m=>{
+              const exp = formatExpiry(m.expiryDate);
+              const avatarCls = m.gender === "MALE" ? "bg-blue-100 text-blue-700" : "bg-pilates-light text-pilates-dark";
+              const rowBg = !m.activeMembership || m.activeMembership === "-" ? "bg-amber-50" : "";
+              return (
+              <tr key={m.id} className={`border-b border-border last:border-0 hover:bg-bg-section cursor-pointer transition-colors ${rowBg}`} onClick={() => setDetailMemberId(m.id)}>
+                <td className="px-4 py-3.5"><div className={`w-8 h-8 rounded-full flex items-center justify-center text-[13px] font-bold ${avatarCls}`}>{m.name.charAt(0)}</div></td>
                 <td className="px-4 py-3.5 text-[15px] text-text-title">{m.name}</td>
                 <td className="px-4 py-3.5 text-[15px] text-text-title">{m.phone}</td>
                 <td className="px-4 py-3.5 text-[15px] text-text-body">{m.activeMembership||"-"}</td>
                 <td className="px-4 py-3.5 text-[15px] text-text-body">{m.remainingInfo||"-"}</td>
-                <td className="px-4 py-3.5 text-[15px] text-text-body">{m.expiryDate||"-"}</td>
-                <td className="px-4 py-3.5 text-[15px] text-text-body">{m.attendanceRate||"-"}</td>
+                <td className={`px-4 py-3.5 text-[15px] ${exp.color}`}>{exp.text}</td>
+                <td className="px-4 py-3.5"><AttendanceBar rate={m.attendanceRate||"-"} /></td>
                 <td className="px-4 py-3.5"><StatusBadge status={m.status==="ACTIVE"?"active":"expired"} label={m.status==="ACTIVE"?"활성":m.status==="WITHDRAWN"?"탈퇴":"만료"}/></td>
+                <td className="px-4 py-3.5 text-text-sub">›</td>
               </tr>
-            ))}
+              );
+            })}
           </tbody>
         </table>
       </div>
@@ -105,10 +166,12 @@ export default function AdminMembersPage() {
       <div className="md:hidden flex flex-col gap-3">
         {loading ? <div className="text-center py-8 text-text-sub">로딩 중...</div>
         : members.length === 0 ? <div className="text-center py-8 text-text-sub">회원이 없습니다</div>
-        : members.map(m=>(
-          <div key={m.id} className="rounded-[18px] border border-border bg-white p-4 flex items-center justify-between">
+        : members.map(m=>{
+          const mobileAvatarCls = m.gender === "MALE" ? "bg-blue-100 text-blue-700" : "bg-pilates-light text-pilates-dark";
+          return (
+          <div key={m.id} className={`rounded-[18px] border border-border ${!m.activeMembership || m.activeMembership === "-" ? "bg-amber-50" : "bg-white"} p-4 flex items-center justify-between cursor-pointer`} onClick={() => setDetailMemberId(m.id)}>
             <div className="flex items-center gap-3 flex-1">
-              <div className="w-9 h-9 rounded-full bg-pilates-light flex items-center justify-center text-[14px] font-bold text-pilates-dark shrink-0">{m.name.charAt(0)}</div>
+              <div className={`w-9 h-9 rounded-full flex items-center justify-center text-[14px] font-bold shrink-0 ${mobileAvatarCls}`}>{m.name.charAt(0)}</div>
               <div className="flex-1 min-w-0">
                 <p className="text-[15px] font-semibold text-text-title">{m.name}</p>
                 <p className="text-[13px] text-text-sub mt-0.5">{m.activeMembership||"정기권 없음"} | {m.phone}</p>
@@ -116,7 +179,8 @@ export default function AdminMembersPage() {
             </div>
             <StatusBadge status={m.status==="ACTIVE"?"active":"expired"} label={m.status==="ACTIVE"?"활성":"만료"}/>
           </div>
-        ))}
+          );
+        })}
       </div>
 
       {total > 10 && (
@@ -129,6 +193,431 @@ export default function AdminMembersPage() {
 
       {/* 회원 등록 모달 */}
       {showAddModal && <MemberAddModal onClose={() => setShowAddModal(false)} onSuccess={() => { setShowAddModal(false); load(); }} />}
+
+      {/* 회원 상세 모달 */}
+      {detailMemberId !== null && (
+        <MemberDetailModal
+          memberId={detailMemberId}
+          onClose={() => setDetailMemberId(null)}
+          onUpdate={() => { setDetailMemberId(null); load(); }}
+        />
+      )}
+    </div>
+  );
+}
+
+interface MembershipPassItem {
+  id: number; name: string; price: number; totalCount: number | null; validityDays: number; unlimited: boolean; lessonTypes: { id: number; name: string }[];
+}
+
+function MemberDetailModal({ memberId, onClose, onUpdate }: { memberId: number; onClose: () => void; onUpdate: () => void }) {
+  const [detail, setDetail] = useState<MemberDetail | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
+  const [editName, setEditName] = useState("");
+  const [editPhone, setEditPhone] = useState("");
+  const [isEditing, setIsEditing] = useState(false);
+  const [memoText, setMemoText] = useState("");
+  const [memoSaving, setMemoSaving] = useState(false);
+  const [showWithdrawConfirm, setShowWithdrawConfirm] = useState(false);
+  const [withdrawing, setWithdrawing] = useState(false);
+  const [activeTab, setActiveTab] = useState<"info" | "membership" | "memo">("info");
+  const [issueModalOpen, setIssueModalOpen] = useState(false);
+  const [passes, setPasses] = useState<MembershipPassItem[]>([]);
+  const [passesLoading, setPassesLoading] = useState(false);
+  const [selectedPassId, setSelectedPassId] = useState<number | null>(null);
+  const [issuing, setIssuing] = useState(false);
+
+  const inputCls = "border border-[#DDDDDD] rounded-[8px] px-3.5 py-2.5 text-[15px] outline-none focus:border-pilates transition-colors w-full";
+
+  useEffect(() => {
+    (async () => {
+      setLoading(true);
+      try {
+        const res = await api<MemberDetail>("get", `/api/admin/members/${memberId}`);
+        setDetail(res);
+        setEditName(res.name);
+        setEditPhone(res.phone);
+      } catch {
+        toast.error("회원 정보를 불러올 수 없습니다");
+        onClose();
+      } finally {
+        setLoading(false);
+      }
+    })();
+  }, [memberId]);
+
+  const openIssueModal = async () => {
+    setIssueModalOpen(true);
+    setSelectedPassId(null);
+    setPassesLoading(true);
+    try {
+      const res = await api<MembershipPassItem[]>("get", "/api/admin/membership-passes");
+      setPasses(res);
+    } catch {
+      toast.error("정기권 종류를 불러올 수 없습니다");
+    } finally {
+      setPassesLoading(false);
+    }
+  };
+
+  const handleIssueMembership = async () => {
+    if (!selectedPassId) return;
+    const pass = passes.find(p => p.id === selectedPassId);
+    if (!pass) return;
+    setIssuing(true);
+    try {
+      await api("post", "/api/admin/memberships", {
+        memberId,
+        membershipPassId: pass.id,
+        totalCount: pass.totalCount ?? 0,
+        price: pass.price,
+        validityDays: pass.validityDays,
+        unlimited: pass.unlimited,
+        lessonTypeIds: pass.lessonTypes.map(lt => lt.id),
+      });
+      toast.success("정기권이 발급되었습니다");
+      setIssueModalOpen(false);
+      // 회원 상세 새로고침
+      const res = await api<MemberDetail>("get", `/api/admin/members/${memberId}`);
+      setDetail(res);
+    } catch (err: unknown) {
+      toast.error(err instanceof Error ? err.message : "정기권 발급에 실패했습니다");
+    } finally {
+      setIssuing(false);
+    }
+  };
+
+  const handleSave = async () => {
+    if (!detail) return;
+    setSaving(true);
+    try {
+      await api("patch", `/api/admin/members/${memberId}`, { name: editName, phone: editPhone });
+      toast.success("회원 정보가 수정되었습니다");
+      setIsEditing(false);
+      onUpdate();
+    } catch {
+      toast.error("수정 API 미구현");
+      setSaving(false);
+    }
+  };
+
+  const handleMemoSubmit = async () => {
+    if (!memoText.trim()) return;
+    setMemoSaving(true);
+    try {
+      const newMemo = await api<MemoInfo>("post", `/api/admin/members/${memberId}/memos`, { content: memoText });
+      setDetail(prev => prev ? { ...prev, memos: [...prev.memos, newMemo] } : prev);
+      setMemoText("");
+      toast.success("메모가 저장되었습니다");
+    } catch {
+      toast.error("메모 저장에 실패했습니다");
+    } finally {
+      setMemoSaving(false);
+    }
+  };
+
+  const handleWithdraw = async () => {
+    setWithdrawing(true);
+    try {
+      await api("delete", `/api/admin/members/${memberId}`);
+      toast.success("회원이 탈퇴 처리되었습니다");
+      onUpdate();
+    } catch {
+      toast.error("탈퇴 처리에 실패했습니다");
+    } finally {
+      setWithdrawing(false);
+      setShowWithdrawConfirm(false);
+    }
+  };
+
+  const formatDate = (d: string | null) => {
+    if (!d) return "-";
+    return new Date(d).toLocaleDateString("ko-KR");
+  };
+
+  const genderLabel = (g: string) => {
+    if (g === "MALE") return "남성";
+    if (g === "FEMALE") return "여성";
+    return g || "-";
+  };
+
+  const statusLabel = (s: string) => {
+    if (s === "ACTIVE") return "활성";
+    if (s === "WITHDRAWN") return "탈퇴";
+    return "만료";
+  };
+
+  const tabs = [
+    { key: "info" as const, label: "기본 정보", icon: User },
+    { key: "membership" as const, label: "정기권", icon: CreditCard },
+    { key: "memo" as const, label: "메모", icon: FileText },
+  ];
+
+  return (
+    <div className="fixed inset-0 z-50 bg-black/40 flex items-center justify-center p-4" onClick={onClose}>
+      <div className="bg-white rounded-[18px] w-full max-w-[540px] max-h-[85vh] flex flex-col" onClick={(e) => e.stopPropagation()}>
+        {/* 헤더 */}
+        <div className="flex items-center justify-between px-6 pt-6 pb-4 border-b border-border shrink-0">
+          <h2 className="text-[20px] font-bold text-text-title">회원 상세</h2>
+          <button onClick={onClose}><X className="h-5 w-5 text-text-sub" /></button>
+        </div>
+
+        {loading || !detail ? (
+          <div className="flex-1 flex items-center justify-center py-12 text-text-sub text-[15px]">로딩 중...</div>
+        ) : (
+          <>
+            {/* 프로필 요약 */}
+            <div className="px-6 py-4 flex items-center gap-4 border-b border-border shrink-0">
+              <div className="w-12 h-12 rounded-full bg-pilates-light flex items-center justify-center text-[18px] font-bold text-pilates-dark shrink-0">
+                {detail.name.charAt(0)}
+              </div>
+              <div className="flex-1 min-w-0">
+                <div className="flex items-center gap-2">
+                  <p className="text-[15px] font-semibold text-text-title">{detail.name}</p>
+                  <StatusBadge status={detail.status === "ACTIVE" ? "active" : "expired"} label={statusLabel(detail.status)} />
+                </div>
+                <p className="text-[13px] text-text-sub mt-0.5">{detail.phone} | {genderLabel(detail.gender)} | 가입 {formatDate(detail.createdAt)}</p>
+              </div>
+            </div>
+
+            {/* 탭 */}
+            <div className="flex border-b border-border px-6 shrink-0">
+              {tabs.map(tab => (
+                <button
+                  key={tab.key}
+                  onClick={() => setActiveTab(tab.key)}
+                  className={`flex items-center gap-1.5 px-4 py-3 text-[13px] font-semibold border-b-2 transition-colors ${
+                    activeTab === tab.key ? "border-pilates text-pilates-dark" : "border-transparent text-text-sub hover:text-text-body"
+                  }`}
+                >
+                  <tab.icon className="h-3.5 w-3.5" />
+                  {tab.label}
+                </button>
+              ))}
+            </div>
+
+            {/* 탭 컨텐츠 */}
+            <div className="flex-1 overflow-y-auto px-6 py-4">
+              {activeTab === "info" && (
+                <div className="flex flex-col gap-4">
+                  <div className="flex flex-col gap-1.5">
+                    <label className="text-[13px] font-semibold text-text-title">이름</label>
+                    {isEditing ? (
+                      <input type="text" value={editName} onChange={(e) => setEditName(e.target.value)} className={inputCls} />
+                    ) : (
+                      <p className="text-[15px] text-text-body px-3.5 py-2.5">{detail.name}</p>
+                    )}
+                  </div>
+                  <div className="flex flex-col gap-1.5">
+                    <label className="text-[13px] font-semibold text-text-title">휴대폰 번호</label>
+                    {isEditing ? (
+                      <input type="tel" value={editPhone} onChange={(e) => setEditPhone(e.target.value)} className={inputCls} />
+                    ) : (
+                      <p className="text-[15px] text-text-body px-3.5 py-2.5">{detail.phone}</p>
+                    )}
+                  </div>
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="flex flex-col gap-1.5">
+                      <label className="text-[13px] font-semibold text-text-title">성별</label>
+                      <p className="text-[15px] text-text-body px-3.5 py-2.5">{genderLabel(detail.gender)}</p>
+                    </div>
+                    <div className="flex flex-col gap-1.5">
+                      <label className="text-[13px] font-semibold text-text-title">가입일</label>
+                      <p className="text-[15px] text-text-body px-3.5 py-2.5">{formatDate(detail.createdAt)}</p>
+                    </div>
+                  </div>
+                  {detail.attendanceRate && (
+                    <div className="grid grid-cols-2 gap-4">
+                      <div className="flex flex-col gap-1.5">
+                        <label className="text-[13px] font-semibold text-text-title">전체 출석률</label>
+                        <p className="text-[15px] text-text-body px-3.5 py-2.5">{detail.attendanceRate.overallRate}%</p>
+                      </div>
+                      <div className="flex flex-col gap-1.5">
+                        <label className="text-[13px] font-semibold text-text-title">최근 90일 출석률</label>
+                        <p className="text-[15px] text-text-body px-3.5 py-2.5">{detail.attendanceRate.recent90DayRate}%</p>
+                      </div>
+                    </div>
+                  )}
+                  <div className="flex flex-col gap-1.5">
+                    <label className="text-[13px] font-semibold text-text-title">노쇼 횟수</label>
+                    <p className="text-[15px] text-text-body px-3.5 py-2.5">{detail.noShowCount}회</p>
+                  </div>
+
+                  {/* 수정 버튼 */}
+                  <div className="flex gap-2 mt-2">
+                    {isEditing ? (
+                      <>
+                        <button onClick={handleSave} disabled={saving} className="flex items-center gap-1.5 rounded-[8px] bg-pilates hover:bg-pilates-dark px-4 py-2.5 text-[13px] font-semibold text-text-title transition-colors disabled:opacity-60">
+                          <Save className="h-3.5 w-3.5" />
+                          {saving ? "저장 중..." : "저장"}
+                        </button>
+                        <button onClick={() => { setIsEditing(false); setEditName(detail.name); setEditPhone(detail.phone); }} className="rounded-[8px] border border-border px-4 py-2.5 text-[13px] font-semibold text-text-body transition-colors hover:border-pilates">
+                          취소
+                        </button>
+                      </>
+                    ) : (
+                      <button onClick={() => setIsEditing(true)} className="rounded-[8px] border border-border px-4 py-2.5 text-[13px] font-semibold text-text-body transition-colors hover:border-pilates">
+                        정보 수정
+                      </button>
+                    )}
+                  </div>
+                </div>
+              )}
+
+              {activeTab === "membership" && (
+                <div className="flex flex-col gap-3">
+                  <button
+                    onClick={openIssueModal}
+                    className="self-end rounded-[8px] bg-pilates hover:bg-pilates-dark px-4 py-2.5 text-[13px] font-semibold text-text-title transition-colors"
+                  >
+                    + 정기권 발급
+                  </button>
+                  {detail.memberships.length === 0 ? (
+                    <p className="text-[15px] text-text-sub text-center py-8">등록된 정기권이 없습니다</p>
+                  ) : detail.memberships.map(ms => (
+                    <div key={ms.id} className="rounded-[12px] border border-border p-4">
+                      <div className="flex items-center justify-between mb-2">
+                        <p className="text-[15px] font-semibold text-text-title">{ms.passName}</p>
+                        <StatusBadge
+                          status={ms.status === "ACTIVE" ? "active" : ms.status === "EXPIRING_SOON" ? "expiring" : "expired"}
+                          label={ms.status === "ACTIVE" ? "활성" : ms.status === "EXPIRING_SOON" ? "만료임박" : "만료"}
+                        />
+                      </div>
+                      <div className="grid grid-cols-2 gap-2 text-[13px]">
+                        <div>
+                          <span className="text-text-sub">잔여: </span>
+                          <span className="text-text-body font-semibold">{ms.unlimited ? "무제한" : `${ms.remainingCount} / ${ms.totalCount}회`}</span>
+                        </div>
+                        <div>
+                          <span className="text-text-sub">기간: </span>
+                          <span className="text-text-body">{formatDate(ms.startDate)} ~ {formatDate(ms.endDate)}</span>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+
+                  {/* 정기권 발급 모달 */}
+                  {issueModalOpen && (
+                    <div className="fixed inset-0 z-[60] bg-black/40 flex items-center justify-center p-4" onClick={() => setIssueModalOpen(false)}>
+                      <div className="bg-white rounded-[18px] w-full max-w-[480px] max-h-[80vh] flex flex-col" onClick={(e) => e.stopPropagation()}>
+                        <div className="flex items-center justify-between px-6 pt-6 pb-4 border-b border-border shrink-0">
+                          <h3 className="text-[18px] font-bold text-text-title">정기권 발급</h3>
+                          <button onClick={() => setIssueModalOpen(false)}><X className="h-5 w-5 text-text-sub" /></button>
+                        </div>
+                        <div className="flex-1 overflow-y-auto px-6 py-4">
+                          {passesLoading ? (
+                            <p className="text-[15px] text-text-sub text-center py-8">로딩 중...</p>
+                          ) : passes.length === 0 ? (
+                            <p className="text-[15px] text-text-sub text-center py-8">등록된 정기권 종류가 없습니다</p>
+                          ) : (
+                            <div className="flex flex-col gap-3">
+                              {passes.map(pass => (
+                                <div
+                                  key={pass.id}
+                                  onClick={() => setSelectedPassId(pass.id)}
+                                  className={`rounded-[18px] border p-4 cursor-pointer transition-colors ${
+                                    selectedPassId === pass.id
+                                      ? "border-pilates bg-pilates-light/30"
+                                      : "border-border hover:border-pilates/50"
+                                  }`}
+                                >
+                                  <p className="text-[15px] font-semibold text-text-title mb-2">{pass.name}</p>
+                                  <div className="grid grid-cols-3 gap-2 text-[13px]">
+                                    <div>
+                                      <span className="text-text-sub">가격 </span>
+                                      <span className="text-text-body font-semibold">{Number(pass.price).toLocaleString()}원</span>
+                                    </div>
+                                    <div>
+                                      <span className="text-text-sub">횟수 </span>
+                                      <span className="text-text-body font-semibold">{pass.unlimited ? "무제한" : `${pass.totalCount}회`}</span>
+                                    </div>
+                                    <div>
+                                      <span className="text-text-sub">기간 </span>
+                                      <span className="text-text-body font-semibold">{pass.validityDays}일</span>
+                                    </div>
+                                  </div>
+                                </div>
+                              ))}
+                            </div>
+                          )}
+                        </div>
+                        <div className="px-6 py-4 border-t border-border shrink-0">
+                          <button
+                            onClick={handleIssueMembership}
+                            disabled={!selectedPassId || issuing}
+                            className="w-full rounded-[8px] bg-pilates hover:bg-pilates-dark px-4 py-3 text-[15px] font-semibold text-text-title transition-colors disabled:opacity-40"
+                          >
+                            {issuing ? "발급 중..." : "발급하기"}
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              )}
+
+              {activeTab === "memo" && (
+                <div className="flex flex-col gap-4">
+                  {/* 메모 입력 */}
+                  <div className="flex flex-col gap-2">
+                    <textarea
+                      value={memoText}
+                      onChange={(e) => setMemoText(e.target.value)}
+                      placeholder="메모를 입력하세요..."
+                      rows={3}
+                      className="border border-[#DDDDDD] rounded-[8px] px-3.5 py-2.5 text-[15px] outline-none focus:border-pilates transition-colors w-full resize-none"
+                    />
+                    <button
+                      onClick={handleMemoSubmit}
+                      disabled={!memoText.trim() || memoSaving}
+                      className="self-end rounded-[8px] bg-pilates hover:bg-pilates-dark px-4 py-2 text-[13px] font-semibold text-text-title transition-colors disabled:opacity-60"
+                    >
+                      {memoSaving ? "저장 중..." : "메모 저장"}
+                    </button>
+                  </div>
+
+                  {/* 메모 목록 */}
+                  {detail.memos.length === 0 ? (
+                    <p className="text-[15px] text-text-sub text-center py-4">작성된 메모가 없습니다</p>
+                  ) : (
+                    <div className="flex flex-col gap-2">
+                      {detail.memos.map(memo => (
+                        <div key={memo.id} className="rounded-[12px] border border-border p-3">
+                          <p className="text-[15px] text-text-body whitespace-pre-wrap">{memo.content}</p>
+                          <p className="text-[11px] text-text-sub mt-2">{memo.writerName} | {formatDate(memo.createdAt)}</p>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              )}
+            </div>
+
+            {/* 하단 탈퇴 버튼 */}
+            <div className="px-6 py-4 border-t border-border shrink-0">
+              {showWithdrawConfirm ? (
+                <div className="flex items-center justify-between">
+                  <p className="text-[13px] text-[#E76F51] font-semibold">정말 이 회원을 탈퇴 처리하시겠습니까?</p>
+                  <div className="flex gap-2">
+                    <button onClick={handleWithdraw} disabled={withdrawing} className="rounded-[8px] bg-[#E76F51] hover:bg-[#d45a3d] px-4 py-2 text-[13px] font-semibold text-white transition-colors disabled:opacity-60">
+                      {withdrawing ? "처리 중..." : "확인"}
+                    </button>
+                    <button onClick={() => setShowWithdrawConfirm(false)} className="rounded-[8px] border border-border px-4 py-2 text-[13px] font-semibold text-text-body transition-colors">
+                      취소
+                    </button>
+                  </div>
+                </div>
+              ) : (
+                <button onClick={() => setShowWithdrawConfirm(true)} className="flex items-center gap-1.5 rounded-[8px] border border-[#E76F51] px-4 py-2 text-[13px] font-semibold text-[#E76F51] transition-colors hover:bg-[#FDECEA]">
+                  <Trash2 className="h-3.5 w-3.5" />
+                  회원 탈퇴
+                </button>
+              )}
+            </div>
+          </>
+        )}
+      </div>
     </div>
   );
 }
@@ -142,18 +631,15 @@ function MemberAddModal({ onClose, onSuccess }: { onClose: () => void; onSuccess
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (!name.trim() || !phone.trim()) {
+      toast.error("이름과 전화번호를 입력해주세요");
+      return;
+    }
     setLoading(true);
     try {
-      // 엑셀 1행짜리로 등록 (bulk API 활용)
-      const blob = await createSingleMemberExcel(name, phone);
-      const file = new File([blob], "member.xlsx", { type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" });
-      const result = await (await import("@/lib/api/admin")).adminApi.bulkImportMembers(file);
-      if (result.successCount > 0) {
-        toast.success("회원이 등록되었습니다");
-        onSuccess();
-      } else {
-        toast.error(result.failures?.[0]?.reason || "등록 실패");
-      }
+      await api("post", "/api/admin/members", { name: name.trim(), phone: phone.replace(/-/g, "") });
+      toast.success("회원이 등록되었습니다");
+      onSuccess();
     } catch (err: unknown) {
       toast.error(err instanceof Error ? err.message : "등록 실패");
     } finally {

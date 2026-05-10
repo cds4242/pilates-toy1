@@ -293,11 +293,14 @@ public class MembershipService {
             log.warn("회원 이름 복호화 실패: memberId={}", member.getId());
         }
 
+        String passName = m.getMembershipPass() != null ? m.getMembershipPass().getName() : null;
+
         return new MembershipResponse(
                 m.getId(),
                 m.getPublicId(),
                 member.getId(),
                 memberName,
+                passName,
                 m.getTotalCount(),
                 m.getRemainingCount(),
                 m.isUnlimited(),

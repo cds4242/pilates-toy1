@@ -1,10 +1,17 @@
 "use client";
 
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { toast } from "sonner";
-import { ChevronLeft, Camera } from "lucide-react";
+import { ChevronLeft, Camera, Eye, EyeOff } from "lucide-react";
+
+function formatPhone(value: string) {
+  const nums = value.replace(/\D/g, "").slice(0, 11);
+  if (nums.length <= 3) return nums;
+  if (nums.length <= 7) return nums.slice(0, 3) + "-" + nums.slice(3);
+  return nums.slice(0, 3) + "-" + nums.slice(3, 7) + "-" + nums.slice(7);
+}
 import { useAuthStore } from "@/lib/store/auth-store";
 import { authApi } from "@/lib/api/auth";
 
@@ -21,6 +28,12 @@ export default function SignupPage() {
   const [passwordConfirm, setPasswordConfirm] = useState("");
   const [gender, setGender] = useState("FEMALE");
   const [loading, setLoading] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
+  const [showPasswordConfirm, setShowPasswordConfirm] = useState(false);
+  const [profileImage, setProfileImage] = useState<File | null>(null);
+  const [profilePreview, setProfilePreview] = useState<string | null>(null);
+  const [agreeTerms, setAgreeTerms] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const handleRequestSms = async () => {
     setLoading(true);
@@ -56,7 +69,36 @@ export default function SignupPage() {
     }
   };
 
+  const handleProfileImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    if (file.size > 5 * 1024 * 1024) {
+      toast.error("이미지 크기는 5MB 이하만 가능합니다.");
+      return;
+    }
+    setProfileImage(file);
+    const reader = new FileReader();
+    reader.onloadend = () => setProfilePreview(reader.result as string);
+    reader.readAsDataURL(file);
+  };
+
+  // 비밀번호 규칙 체크
+  const passwordChecks = {
+    length: password.length >= 8,
+    upper: /[A-Z]/.test(password),
+    lower: /[a-z]/.test(password),
+    number: /[0-9]/.test(password),
+    special: /[!@#$%^&*()_+\-=[\]{};':"\\|,.<>/?]/.test(password),
+  };
+  const satisfiedTypes = [passwordChecks.upper, passwordChecks.lower, passwordChecks.number, passwordChecks.special].filter(Boolean).length;
+  const passwordValid = passwordChecks.length && satisfiedTypes >= 3;
+  const passwordMatch = password === passwordConfirm && passwordConfirm.length > 0;
+
   const handleSignup = async () => {
+    if (!passwordValid) {
+      toast.error("비밀번호 규칙을 확인해주세요.");
+      return;
+    }
     if (password !== passwordConfirm) {
       toast.error("비밀번호가 일치하지 않습니다.");
       return;
@@ -93,10 +135,26 @@ export default function SignupPage() {
           <>
             {/* 프로필 사진 업로드 */}
             <div className="flex flex-col items-center gap-3 mb-8">
-              <div className="w-24 h-24 rounded-full bg-[var(--color-pilates-light)] flex items-center justify-center cursor-pointer hover:bg-[var(--color-pilates)] transition-colors group">
-                <Camera className="h-9 w-9 text-[var(--color-pilates-dark)] group-hover:text-white" />
+              <input
+                ref={fileInputRef}
+                type="file"
+                accept="image/*"
+                className="hidden"
+                onChange={handleProfileImageChange}
+              />
+              <div
+                onClick={() => fileInputRef.current?.click()}
+                className="w-24 h-24 rounded-full bg-[var(--color-pilates-light)] flex items-center justify-center cursor-pointer hover:bg-[var(--color-pilates)] transition-colors group overflow-hidden"
+              >
+                {profilePreview ? (
+                  <img src={profilePreview} alt="프로필" className="w-full h-full object-cover" />
+                ) : (
+                  <Camera className="h-9 w-9 text-[var(--color-pilates-dark)] group-hover:text-white" />
+                )}
               </div>
-              <span className="text-[13px] text-[var(--color-text-sub)]">프로필 사진 등록 (선택)</span>
+              <span className="text-[13px] text-[var(--color-text-sub)]">
+                {profileImage ? profileImage.name : "프로필 사진 등록 (선택)"}
+              </span>
             </div>
 
             {/* 가입 폼 */}
@@ -107,11 +165,38 @@ export default function SignupPage() {
               </div>
               <div className="flex flex-col gap-1.5">
                 <label className="text-[13px] font-semibold text-[var(--color-text-title)]">비밀번호</label>
-                <input type="password" placeholder="비밀번호를 입력하세요" value={password} onChange={(e) => setPassword(e.target.value)} className={inputCls} autoComplete="new-password" />
+                <div className="relative">
+                  <input type={showPassword ? "text" : "password"} placeholder="비밀번호를 입력하세요" value={password} onChange={(e) => setPassword(e.target.value)} className={inputCls} autoComplete="new-password" />
+                  <button type="button" onClick={() => setShowPassword(!showPassword)}
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-[var(--color-text-sub)] hover:text-[var(--color-text-body)]">
+                    {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                  </button>
+                </div>
+                {password.length > 0 && (
+                  <div className="mt-1 flex flex-col gap-0.5">
+                    <p className={`text-[12px] ${passwordChecks.length ? "text-green-600" : "text-[var(--color-text-sub)]"}`}>
+                      {passwordChecks.length ? "✓" : "○"} 8자 이상
+                    </p>
+                    <p className={`text-[12px] ${satisfiedTypes >= 3 ? "text-green-600" : "text-[var(--color-text-sub)]"}`}>
+                      {satisfiedTypes >= 3 ? "✓" : "○"} 대문자/소문자/숫자/특수문자 중 3종 이상 포함
+                    </p>
+                  </div>
+                )}
               </div>
               <div className="flex flex-col gap-1.5">
                 <label className="text-[13px] font-semibold text-[var(--color-text-title)]">비밀번호 확인</label>
-                <input type="password" placeholder="비밀번호를 다시 입력하세요" value={passwordConfirm} onChange={(e) => setPasswordConfirm(e.target.value)} className={inputCls} autoComplete="new-password" />
+                <div className="relative">
+                  <input type={showPasswordConfirm ? "text" : "password"} placeholder="비밀번호를 다시 입력하세요" value={passwordConfirm} onChange={(e) => setPasswordConfirm(e.target.value)} className={inputCls} autoComplete="new-password" />
+                  <button type="button" onClick={() => setShowPasswordConfirm(!showPasswordConfirm)}
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-[var(--color-text-sub)] hover:text-[var(--color-text-body)]">
+                    {showPasswordConfirm ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                  </button>
+                </div>
+                {passwordConfirm.length > 0 && (
+                  <p className={`text-[12px] mt-0.5 ${passwordMatch ? "text-green-600" : "text-[var(--color-error)]"}`}>
+                    {passwordMatch ? "✓ 비밀번호가 일치합니다" : "✗ 비밀번호가 일치하지 않습니다"}
+                  </p>
+                )}
               </div>
 
               {/* 성별 */}
@@ -144,9 +229,16 @@ export default function SignupPage() {
                 <input type="date" className={inputCls} />
               </div>
 
+              <label className="flex items-start gap-2 cursor-pointer">
+                <input type="checkbox" checked={agreeTerms} onChange={(e) => setAgreeTerms(e.target.checked)} className="mt-1 accent-[var(--color-pilates)]" />
+                <span className="text-[13px] text-[var(--color-text-body)]">
+                  [필수] 이용약관 및 개인정보 수집·이용에 동의합니다
+                </span>
+              </label>
+
               <button
                 onClick={handleSignup}
-                disabled={loading || !name || password.length < 8}
+                disabled={loading || !name || !passwordValid || !passwordMatch || !agreeTerms}
                 className="bg-[var(--color-pilates)] hover:bg-[var(--color-pilates-dark)] active:scale-[0.99] text-[var(--color-text-title)] rounded-[8px] py-4 text-[16px] font-semibold transition-all w-full mt-4 disabled:opacity-60"
               >
                 {loading ? "가입 중..." : "가입하기"}
@@ -169,7 +261,7 @@ export default function SignupPage() {
             </p>
             <div className="flex flex-col gap-1.5">
               <label className="text-[13px] font-semibold text-[var(--color-text-title)]">휴대폰 번호</label>
-              <input type="tel" placeholder="01012345678" value={phone} onChange={(e) => setPhone(e.target.value)} className={inputCls} />
+              <input type="tel" placeholder="010-1234-5678" value={phone} onChange={(e) => setPhone(formatPhone(e.target.value))} className={inputCls} />
             </div>
             <button
               onClick={handleRequestSms}

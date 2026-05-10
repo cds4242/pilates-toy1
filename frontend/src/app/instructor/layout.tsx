@@ -10,11 +10,12 @@ export default function InstructorLayout({
   children: React.ReactNode;
 }) {
   const router = useRouter();
-  const { accessToken } = useAuthStore();
+  const { accessToken, _hydrated } = useAuthStore();
 
   useEffect(() => {
+    if (!_hydrated) return;
     if (!accessToken) router.replace("/instructor-login");
-  }, [accessToken, router]);
+  }, [accessToken, router, _hydrated]);
 
   return (
     <div className="min-h-screen bg-instructor-light">

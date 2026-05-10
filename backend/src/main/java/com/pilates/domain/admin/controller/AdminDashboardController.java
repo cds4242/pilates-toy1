@@ -8,6 +8,7 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 @Tag(name = "Admin Dashboard", description = "관리자 대시보드 API")
@@ -22,5 +23,13 @@ public class AdminDashboardController {
     @GetMapping
     public ApiResponse<DashboardResponse> getDashboard() {
         return ApiResponse.success(dashboardService.getDashboard());
+    }
+
+    @Operation(summary = "매출 추이 조회", description = "주간 또는 월간 매출 추이를 offset으로 탐색")
+    @GetMapping("/revenue")
+    public ApiResponse<DashboardResponse.ThisWeekRevenue> getRevenue(
+            @RequestParam(defaultValue = "week") String period,
+            @RequestParam(defaultValue = "0") int offset) {
+        return ApiResponse.success(dashboardService.getRevenue(period, offset));
     }
 }

@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
+import { Eye, EyeOff } from "lucide-react";
 import { useAuthStore } from "@/lib/store/auth-store";
 import { authApi } from "@/lib/api/auth";
 
@@ -12,6 +13,7 @@ export default function AdminLoginPage() {
 
   const [loginId, setLoginId] = useState("");
   const [password, setPassword] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
 
   const inputCls =
@@ -73,18 +75,24 @@ export default function AdminLoginPage() {
             </div>
             <div className="flex flex-col gap-1.5">
               <label className="text-[13px] font-semibold text-text-title">비밀번호</label>
-              <input
-                type="password"
-                placeholder="비밀번호"
-                autoComplete="current-password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                className={inputCls}
-              />
+              <div className="relative">
+                <input
+                  type={showPassword ? "text" : "password"}
+                  placeholder="비밀번호"
+                  autoComplete="current-password"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  className={inputCls}
+                />
+                <button type="button" onClick={() => setShowPassword(!showPassword)}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-[var(--color-text-sub)] hover:text-[var(--color-text-body)]">
+                  {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                </button>
+              </div>
             </div>
             <button
               type="submit"
-              disabled={loading}
+              disabled={loading || !loginId || !password}
               className="bg-text-title hover:bg-[#444] active:scale-[0.99] text-white rounded-[8px] py-4 text-[16px] font-semibold transition-all w-full mt-4 disabled:opacity-60"
             >
               {loading ? "로그인 중..." : "로그인"}

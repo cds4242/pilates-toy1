@@ -4,8 +4,16 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { toast } from "sonner";
+import { Eye, EyeOff } from "lucide-react";
 import { useAuthStore } from "@/lib/store/auth-store";
 import { authApi } from "@/lib/api/auth";
+
+function formatPhone(value: string) {
+  const nums = value.replace(/\D/g, "").slice(0, 11);
+  if (nums.length <= 3) return nums;
+  if (nums.length <= 7) return nums.slice(0, 3) + "-" + nums.slice(3);
+  return nums.slice(0, 3) + "-" + nums.slice(3, 7) + "-" + nums.slice(7);
+}
 
 export default function LoginPage() {
   const router = useRouter();
@@ -13,6 +21,7 @@ export default function LoginPage() {
 
   const [phone, setPhone] = useState("");
   const [password, setPassword] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
 
   const inputCls =
@@ -32,7 +41,12 @@ export default function LoginPage() {
       toast.success("로그인 성공");
       router.push("/home");
     } catch (err: unknown) {
-      toast.error(err instanceof Error ? err.message : "로그인에 실패했습니다.");
+      const msg = err instanceof Error ? err.message : "로그인에 실패했습니다.";
+      if (msg.includes("찾을 수 없") || msg.includes("NOT_FOUND")) {
+        toast.error("가입되지 않은 번호입니다. 회원가입을 진행해주세요.");
+      } else {
+        toast.error(msg);
+      }
     } finally {
       setLoading(false);
     }
@@ -60,16 +74,22 @@ export default function LoginPage() {
             휴대폰 번호
           </label>
           <input type="tel" id="phone" placeholder="010-0000-0000" autoComplete="tel"
-            value={phone} onChange={(e) => setPhone(e.target.value)} className={inputCls} />
+            value={phone} onChange={(e) => setPhone(formatPhone(e.target.value))} className={inputCls} />
         </div>
         <div className="flex flex-col gap-1.5">
           <label htmlFor="password" className="text-[13px] font-semibold text-text-title">
             비밀번호
           </label>
-          <input type="password" id="password" placeholder="비밀번호를 입력하세요" autoComplete="current-password"
-            value={password} onChange={(e) => setPassword(e.target.value)} className={inputCls} />
+          <div className="relative">
+            <input type={showPassword ? "text" : "password"} id="password" placeholder="비밀번호를 입력하세요" autoComplete="current-password"
+              value={password} onChange={(e) => setPassword(e.target.value)} className={inputCls} />
+            <button type="button" onClick={() => setShowPassword(!showPassword)}
+              className="absolute right-3 top-1/2 -translate-y-1/2 text-[var(--color-text-sub)] hover:text-[var(--color-text-body)]">
+              {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+            </button>
+          </div>
         </div>
-        <button type="submit" disabled={loading}
+        <button type="submit" disabled={loading || !phone || !password}
           className="bg-pilates hover:bg-pilates-dark active:scale-[0.99] text-text-title rounded-[8px] py-4 text-[16px] font-semibold transition-all w-full disabled:opacity-60">
           {loading ? "로그인 중..." : "로그인"}
         </button>

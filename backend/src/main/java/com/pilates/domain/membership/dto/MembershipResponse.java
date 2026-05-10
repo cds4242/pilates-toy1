@@ -24,6 +24,9 @@ public record MembershipResponse(
         @Schema(description = "회원 이름 (관리자 조회 시)")
         String memberName,
 
+        @Schema(description = "정기권 종류 이름")
+        String passName,
+
         @Schema(description = "총 횟수")
         Integer totalCount,
 

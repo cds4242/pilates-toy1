@@ -4,6 +4,7 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { toast } from "sonner";
+import { Eye, EyeOff } from "lucide-react";
 import { useAuthStore } from "@/lib/store/auth-store";
 import { authApi } from "@/lib/api/auth";
 
@@ -13,6 +14,7 @@ export default function InstructorLoginPage() {
 
   const [loginId, setLoginId] = useState("");
   const [password, setPassword] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
 
   const inputCls =
@@ -24,7 +26,7 @@ export default function InstructorLoginPage() {
     try {
       const res = await authApi.adminLogin(loginId, password);
       login(res.accessToken, res.refreshToken, {
-        id: String(res.adminId),
+        id: String(res.instructorId ?? res.adminId),
         role: res.role,
         name: loginId,
       });
@@ -65,19 +67,28 @@ export default function InstructorLoginPage() {
           </div>
           <div className="flex flex-col gap-1.5">
             <label className="text-[13px] font-semibold text-text-title">비밀번호</label>
-            <input type="password" placeholder="비밀번호를 입력하세요" autoComplete="current-password"
-              value={password} onChange={(e) => setPassword(e.target.value)} className={inputCls} />
+            <div className="relative">
+              <input type={showPassword ? "text" : "password"} placeholder="비밀번호를 입력하세요" autoComplete="current-password"
+                value={password} onChange={(e) => setPassword(e.target.value)} className={inputCls} />
+              <button type="button" onClick={() => setShowPassword(!showPassword)}
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-[var(--color-text-sub)] hover:text-[var(--color-text-body)]">
+                {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+              </button>
+            </div>
           </div>
-          <button type="submit" disabled={loading}
+          <button type="submit" disabled={loading || !loginId || !password}
             className="bg-instructor hover:bg-[#6A7DC2] active:scale-[0.99] text-white rounded-[8px] py-4 text-[16px] font-semibold transition-all w-full disabled:opacity-60">
             {loading ? "로그인 중..." : "로그인"}
           </button>
         </form>
 
         {/* 링크 */}
-        <div className="text-center">
+        <div className="flex justify-center gap-6">
           <Link href="/login" className="text-[15px] text-text-sub hover:underline">
-            회원 로그인으로
+            회원 로그인
+          </Link>
+          <Link href="/admin-login" className="text-[15px] text-text-sub hover:underline">
+            관리자 로그인
           </Link>
         </div>
       </div>

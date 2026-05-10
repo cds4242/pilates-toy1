@@ -5,5 +5,5 @@ export const reservationApi = {
     api<{ id: number }>("post", "/api/reservations", { classScheduleId }),
 
   cancel: (id: number, reason: string) =>
-    api<void>("post", `/api/reservations/${id}/cancel`, { reason }),
+    api<void>("delete", `/api/reservations/${id}`, undefined, { params: { reason } }),
 };

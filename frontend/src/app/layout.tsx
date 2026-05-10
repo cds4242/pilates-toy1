@@ -3,7 +3,10 @@ import { Providers } from "@/components/providers";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "Pilates Studio",
+  title: {
+    default: "필라테스 OO점",
+    template: "%s | 필라테스 OO점",
+  },
   description: "필라테스 스튜디오 예약 관리 시스템",
 };
 

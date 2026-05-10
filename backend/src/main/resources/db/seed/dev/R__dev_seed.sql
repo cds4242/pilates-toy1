@@ -31,6 +31,18 @@ INSERT INTO admins (login_id, password_hash, name, role, is_active) VALUES
     ('admin', '$2a$12$pMjw7nM3uimwmexOxQ8WmuS4jUQvOtPswedJ.9fPkssqnDJv/hLXu', '시스템관리자', 'SUPER_ADMIN', 1)
 ON DUPLICATE KEY UPDATE name = name;
 
+-- ── 개발용 강사 admin 계정 (비밀번호: admin1234, 강사 로그인에서 사용) ──
+-- 참고: instructor_id는 강사 삽입 후 서브쿼리로 연결
+INSERT INTO admins (login_id, password_hash, name, role, is_active)
+SELECT 'instructor1', '$2a$12$pMjw7nM3uimwmexOxQ8WmuS4jUQvOtPswedJ.9fPkssqnDJv/hLXu', '박지영', 'INSTRUCTOR', 1
+FROM DUAL WHERE NOT EXISTS (SELECT 1 FROM admins WHERE login_id = 'instructor1');
+UPDATE admins SET instructor_id = (SELECT id FROM instructors WHERE public_id = 'dev_instructor_001') WHERE login_id = 'instructor1' AND instructor_id IS NULL;
+
+INSERT INTO admins (login_id, password_hash, name, role, is_active)
+SELECT 'instructor2', '$2a$12$pMjw7nM3uimwmexOxQ8WmuS4jUQvOtPswedJ.9fPkssqnDJv/hLXu', '이수진', 'INSTRUCTOR', 1
+FROM DUAL WHERE NOT EXISTS (SELECT 1 FROM admins WHERE login_id = 'instructor2');
+UPDATE admins SET instructor_id = (SELECT id FROM instructors WHERE public_id = 'dev_instructor_002') WHERE login_id = 'instructor2' AND instructor_id IS NULL;
+
 -- ── 개발용 강사 ──
 INSERT INTO instructors (public_id, name, phone, status) VALUES
     ('dev_instructor_001', '박지영', '010-1111-2222', 'ACTIVE'),

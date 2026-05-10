@@ -71,8 +71,18 @@ apiClient.interceptors.response.use(
       } catch {
         // refresh 실패 → 로그아웃
       }
-      localStorage.removeItem("auth-storage");
-      window.location.href = "/login";
+      // role에 따라 적절한 로그인 페이지로 리디렉트
+      try {
+        const stored2 = localStorage.getItem("auth-storage");
+        const role2 = stored2 ? JSON.parse(stored2)?.state?.user?.role : null;
+        localStorage.removeItem("auth-storage");
+        if (role2 === "INSTRUCTOR") window.location.href = "/instructor-login";
+        else if (role2 === "ADMIN" || role2 === "SUPER_ADMIN") window.location.href = "/admin-login";
+        else window.location.href = "/login";
+      } catch {
+        localStorage.removeItem("auth-storage");
+        window.location.href = "/login";
+      }
     }
     return Promise.reject(error);
   }

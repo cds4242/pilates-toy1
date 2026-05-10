@@ -34,6 +34,7 @@ import java.time.LocalDateTime;
 import java.time.YearMonth;
 import java.util.Comparator;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -265,6 +266,27 @@ public class ReservationService {
         LocalDateTime to = yearMonth.atEndOfMonth().atTime(23, 59, 59);
         return reservationRepository.countByMemberIdAndStatusInAndCreatedAtBetween(
                 memberId, List.of(ReservationStatus.CONFIRMED, ReservationStatus.NO_SHOW), from, to);
+    }
+
+    /**
+     * 수업별 예약자 명단 조회 (관리자용).
+     * 회원 이름을 포함한 예약 목록을 반환.
+     */
+    @Transactional(readOnly = true)
+    public List<Map<String, Object>> getReservationsByClassSchedule(Long classScheduleId) {
+        return reservationRepository
+                .findAllByClassScheduleIdAndStatusIn(classScheduleId, List.of(ReservationStatus.CONFIRMED))
+                .stream()
+                .map(r -> {
+                    Map<String, Object> map = new java.util.LinkedHashMap<>();
+                    map.put("id", r.getId());
+                    map.put("memberName", encryptionService.decrypt(r.getMember().getName()));
+                    map.put("memberPhone", r.getMember().getPhoneEncrypted() != null ? encryptionService.decrypt(r.getMember().getPhoneEncrypted()) : "");
+                    map.put("status", r.getStatus().name());
+                    map.put("createdAt", r.getCreatedAt() != null ? r.getCreatedAt().toString() : null);
+                    return map;
+                })
+                .toList();
     }
 
     // ── private ──
