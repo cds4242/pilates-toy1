@@ -156,12 +156,12 @@ public class DemoSeedRunner implements ApplicationRunner {
         if (adminRepository.findByLoginIdAndDeletedAtIsNull("admin").isEmpty()) {
             adminRepository.save(Admin.builder()
                     .loginId("admin")
-                    .passwordHash(passwordEncoder.encode("admin1234"))
+                    .passwordHash(passwordEncoder.encode("demo1234"))
                     .name("시스템관리자")
                     .role(AdminRole.SUPER_ADMIN)
                     .active(true)
                     .build());
-            log.info("기본 관리자 계정 생성: admin / admin1234");
+            log.info("기본 관리자 계정 생성: admin / demo1234");
         }
 
         // 5. 회원 80명
@@ -413,7 +413,7 @@ public class DemoSeedRunner implements ApplicationRunner {
     }
 
     private void createInstructorAdmins(List<Instructor> instructors) {
-        String hash = passwordEncoder.encode("admin1234");
+        String hash = passwordEncoder.encode("demo1234");
         for (int i = 0; i < instructors.size(); i++) {
             Instructor ins = instructors.get(i);
             String loginId = "instructor" + (i + 1);
@@ -456,7 +456,7 @@ public class DemoSeedRunner implements ApplicationRunner {
                     .phoneHash(phoneHash)
                     .gender(gender)
                     .status(MemberStatus.ACTIVE)
-                    .passwordHash(passwordEncoder.encode("Test1234!"))
+                    .passwordHash(passwordEncoder.encode("demo1234"))
                     .build();
             result.add(memberRepository.save(m));
         }

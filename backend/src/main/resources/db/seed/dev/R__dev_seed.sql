@@ -26,20 +26,20 @@ INSERT INTO studio_settings (setting_key, setting_value, description) VALUES
     ('MEMBERSHIP_LOW_COUNT_ALERT', '3', '정기권 잔여 횟수 부족 알림 기준')
 ON DUPLICATE KEY UPDATE setting_value = setting_value;
 
--- ── 개발용 관리자 계정 (비밀번호: admin1234 → BCrypt 해시) ──
+-- ── 개발용 관리자 계정 (비밀번호: demo1234 → BCrypt 해시) ──
 INSERT INTO admins (login_id, password_hash, name, role, is_active) VALUES
-    ('admin', '$2a$12$pMjw7nM3uimwmexOxQ8WmuS4jUQvOtPswedJ.9fPkssqnDJv/hLXu', '시스템관리자', 'SUPER_ADMIN', 1)
+    ('admin', '$2a$12$uOhROTX4qN52s3WNLqcIreysqRFfjWVYQlm1r2M0OvDDfB00f5Ahi', '시스템관리자', 'SUPER_ADMIN', 1)
 ON DUPLICATE KEY UPDATE name = name;
 
--- ── 개발용 강사 admin 계정 (비밀번호: admin1234, 강사 로그인에서 사용) ──
+-- ── 개발용 강사 admin 계정 (비밀번호: demo1234, 강사 로그인에서 사용) ──
 -- 참고: instructor_id는 강사 삽입 후 서브쿼리로 연결
 INSERT INTO admins (login_id, password_hash, name, role, is_active)
-SELECT 'instructor1', '$2a$12$pMjw7nM3uimwmexOxQ8WmuS4jUQvOtPswedJ.9fPkssqnDJv/hLXu', '박지영', 'INSTRUCTOR', 1
+SELECT 'instructor1', '$2a$12$uOhROTX4qN52s3WNLqcIreysqRFfjWVYQlm1r2M0OvDDfB00f5Ahi', '박지영', 'INSTRUCTOR', 1
 FROM DUAL WHERE NOT EXISTS (SELECT 1 FROM admins WHERE login_id = 'instructor1');
 UPDATE admins SET instructor_id = (SELECT id FROM instructors WHERE public_id = 'dev_instructor_001') WHERE login_id = 'instructor1' AND instructor_id IS NULL;
 
 INSERT INTO admins (login_id, password_hash, name, role, is_active)
-SELECT 'instructor2', '$2a$12$pMjw7nM3uimwmexOxQ8WmuS4jUQvOtPswedJ.9fPkssqnDJv/hLXu', '이수진', 'INSTRUCTOR', 1
+SELECT 'instructor2', '$2a$12$uOhROTX4qN52s3WNLqcIreysqRFfjWVYQlm1r2M0OvDDfB00f5Ahi', '이수진', 'INSTRUCTOR', 1
 FROM DUAL WHERE NOT EXISTS (SELECT 1 FROM admins WHERE login_id = 'instructor2');
 UPDATE admins SET instructor_id = (SELECT id FROM instructors WHERE public_id = 'dev_instructor_002') WHERE login_id = 'instructor2' AND instructor_id IS NULL;
 

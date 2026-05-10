@@ -323,27 +323,22 @@ echo ============================================================
 echo                    [ TEST ACCOUNTS ]
 echo ============================================================
 echo.
-echo  공통 비밀번호: test1234
-echo  접속 URL    : http://localhost:3000/login
+echo  접속 URL : http://localhost:3000
+echo  공통 비밀번호: demo1234  (모든 계정 통일)
 echo.
-echo  -- 관리자 (http://localhost:3000/admin-login) --
-echo    admin       관리자       SUPER_ADMIN   한달+ (전체 권한)
-echo    admin-new   신규관리자   ADMIN         신규 (첫 사용)
-echo    admin-week  김주임       ADMIN         1주차
-echo    admin-pro   원장님       SUPER_ADMIN   한달+ (경영 관점)
+echo  -- 관리자 (/admin-login) --
+echo    admin       SUPER_ADMIN  시스템관리자 (시드 SQL)
+echo    admin_demo  SUPER_ADMIN  데모관리자 (포트폴리오 시연용)
 echo.
-echo  -- 강사 (http://localhost:3000/instructor-login) --
-echo    instructor1  박지영   1주차   주 6일, 수업 많음
-echo    instructor2  이수진   한달+   주 3일, 중간
-echo    instructor3  최재훈   신규    주 3일, 수업 적음
+echo  -- 강사 (/instructor-login) --
+echo    instructor1     박지영              (시드 SQL)
+echo    instructor2     이수진              (시드 SQL)
+echo    instructor3..9  최재훈/김하늘/정유진/한가람/오선아/윤지민/류시현 (DemoSeedRunner)
+echo    instructor_demo 박데모              (데모 시연용, 담당 수업 5건)
 echo.
-echo  -- 회원 (http://localhost:3000/login) --
-echo    010-9023-1023  남은서  신규     8회권 (방금 구매)
-echo    010-9024-1024  황채림  신규     없음
-echo    010-9025-1025  노유나  1주차    12회권 (3/12)
-echo    010-9019-1019  전소미  1주차    개인10회권 (4/10, 만료 D-1)
-echo    010-9026-1026  구보라  한달+    무제한권, 출석률 100%%
-echo    010-9027-1027  양시은  한달+    개인10회권 (1/10, 잔여 적음)
+echo  -- 회원 (/login, 휴대폰 + 비밀번호) --
+echo    010-0000-0001                 김데모 (12회권, 미래 예약 3건) [시연용]
+echo    010-9000-1000 ~ 010-9079-1079 더미 회원 80명
 echo.
 echo ============================================================
 exit /b 0
