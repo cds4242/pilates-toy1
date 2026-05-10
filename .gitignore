@@ -46,3 +46,9 @@ backend/uploads/
 # === Local dev scripts runtime ===
 scripts/.pids/
 scripts/.logs/
+
+# === QA / Browser MCP artifacts ===
+qa-report/
+qa-report*/
+qa-screenshots/
+.playwright-mcp/

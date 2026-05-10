@@ -1,5 +1,6 @@
 @echo off
 setlocal EnableDelayedExpansion
+chcp 65001 > nul
 
 REM ============================================================
 REM  Pilates Local Dev Manager
@@ -57,6 +58,7 @@ call :start_infra
 call :wait_infra
 call :start_backend
 call :start_frontend
+call :print_accounts
 goto :end
 
 :do_start_infra
@@ -115,6 +117,7 @@ call :start_infra
 call :wait_infra
 call :start_backend
 call :start_frontend
+call :print_accounts
 goto :end
 
 :do_restart_infra
@@ -212,7 +215,7 @@ call :find_pid_by_port %BACKEND_PORT%
 if defined FOUND_PID goto :start_backend_already
 echo [BACKEND] Starting Spring Boot profile=%BACKEND_PROFILE% port=%BACKEND_PORT%
 echo [BACKEND] Logs: %LOG_DIR%\backend.log
-start "pilates-backend" /MIN "%ROOT%\scripts\_run_backend.bat" "%LOG_DIR%\backend.log" %BACKEND_PROFILE%
+start "pilates-backend" /MIN cmd /c ""%ROOT%\scripts\_run_backend.bat" "%LOG_DIR%\backend.log" %BACKEND_PROFILE%"
 ping -n 3 127.0.0.1 > nul
 call :find_pid_by_port %BACKEND_PORT%
 if defined FOUND_PID goto :start_backend_bound
@@ -253,7 +256,7 @@ where pnpm > nul 2>&1
 if errorlevel 1 goto :start_frontend_no_pnpm
 echo [FRONTEND] Starting Next.js port=%FRONTEND_PORT%
 echo [FRONTEND] Logs: %LOG_DIR%\frontend.log
-start "pilates-frontend" /MIN "%ROOT%\scripts\_run_frontend.bat" "%LOG_DIR%\frontend.log"
+start "pilates-frontend" /MIN cmd /c ""%ROOT%\scripts\_run_frontend.bat" "%LOG_DIR%\frontend.log""
 ping -n 3 127.0.0.1 > nul
 call :find_pid_by_port %FRONTEND_PORT%
 if defined FOUND_PID goto :start_frontend_bound
@@ -309,6 +312,40 @@ for /f "tokens=5" %%P in ('netstat -ano -p tcp ^| findstr ":%PORT% " ^| findstr 
     set "KILLED=1"
 )
 if "%KILLED%"=="0" echo [%LABEL%] No process on port %PORT%
+exit /b 0
+
+REM ============================================================
+REM  TEST ACCOUNTS BANNER
+REM ============================================================
+:print_accounts
+echo.
+echo ============================================================
+echo                    [ TEST ACCOUNTS ]
+echo ============================================================
+echo.
+echo  공통 비밀번호: test1234
+echo  접속 URL    : http://localhost:3000/login
+echo.
+echo  -- 관리자 (http://localhost:3000/admin-login) --
+echo    admin       관리자       SUPER_ADMIN   한달+ (전체 권한)
+echo    admin-new   신규관리자   ADMIN         신규 (첫 사용)
+echo    admin-week  김주임       ADMIN         1주차
+echo    admin-pro   원장님       SUPER_ADMIN   한달+ (경영 관점)
+echo.
+echo  -- 강사 (http://localhost:3000/instructor-login) --
+echo    instructor1  박지영   1주차   주 6일, 수업 많음
+echo    instructor2  이수진   한달+   주 3일, 중간
+echo    instructor3  최재훈   신규    주 3일, 수업 적음
+echo.
+echo  -- 회원 (http://localhost:3000/login) --
+echo    010-9023-1023  남은서  신규     8회권 (방금 구매)
+echo    010-9024-1024  황채림  신규     없음
+echo    010-9025-1025  노유나  1주차    12회권 (3/12)
+echo    010-9019-1019  전소미  1주차    개인10회권 (4/10, 만료 D-1)
+echo    010-9026-1026  구보라  한달+    무제한권, 출석률 100%%
+echo    010-9027-1027  양시은  한달+    개인10회권 (1/10, 잔여 적음)
+echo.
+echo ============================================================
 exit /b 0
 
 :end
