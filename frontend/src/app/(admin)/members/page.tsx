@@ -29,6 +29,14 @@ interface MemberDetail {
   memos: MemoInfo[];
 }
 
+function formatPhone(phone: string | null): string {
+  if (!phone) return "-";
+  const d = phone.replace(/\D/g, "");
+  if (d.length === 11) return `${d.slice(0,3)}-${d.slice(3,7)}-${d.slice(7)}`;
+  if (d.length === 10) return `${d.slice(0,3)}-${d.slice(3,6)}-${d.slice(6)}`;
+  return phone;
+}
+
 function formatExpiry(dateStr: string | null) {
   if (!dateStr) return { text: "-", color: "" };
   const diff = Math.ceil((new Date(dateStr).getTime() - Date.now()) / 86400000);
@@ -63,6 +71,9 @@ export default function AdminMembersPage() {
   const [showAddModal, setShowAddModal] = useState(false);
   const [detailMemberId, setDetailMemberId] = useState<number | null>(null);
   const [statusFilter, setStatusFilter] = useState("");
+  const [membershipFilter, setMembershipFilter] = useState("");
+  const [sortKey, setSortKey] = useState<string>("");
+  const [sortDir, setSortDir] = useState<"asc" | "desc">("asc");
   const fileRef = useRef<HTMLInputElement>(null);
 
   const searchRef = useRef(search);
@@ -88,6 +99,27 @@ export default function AdminMembersPage() {
   useEffect(() => { load(); }, [page, statusFilter]); // eslint-disable-line react-hooks/exhaustive-deps
   const handleSearch = (e: React.FormEvent) => { e.preventDefault(); setPage(0); load(); };
 
+  const handleSort = (key: string) => {
+    if (sortKey === key) setSortDir(sortDir === "asc" ? "desc" : "asc");
+    else { setSortKey(key); setSortDir("asc"); }
+  };
+
+  const filteredByMembership = membershipFilter
+    ? membershipFilter === "none"
+      ? members.filter(m => !m.activeMembership || m.activeMembership === "-")
+      : members.filter(m => m.activeMembership === membershipFilter)
+    : members;
+
+  const sortedMembers = [...filteredByMembership].sort((a, b) => {
+    if (!sortKey) return 0;
+    let va: string | number = (a as any)[sortKey] || "";
+    let vb: string | number = (b as any)[sortKey] || "";
+    if (sortKey === "attendanceRate") { va = parseInt(va as string) || 0; vb = parseInt(vb as string) || 0; }
+    if (sortKey === "expiryDate") { va = (va as string) || "9999-99-99"; vb = (vb as string) || "9999-99-99"; }
+    if (typeof va === "number") return sortDir === "asc" ? va - (vb as number) : (vb as number) - va;
+    return sortDir === "asc" ? String(va).localeCompare(String(vb)) : String(vb).localeCompare(String(va));
+  });
+
   const handleExcelUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
@@ -106,12 +138,23 @@ export default function AdminMembersPage() {
       <div className="flex flex-wrap items-center justify-between gap-4 mb-6">
         <div className="flex items-baseline gap-3">
           <h1 className="text-[26px] font-bold text-[var(--color-text-title)]">회원 관리</h1>
-          <span className="text-[14px] text-text-sub">총 {total}명</span>
+          {!loading && <span className="text-[14px] text-text-sub">총 {total}명</span>}
         </div>
         <div className="flex gap-3">
           <button onClick={() => setShowAddModal(true)} className="rounded-[8px] bg-pilates hover:bg-pilates-dark px-4 py-2.5 text-[13px] font-semibold text-text-title transition-colors">+ 회원 등록</button>
           <button onClick={() => fileRef.current?.click()} className="rounded-[8px] border border-border hover:border-pilates bg-white px-4 py-2.5 text-[13px] font-semibold text-text-body transition-colors">엑셀 일괄 등록</button>
           <input ref={fileRef} type="file" accept=".xlsx,.xls" className="hidden" onChange={handleExcelUpload} />
+          <button onClick={() => {
+            const header = "이름,휴대폰,정기권,잔여,만료일,출석률,상태\n";
+            const rows = members.map(m => `${m.name},${formatPhone(m.phone)},${m.activeMembership||"-"},${m.remainingInfo||"-"},${m.expiryDate||"-"},${m.attendanceRate||"-"},${m.status}`).join("\n");
+            const blob = new Blob(["\uFEFF" + header + rows], { type: "text/csv;charset=utf-8;" });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement("a");
+            a.href = url; a.download = `회원목록_${new Date().toISOString().slice(0,10)}.csv`; a.click();
+            URL.revokeObjectURL(url);
+          }} className="rounded-[8px] border border-border hover:border-pilates bg-white px-4 py-2.5 text-[13px] font-semibold text-text-body transition-colors">
+            내보내기
+          </button>
         </div>
       </div>
 
@@ -125,22 +168,59 @@ export default function AdminMembersPage() {
           className="border border-[#DDDDDD] rounded-[8px] px-3.5 py-2.5 text-[15px] outline-none bg-white min-w-[120px]">
           <option value="">전체</option><option value="ACTIVE">활성</option><option value="WITHDRAWN">탈퇴</option>
         </select>
+        <select value={membershipFilter} onChange={(e) => { setMembershipFilter(e.target.value); setPage(0); }}
+          className="border border-[#DDDDDD] rounded-[8px] px-3.5 py-2.5 text-[15px] outline-none bg-white min-w-[140px]">
+          <option value="">정기권 전체</option>
+          <option value="8회권">8회권</option>
+          <option value="12회권">12회권</option>
+          <option value="무제한권">무제한권</option>
+          <option value="개인 10회권">개인 10회권</option>
+          <option value="none">정기권 없음</option>
+        </select>
       </form>
+
+      <div className="flex gap-2 mb-4 flex-wrap">
+        {[
+          { label: "만료 임박", action: () => { setSortKey("expiryDate"); setSortDir("asc"); setMembershipFilter(""); setStatusFilter("ACTIVE"); } },
+          { label: "정기권 없음", action: () => { setMembershipFilter("none"); setStatusFilter(""); } },
+          { label: "출석률 낮은순", action: () => { setSortKey("attendanceRate"); setSortDir("asc"); setMembershipFilter(""); } },
+          { label: "전체 보기", action: () => { setSortKey(""); setMembershipFilter(""); setStatusFilter(""); setSearch(""); } },
+        ].map(p => (
+          <button key={p.label} onClick={p.action}
+            className="rounded-full border border-border px-3 py-1.5 text-[12px] text-text-body hover:border-pilates hover:text-pilates-dark transition-colors">
+            {p.label}
+          </button>
+        ))}
+      </div>
 
       {/* PC 테이블 */}
       <div className="hidden md:block rounded-[18px] border border-border bg-white overflow-hidden">
         <table className="w-full border-collapse">
           <thead>
             <tr className="bg-bg-section border-b border-border">
-              {["프로필","이름","휴대폰","정기권","잔여","만료일","출석률","상태",""].map(h=>(
-                <th key={h} className="text-left px-4 py-3.5 text-[13px] font-semibold text-text-sub">{h}</th>
-              ))}
+              <th className="text-left px-4 py-3.5 text-[13px] font-semibold text-text-sub">프로필</th>
+              <th onClick={() => handleSort("name")} className="text-left px-4 py-3.5 text-[13px] font-semibold text-text-sub cursor-pointer hover:text-text-title select-none">
+                이름 {sortKey === "name" ? (sortDir === "asc" ? "↑" : "↓") : ""}
+              </th>
+              <th className="text-left px-4 py-3.5 text-[13px] font-semibold text-text-sub">휴대폰</th>
+              <th onClick={() => handleSort("activeMembership")} className="text-left px-4 py-3.5 text-[13px] font-semibold text-text-sub cursor-pointer hover:text-text-title select-none">
+                정기권 {sortKey === "activeMembership" ? (sortDir === "asc" ? "↑" : "↓") : ""}
+              </th>
+              <th className="text-left px-4 py-3.5 text-[13px] font-semibold text-text-sub">잔여</th>
+              <th onClick={() => handleSort("expiryDate")} className="text-left px-4 py-3.5 text-[13px] font-semibold text-text-sub cursor-pointer hover:text-text-title select-none">
+                만료일 {sortKey === "expiryDate" ? (sortDir === "asc" ? "↑" : "↓") : ""}
+              </th>
+              <th onClick={() => handleSort("attendanceRate")} className="text-left px-4 py-3.5 text-[13px] font-semibold text-text-sub cursor-pointer hover:text-text-title select-none">
+                출석률 {sortKey === "attendanceRate" ? (sortDir === "asc" ? "↑" : "↓") : ""}
+              </th>
+              <th className="text-left px-4 py-3.5 text-[13px] font-semibold text-text-sub">상태</th>
+              <th className="text-left px-4 py-3.5 text-[13px] font-semibold text-text-sub"></th>
             </tr>
           </thead>
           <tbody>
-            {loading ? <tr><td colSpan={8} className="text-center py-8 text-text-sub">로딩 중...</td></tr>
-            : members.length === 0 ? <tr><td colSpan={8} className="text-center py-8 text-text-sub">회원이 없습니다</td></tr>
-            : members.map(m=>{
+            {loading ? <tr><td colSpan={9} className="text-center py-8 text-text-sub">로딩 중...</td></tr>
+            : sortedMembers.length === 0 ? <tr><td colSpan={9} className="text-center py-8 text-text-sub">회원이 없습니다</td></tr>
+            : sortedMembers.map(m=>{
               const exp = formatExpiry(m.expiryDate);
               const avatarCls = m.gender === "MALE" ? "bg-blue-100 text-blue-700" : "bg-pilates-light text-pilates-dark";
               const rowBg = !m.activeMembership || m.activeMembership === "-" ? "bg-amber-50" : "";
@@ -148,8 +228,8 @@ export default function AdminMembersPage() {
               <tr key={m.id} className={`border-b border-border last:border-0 hover:bg-bg-section cursor-pointer transition-colors ${rowBg}`} onClick={() => setDetailMemberId(m.id)}>
                 <td className="px-4 py-3.5"><div className={`w-8 h-8 rounded-full flex items-center justify-center text-[13px] font-bold ${avatarCls}`}>{m.name.charAt(0)}</div></td>
                 <td className="px-4 py-3.5 text-[15px] text-text-title">{m.name}</td>
-                <td className="px-4 py-3.5 text-[15px] text-text-title">{m.phone}</td>
-                <td className="px-4 py-3.5 text-[15px] text-text-body">{m.activeMembership||"-"}</td>
+                <td className="px-4 py-3.5 text-[15px] text-text-title">{formatPhone(m.phone)}</td>
+                <td className="px-4 py-3.5 text-[15px] text-text-body">{m.activeMembership || <span className="text-text-sub">미등록</span>}</td>
                 <td className="px-4 py-3.5 text-[15px] text-text-body">{m.remainingInfo||"-"}</td>
                 <td className={`px-4 py-3.5 text-[15px] ${exp.color}`}>{exp.text}</td>
                 <td className="px-4 py-3.5"><AttendanceBar rate={m.attendanceRate||"-"} /></td>
@@ -165,8 +245,8 @@ export default function AdminMembersPage() {
       {/* 모바일 카드 */}
       <div className="md:hidden flex flex-col gap-3">
         {loading ? <div className="text-center py-8 text-text-sub">로딩 중...</div>
-        : members.length === 0 ? <div className="text-center py-8 text-text-sub">회원이 없습니다</div>
-        : members.map(m=>{
+        : sortedMembers.length === 0 ? <div className="text-center py-8 text-text-sub">회원이 없습니다</div>
+        : sortedMembers.map(m=>{
           const mobileAvatarCls = m.gender === "MALE" ? "bg-blue-100 text-blue-700" : "bg-pilates-light text-pilates-dark";
           return (
           <div key={m.id} className={`rounded-[18px] border border-border ${!m.activeMembership || m.activeMembership === "-" ? "bg-amber-50" : "bg-white"} p-4 flex items-center justify-between cursor-pointer`} onClick={() => setDetailMemberId(m.id)}>
@@ -174,7 +254,7 @@ export default function AdminMembersPage() {
               <div className={`w-9 h-9 rounded-full flex items-center justify-center text-[14px] font-bold shrink-0 ${mobileAvatarCls}`}>{m.name.charAt(0)}</div>
               <div className="flex-1 min-w-0">
                 <p className="text-[15px] font-semibold text-text-title">{m.name}</p>
-                <p className="text-[13px] text-text-sub mt-0.5">{m.activeMembership||"정기권 없음"} | {m.phone}</p>
+                <p className="text-[13px] text-text-sub mt-0.5">{m.activeMembership||"정기권 없음"} | {formatPhone(m.phone)}</p>
               </div>
             </div>
             <StatusBadge status={m.status==="ACTIVE"?"active":"expired"} label={m.status==="ACTIVE"?"활성":"만료"}/>

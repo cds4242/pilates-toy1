@@ -109,6 +109,7 @@ export default function AdminSettingsPage() {
           <input
             type={isNumber ? "number" : "text"}
             min={isNumber ? "0" : undefined}
+            max={isNumber ? "999" : undefined}
             value={editValues[s.key] || ""}
             onChange={(e) =>
               setEditValues(prev => ({ ...prev, [s.key]: e.target.value }))
@@ -148,6 +149,7 @@ export default function AdminSettingsPage() {
           <p className="text-text-sub">로딩 중...</p>
         </div>
       ) : (
+        <>
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           {SETTING_GROUPS.map((group) => (
             <div
@@ -191,6 +193,10 @@ export default function AdminSettingsPage() {
             </div>
           )}
         </div>
+        <div className="flex justify-end mt-6">
+          <button onClick={handleSave} className="rounded-[8px] bg-pilates hover:bg-pilates-dark px-6 py-3 text-[15px] font-semibold text-text-title transition-colors">변경사항 저장</button>
+        </div>
+        </>
       )}
     </div>
   );

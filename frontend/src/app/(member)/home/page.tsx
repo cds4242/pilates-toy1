@@ -6,7 +6,8 @@ import { useRouter } from "next/navigation";
 import { Bell } from "lucide-react";
 import { useAuthStore } from "@/lib/store/auth-store";
 import { memberApi } from "@/lib/api/member";
-import type { Member, Membership, Reservation } from "@/lib/types/domain";
+import { classroomApi } from "@/lib/api/classroom";
+import type { Member, Membership, Reservation, ClassSchedule } from "@/lib/types/domain";
 import { PassCard } from "@/components/design/PassCard";
 import { MobileTabBar } from "@/components/design/MobileTabBar";
 import { formatTime } from "@/lib/utils/format";
@@ -26,6 +27,7 @@ export default function MemberHomePage() {
   const [memberships, setMemberships] = useState<Membership[]>([]);
   const [reservations, setReservations] = useState<Reservation[]>([]);
   const [loading, setLoading] = useState(true);
+  const [todayClasses, setTodayClasses] = useState<ClassSchedule[]>([]);
 
   useEffect(() => {
     async function load() {
@@ -43,6 +45,11 @@ export default function MemberHomePage() {
       } finally {
         setLoading(false);
       }
+      try {
+        const today = new Date().toISOString().split("T")[0];
+        const classes = await classroomApi.getSchedules(today, today);
+        setTodayClasses(classes);
+      } catch { /* empty */ }
     }
     load();
   }, []);
@@ -108,6 +115,28 @@ export default function MemberHomePage() {
           </div>
         ) : (
           <>
+            {/* 이번 달 출석 요약 */}
+            {!loading && (
+              <div className="flex gap-3">
+                <div className="flex-1 rounded-[12px] bg-[var(--color-bg-section)] p-3 text-center">
+                  <p className="text-[20px] font-bold text-[var(--color-text-title)]">{reservations.filter(r => {
+                    const d = new Date(r.classDate);
+                    const now = new Date();
+                    return d.getMonth() === now.getMonth() && d.getFullYear() === now.getFullYear() && r.status !== "CANCELLED";
+                  }).length}</p>
+                  <p className="text-[11px] text-[var(--color-text-sub)]">이번 달 수업</p>
+                </div>
+                <div className="flex-1 rounded-[12px] bg-[var(--color-bg-section)] p-3 text-center">
+                  <p className="text-[20px] font-bold text-[var(--color-text-title)]">{upcomingReservations.length}</p>
+                  <p className="text-[11px] text-[var(--color-text-sub)]">예정 예약</p>
+                </div>
+                <div className="flex-1 rounded-[12px] bg-[var(--color-bg-section)] p-3 text-center">
+                  <p className="text-[20px] font-bold text-[var(--color-pilates-dark)]">{activeMembership ? (activeMembership.unlimited ? "\u221E" : activeMembership.remainingCount) : 0}</p>
+                  <p className="text-[11px] text-[var(--color-text-sub)]">잔여 횟수</p>
+                </div>
+              </div>
+            )}
+
             {/* 정기권 카드 */}
             {loading ? (
               <div className="rounded-[18px] bg-[var(--color-pilates-light)] p-5 animate-pulse h-32" />
@@ -166,6 +195,14 @@ export default function MemberHomePage() {
                     </div>
                   ))}
                 </div>
+              ) : activeMembership ? (
+                <div className="rounded-[18px] bg-gradient-to-r from-[var(--color-pilates-light)] to-white p-5 text-center">
+                  <p className="text-[15px] font-semibold text-[var(--color-text-title)] mb-1">아직 예약이 없어요</p>
+                  <p className="text-[13px] text-[var(--color-text-body)] mb-3">수강권이 있으니 원하는 시간에 수업을 예약해보세요!</p>
+                  <Link href="/schedule" className="inline-block bg-[var(--color-pilates)] hover:bg-[var(--color-pilates-dark)] text-[var(--color-text-title)] rounded-[8px] px-5 py-2.5 text-[14px] font-semibold transition-colors">
+                    수업 예약하기
+                  </Link>
+                </div>
               ) : (
                 <p className="text-[15px] text-[var(--color-text-sub)]">
                   예정된 예약이 없습니다
@@ -179,8 +216,43 @@ export default function MemberHomePage() {
                 수업 예약하기
               </button>
             </Link>
+
+            {/* 오늘의 수업 */}
+            {todayClasses.length > 0 && (
+              <div>
+                <h2 className="text-[18px] font-bold text-[var(--color-text-title)] mb-3">오늘의 수업</h2>
+                <div className="flex flex-col gap-2">
+                  {todayClasses.map((cs) => {
+                    const isMyReservation = reservations.some(r => r.classDate === cs.classDate && r.startTime === cs.startTime && r.status === "CONFIRMED");
+                    return (
+                      <div key={cs.id} className={`rounded-[12px] border ${isMyReservation ? "border-[var(--color-pilates)] bg-[var(--color-pilates-light)]/20" : "border-[var(--color-border)]"} p-3 flex items-center justify-between`}>
+                        <div>
+                          <p className="text-[14px] font-semibold text-[var(--color-text-title)]">
+                            {formatTime(cs.startTime)} {cs.lessonTypeName}
+                          </p>
+                          <p className="text-[12px] text-[var(--color-text-sub)]">{cs.instructorName} · {cs.currentCount}/{cs.maxCapacity}명</p>
+                        </div>
+                        {isMyReservation && (
+                          <span className="text-[11px] font-semibold text-[var(--color-pilates-dark)] bg-[var(--color-pilates-light)] px-2 py-0.5 rounded-full">내 예약</span>
+                        )}
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            )}
           </>
         )}
+
+        {/* 학원 운영 안내 */}
+        <div className="rounded-[18px] bg-[var(--color-bg-section)] p-4">
+          <h3 className="text-[14px] font-bold text-[var(--color-text-title)] mb-2">학원 안내</h3>
+          <div className="flex flex-col gap-1 text-[13px] text-[var(--color-text-body)]">
+            <p>운영시간: 평일 09:00 ~ 21:00 / 토 09:00 ~ 17:00</p>
+            <p>휴무일: 일요일, 공휴일</p>
+            <p>문의: 02-1234-5678</p>
+          </div>
+        </div>
       </main>
 
       <MobileTabBar />

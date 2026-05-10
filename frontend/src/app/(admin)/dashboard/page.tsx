@@ -140,13 +140,13 @@ export default function AdminDashboardPage() {
             {data?.expiringMemberships.slice(0, 3).map((m) => (
               <div key={m.memberId} onClick={() => router.push("/members")} className="flex items-center gap-3 rounded-[8px] bg-[#FFF3E0] px-4 py-3 cursor-pointer hover:opacity-80 transition-opacity">
                 <Clock className="h-4 w-4 text-[var(--color-warning)] shrink-0" />
-                <span className="text-[13px] text-[var(--color-text-title)]">{m.memberName} — D-{m.daysLeft}</span>
+                <span className="text-[13px] text-[var(--color-text-title)]">{m.memberName} — 정기권 만료 D-{m.daysLeft}</span>
               </div>
             ))}
             {data?.alerts.lowMembershipMembers.slice(0, 3).map((m) => (
               <div key={m.memberId} onClick={() => router.push("/members")} className="flex items-center gap-3 rounded-[8px] bg-[#FFF3E0] px-4 py-3 cursor-pointer hover:opacity-80 transition-opacity">
                 <User className="h-4 w-4 text-[var(--color-warning)] shrink-0" />
-                <span className="text-[13px] text-[var(--color-text-title)]">{m.memberName} — 잔여 {m.remainingCount}회</span>
+                <span className="text-[13px] text-[var(--color-text-title)]">{m.memberName} — 수강권 잔여 {m.remainingCount}회</span>
               </div>
             ))}
             {(!data || (data.alerts.noShowMembers.length === 0 && data.expiringMemberships.length === 0 && data.alerts.lowMembershipMembers.length === 0)) && !loading && (
@@ -202,7 +202,7 @@ export default function AdminDashboardPage() {
                     <div className="absolute -top-1 opacity-0 group-hover:opacity-100 transition-opacity bg-text-title text-white text-[11px] px-2 py-1 rounded-[6px] whitespace-nowrap z-10">
                       {amt.toLocaleString()}원
                     </div>
-                    {amt > 0 && <span className="text-[10px] font-semibold text-[var(--color-text-body)] mb-0.5">{amt >= 10000 ? `${Math.round(amt/10000)}만` : amt.toLocaleString()}</span>}
+                    <span className="text-[10px] font-semibold text-[var(--color-text-body)] mb-0.5">{amt === 0 ? "0원" : amt >= 10000 ? `${Math.round(amt/10000)}만` : amt.toLocaleString()}</span>
                     <div
                       className="w-full rounded-t-[4px] bg-[var(--color-pilates)] hover:bg-[var(--color-pilates-dark)] transition-colors cursor-pointer"
                       style={{ height: barH, maxWidth: 40 }}

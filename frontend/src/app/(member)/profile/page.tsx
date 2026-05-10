@@ -110,9 +110,9 @@ export default function MyPage() {
 
   const menuItems = [
     { icon: Ticket, label: "수강권 구매", href: "/membership" },
-    { icon: CreditCard, label: "결제 내역", href: "/reservations" },
+    { icon: CreditCard, label: "예약 내역", href: "/reservations" },
     { icon: Lock, label: "비밀번호 변경", href: "/reset-password" },
-    { icon: Bell, label: "알림 설정", href: "/reservations" },
+    { icon: Bell, label: "알림 설정 (준비 중)", href: "" },
   ];
 
   return (
@@ -158,7 +158,7 @@ export default function MyPage() {
         {/* 메뉴 */}
         <div className="flex flex-col">
           {menuItems.map(({ icon: Icon, label, href }) => (
-            <button key={label} onClick={() => router.push(href)} className="flex items-center gap-4 py-4 border-b border-[var(--color-border)] hover:text-[var(--color-pilates-dark)] transition-colors">
+            <button key={label} onClick={() => { if (href) router.push(href); }} className="flex items-center gap-4 py-4 border-b border-[var(--color-border)] hover:text-[var(--color-pilates-dark)] transition-colors">
               <Icon className="h-[18px] w-[18px] shrink-0 text-[var(--color-text-body)]" />
               <span className="flex-1 text-left text-[15px] text-[var(--color-text-title)]">{label}</span>
               <ChevronRight className="h-4 w-4 text-[var(--color-text-sub)]" />

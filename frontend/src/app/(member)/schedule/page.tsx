@@ -61,9 +61,20 @@ export default function SchedulePage() {
 
   const hasActiveMembership = memberships.some((m) => m.status === "ACTIVE");
   const selectedDateStr = format(selectedDate, "yyyy-MM-dd");
+  const now = new Date();
+  const isToday = selectedDateStr === format(now, "yyyy-MM-dd");
   const daySchedules = schedules
     .filter((s) => s.classDate === selectedDateStr)
-    .sort((a, b) => a.startTime.localeCompare(b.startTime));
+    .sort((a, b) => {
+      if (isToday) {
+        const aStart = new Date(`${a.classDate}T${a.endTime}`);
+        const bStart = new Date(`${b.classDate}T${b.endTime}`);
+        const aPast = aStart <= now;
+        const bPast = bStart <= now;
+        if (aPast !== bPast) return aPast ? 1 : -1;
+      }
+      return a.startTime.localeCompare(b.startTime);
+    });
 
   const handleReserve = async (classScheduleId: number) => {
     setReserving(classScheduleId);
@@ -105,7 +116,7 @@ export default function SchedulePage() {
               }`}
             >
               <span className="text-[13px]">{format(d, "M/d")}</span>
-              <span className="text-[15px] font-semibold">{format(d, "EEE", { locale: ko })}</span>
+              <span className="text-[15px] font-semibold">{format(d, "yyyy-MM-dd") === format(new Date(), "yyyy-MM-dd") ? "오늘" : format(d, "EEE", { locale: ko })}</span>
             </button>
           );
         })}
@@ -123,8 +134,11 @@ export default function SchedulePage() {
           daySchedules.map((cs) => {
             const isFull = cs.currentCount >= cs.maxCapacity;
             const remaining = cs.maxCapacity - cs.currentCount;
+            const now = new Date();
+            const classStart = new Date(`${cs.classDate}T${cs.startTime}`);
+            const isPast = classStart <= now;
             return (
-              <div key={cs.id} className="rounded-[18px] border border-[var(--color-border)] overflow-hidden flex">
+              <div key={cs.id} className={`rounded-[18px] border border-[var(--color-border)] overflow-hidden flex ${isToday && new Date(`${cs.classDate}T${cs.endTime}`) <= now ? "opacity-50" : ""}`}>
                 <div className={`w-1 self-stretch rounded-l-[18px] ${lessonColor[cs.lessonTypeName] || "bg-pilates"}`} />
                 <div className="flex-1 p-4 flex items-center justify-between">
                   <div className="flex-1">
@@ -152,14 +166,14 @@ export default function SchedulePage() {
                     <div className="flex flex-col items-end">
                       <button
                         onClick={() => setConfirmClassId(cs.id)}
-                        disabled={isFull || reserving === cs.id}
+                        disabled={isFull || isPast || reserving === cs.id}
                         className={`rounded-[8px] px-4 py-2.5 text-[13px] font-semibold transition-all ${
-                          isFull
+                          isFull || isPast
                             ? "bg-[var(--color-bg-section)] text-[var(--color-text-sub)] cursor-not-allowed"
                             : "bg-[var(--color-pilates)] hover:bg-[var(--color-pilates-dark)] text-[var(--color-text-title)]"
                         }`}
                       >
-                        {reserving === cs.id ? "..." : isFull ? "마감" : "예약"}
+                        {reserving === cs.id ? "..." : isPast ? "종료" : isFull ? "마감" : "예약"}
                       </button>
                       {isFull && (
                         <p className="text-[11px] text-[var(--color-text-sub)] mt-1">다른 시간을 확인해보세요</p>

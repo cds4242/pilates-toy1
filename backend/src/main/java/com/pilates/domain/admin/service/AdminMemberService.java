@@ -126,7 +126,7 @@ public class AdminMemberService {
                     return new AdminMemberResponse(
                             m.getId(),
                             encryptionService.decrypt(m.getName()),
-                            MaskingUtil.maskPhone(encryptionService.decrypt(m.getPhoneEncrypted())),
+                            encryptionService.decrypt(m.getPhoneEncrypted()),
                             m.getGender().name(),
                             m.getStatus().name(),
                             activeMembership,
@@ -146,7 +146,7 @@ public class AdminMemberService {
                 .orElseThrow(() -> new BusinessException(ErrorCode.MEMBER_NOT_FOUND));
 
         String name = encryptionService.decrypt(member.getName());
-        String phone = MaskingUtil.maskPhone(encryptionService.decrypt(member.getPhoneEncrypted()));
+        String phone = encryptionService.decrypt(member.getPhoneEncrypted());
         String birth = encryptionService.decrypt(member.getBirthEncrypted());
 
         // 정기권
