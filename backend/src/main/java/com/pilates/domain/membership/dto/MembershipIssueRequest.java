@@ -32,8 +32,7 @@ public record MembershipIssueRequest(
         @Schema(description = "무제한 여부", example = "false")
         boolean unlimited,
 
-        @Schema(description = "수업 유형 ID 목록", example = "[1, 2]")
-        @NotEmpty(message = "수업 유형은 1개 이상 필수입니다.")
+        @Schema(description = "수업 유형 ID 목록 (상품 기반 발급 시 자동 매핑)", example = "[1, 2]")
         List<Long> lessonTypeIds,
 
         @Schema(description = "정기권 종류 ID (상품 기반 발급 시)", example = "1")

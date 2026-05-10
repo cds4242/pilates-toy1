@@ -15,6 +15,15 @@ public record PublicInstructorResponse(
         String name,
 
         @Schema(description = "프로필 이미지 URL")
-        String profileImageUrl
+        String profileImageUrl,
+
+        @Schema(description = "전문 분야")
+        String specialty,
+
+        @Schema(description = "자격/경력")
+        String certification,
+
+        @Schema(description = "근무 요일")
+        String workingDays
 ) {
 }

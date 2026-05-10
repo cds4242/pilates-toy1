@@ -12,6 +12,7 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 
 import java.math.BigDecimal;
+import java.time.LocalDate;
 
 /**
  * 정기권 종류(상품 카탈로그) 엔티티.
@@ -54,6 +55,30 @@ public class MembershipPass extends BaseEntity {
     @Column(name = "display_order", nullable = false)
     private int displayOrder;
 
+    /** 회원 노출 여부 */
+    @Column(name = "is_visible", nullable = false)
+    private boolean visible = true;
+
+    /** 판매 활성 상태 */
+    @Column(name = "is_active", nullable = false)
+    private boolean active = true;
+
+    /** 판매 시작일 (null이면 즉시 판매) */
+    @Column(name = "sale_start_date")
+    private LocalDate saleStartDate;
+
+    /** 판매 종료일 (null이면 무기한) */
+    @Column(name = "sale_end_date")
+    private LocalDate saleEndDate;
+
+    /** 카테고리 (PERSONAL/GROUP/UNLIMITED) */
+    @Column(name = "category", length = 20)
+    private String category;
+
+    /** 상품 설명 */
+    @Column(name = "description", length = 500)
+    private String description;
+
     @Builder
     private MembershipPass(String publicId, String name, BigDecimal price,
                            Integer totalCount, int validityDays, boolean unlimited,
@@ -78,6 +103,35 @@ public class MembershipPass extends BaseEntity {
         if (totalCount != null) this.totalCount = totalCount;
         if (validityDays != null) this.validityDays = validityDays;
         if (displayOrder != null) this.displayOrder = displayOrder;
+    }
+
+    /** 확장 정보 수정 */
+    public void updateExtendedInfo(Boolean visible, Boolean active, LocalDate saleStartDate,
+                                    LocalDate saleEndDate, String category, String description) {
+        if (visible != null) this.visible = visible;
+        if (active != null) this.active = active;
+        if (saleStartDate != null) this.saleStartDate = saleStartDate;
+        this.saleEndDate = saleEndDate; // null 허용 (무기한)
+        if (category != null) this.category = category;
+        if (description != null) this.description = description;
+    }
+
+    /** 비활성화 (판매 중지) — 이미 발급된 회원은 계속 사용 가능 */
+    public void deactivatePass() {
+        this.active = false;
+    }
+
+    /** 활성화 (판매 재개) */
+    public void activatePass() {
+        this.active = true;
+    }
+
+    /** 현재 판매 가능한 상태인지 (노출 + 활성 + 판매 기간 내) */
+    public boolean isSellable(LocalDate today) {
+        if (!this.visible || !this.active) return false;
+        if (this.saleStartDate != null && today.isBefore(this.saleStartDate)) return false;
+        if (this.saleEndDate != null && today.isAfter(this.saleEndDate)) return false;
+        return true;
     }
 
     /**

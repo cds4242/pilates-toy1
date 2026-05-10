@@ -16,6 +16,27 @@ public record InstructorUpdateRequest(
         String phone,
 
         @Schema(description = "프로필 이미지 URL")
-        String profileImageUrl
+        String profileImageUrl,
+
+        @Schema(description = "이메일")
+        String email,
+
+        @Schema(description = "주소")
+        String address,
+
+        @Schema(description = "생년월일 (yyyy-MM-dd)")
+        String birthDate,
+
+        @Schema(description = "전문 분야")
+        String specialty,
+
+        @Schema(description = "자격증")
+        String certification,
+
+        @Schema(description = "근무 요일 (MON,TUE,...)")
+        String workingDays,
+
+        @Schema(description = "메모")
+        String memo
 ) {
 }

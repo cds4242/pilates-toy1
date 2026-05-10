@@ -40,6 +40,21 @@ public record MembershipPassCreateRequest(
         @Schema(description = "표시 순서", example = "1")
         int displayOrder,
 
+        @Schema(description = "회원 노출 여부", example = "true")
+        Boolean visible,
+
+        @Schema(description = "판매 시작일 (null이면 즉시)", example = "2026-05-10")
+        String saleStartDate,
+
+        @Schema(description = "판매 종료일 (null이면 무기한)")
+        String saleEndDate,
+
+        @Schema(description = "카테고리 (PERSONAL/GROUP/UNLIMITED)", example = "GROUP")
+        String category,
+
+        @Schema(description = "상품 설명", example = "주 2~3회 추천")
+        String description,
+
         @Schema(description = "수업 유형 ID 목록", example = "[1, 2]")
         @NotEmpty(message = "수업 유형은 1개 이상 필수입니다.")
         List<Long> lessonTypeIds

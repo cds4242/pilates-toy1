@@ -71,6 +71,12 @@ public class InstructorService {
         }
 
         instructor.updateInfo(request.name(), phoneEncrypted, phoneHash, request.profileImageUrl());
+
+        // 확장 프로필 업데이트
+        java.time.LocalDate birthDate = request.birthDate() != null ? java.time.LocalDate.parse(request.birthDate()) : null;
+        instructor.updateProfile(request.email(), request.address(), birthDate,
+                request.specialty(), request.certification(), request.workingDays(), request.memo());
+
         log.info("강사 정보 수정: id={}", id);
         return toResponse(instructor);
     }
@@ -227,6 +233,13 @@ public class InstructorService {
                 decryptedPhone,
                 instructor.getStatus().name(),
                 instructor.getProfileImageUrl(),
+                instructor.getEmail(),
+                instructor.getAddress(),
+                instructor.getBirthDate() != null ? instructor.getBirthDate().toString() : null,
+                instructor.getSpecialty(),
+                instructor.getCertification(),
+                instructor.getWorkingDays(),
+                instructor.getMemo(),
                 instructor.getCreatedAt() != null
                         ? instructor.getCreatedAt().format(DateTimeFormatter.ISO_LOCAL_DATE_TIME) : null
         );
@@ -236,7 +249,10 @@ public class InstructorService {
         return new PublicInstructorResponse(
                 instructor.getPublicId(),
                 instructor.getName(),
-                instructor.getProfileImageUrl()
+                instructor.getProfileImageUrl(),
+                instructor.getSpecialty(),
+                instructor.getCertification(),
+                instructor.getWorkingDays()
         );
     }
 

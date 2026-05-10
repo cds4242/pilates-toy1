@@ -38,6 +38,24 @@ public record MembershipPassResponse(
         @Schema(description = "표시 순서")
         int displayOrder,
 
+        @Schema(description = "회원 노출 여부")
+        boolean visible,
+
+        @Schema(description = "판매 활성 상태")
+        boolean active,
+
+        @Schema(description = "판매 시작일")
+        String saleStartDate,
+
+        @Schema(description = "판매 종료일")
+        String saleEndDate,
+
+        @Schema(description = "카테고리 (PERSONAL/GROUP/UNLIMITED)")
+        String category,
+
+        @Schema(description = "상품 설명")
+        String description,
+
         @Schema(description = "수업 유형 목록")
         List<LessonTypeInfo> lessonTypes,
 
@@ -45,15 +63,10 @@ public record MembershipPassResponse(
         String createdAt
 ) {
 
-    /**
-     * 수업 유형 정보.
-     */
     @Schema(description = "수업 유형 정보")
     public record LessonTypeInfo(
-
             @Schema(description = "수업 유형 ID")
             Long id,
-
             @Schema(description = "수업 유형 이름")
             String name
     ) {

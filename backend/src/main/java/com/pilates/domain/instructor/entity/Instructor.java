@@ -48,6 +48,27 @@ public class Instructor extends BaseEntity {
     @Column(name = "profile_image_url", length = 500)
     private String profileImageUrl;
 
+    @Column(name = "email", length = 100)
+    private String email;
+
+    @Column(name = "address", length = 500)
+    private String address;
+
+    @Column(name = "birth_date")
+    private java.time.LocalDate birthDate;
+
+    @Column(name = "specialty", length = 200)
+    private String specialty;
+
+    @Column(name = "certification", length = 500)
+    private String certification;
+
+    @Column(name = "working_days", length = 100)
+    private String workingDays;
+
+    @Column(name = "memo", columnDefinition = "TEXT")
+    private String memo;
+
     @Builder
     private Instructor(String publicId, String name, String phoneEncrypted, String phoneHash,
                        InstructorStatus status, String profileImageUrl) {
@@ -67,6 +88,18 @@ public class Instructor extends BaseEntity {
             this.phoneHash = phoneHash;
         }
         if (profileImageUrl != null) this.profileImageUrl = profileImageUrl;
+    }
+
+    /** 프로필 확장 정보 수정. */
+    public void updateProfile(String email, String address, java.time.LocalDate birthDate,
+                              String specialty, String certification, String workingDays, String memo) {
+        if (email != null) this.email = email;
+        if (address != null) this.address = address;
+        if (birthDate != null) this.birthDate = birthDate;
+        if (specialty != null) this.specialty = specialty;
+        if (certification != null) this.certification = certification;
+        if (workingDays != null) this.workingDays = workingDays;
+        if (memo != null) this.memo = memo;
     }
 
     /** 비활성화 */

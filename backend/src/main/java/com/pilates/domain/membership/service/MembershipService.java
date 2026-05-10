@@ -105,6 +105,9 @@ public class MembershipService {
         }
 
         // 직접 입력 발급 (기존 방식)
+        if (request.lessonTypeIds() == null || request.lessonTypeIds().isEmpty()) {
+            throw new BusinessException(ErrorCode.INVALID_INPUT_VALUE);
+        }
         List<LessonType> lessonTypes = request.lessonTypeIds().stream()
                 .map(id -> lessonTypeRepository.findById(id)
                         .orElseThrow(() -> new BusinessException(ErrorCode.LESSON_TYPE_NOT_FOUND)))
