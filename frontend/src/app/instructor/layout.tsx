@@ -18,7 +18,7 @@ export default function InstructorLayout({
   }, [accessToken, router, _hydrated]);
 
   return (
-    <div className="min-h-screen bg-instructor-light">
+    <div className="min-h-screen" style={{ background: "#F6F7FF" }}>
       {children}
     </div>
   );

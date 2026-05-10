@@ -8,6 +8,13 @@ import { adminApi } from "@/lib/api/admin";
 import type { PageResponse } from "@/lib/types/api";
 import { StatusBadge } from "@/components/design/StatusBadge";
 import { HelpTip, PageGuide } from "@/components/design/HelpTip";
+import {
+  AdminPageHeader,
+  AdminSearchBox,
+  AdminPrimaryButton,
+  AdminGhostButton,
+  AdminPlusIcon,
+} from "@/components/design/AdminPageHeader";
 import { toast } from "sonner";
 
 interface AdminMember {
@@ -134,19 +141,64 @@ export default function AdminMembersPage() {
     e.target.value = "";
   };
 
+  const handleExportCsv = () => {
+    const header = "이름,휴대폰,정기권,잔여,만료일,출석률,상태\n";
+    const rows = members
+      .map(
+        (m) =>
+          `${m.name},${formatPhone(m.phone)},${m.activeMembership || "-"},${m.remainingInfo || "-"},${m.expiryDate || "-"},${m.attendanceRate || "-"},${m.status}`,
+      )
+      .join("\n");
+    const blob = new Blob(["﻿" + header + rows], {
+      type: "text/csv;charset=utf-8;",
+    });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `회원목록_${new Date().toISOString().slice(0, 10)}.csv`;
+    a.click();
+    URL.revokeObjectURL(url);
+  };
+
   return (
     <div>
-      <div className="flex flex-wrap items-center justify-between gap-4 mb-6">
-        <div className="flex items-baseline gap-3">
-          <h1 className="text-[26px] font-bold text-[var(--color-text-title)]">회원 관리</h1>
-          {!loading && <span className="text-[14px] text-text-sub">총 {total}명</span>}
-        </div>
-        <div className="flex items-center gap-3">
-          <button onClick={() => setShowAddModal(true)} className="rounded-[8px] bg-pilates hover:bg-pilates-dark px-4 py-2.5 text-[13px] font-semibold text-text-title transition-colors">+ 회원 등록</button>
-          <HelpTip text="이름과 전화번호만으로 회원을 등록할 수 있습니다. 대량 등록은 엑셀 파일을 이용하세요." />
-          <button onClick={() => fileRef.current?.click()} className="rounded-[8px] border border-border hover:border-pilates bg-white px-4 py-2.5 text-[13px] font-semibold text-text-body transition-colors">엑셀 일괄 등록</button>
-          <input ref={fileRef} type="file" accept=".xlsx,.xls" className="hidden" onChange={handleExcelUpload} />
-          <button onClick={() => {
+      <AdminPageHeader
+        eyebrow="MEMBERS"
+        title="회원 관리"
+        sub={loading ? "회원 정보를 불러오는 중이에요." : `총 ${total}명의 회원이 등록되어 있어요.`}
+        actions={
+          <>
+            <AdminSearchBox
+              value={search}
+              onChange={setSearch}
+              placeholder="이름 · 휴대폰 검색..."
+            />
+            <AdminPrimaryButton
+              onClick={() => setShowAddModal(true)}
+              icon={<AdminPlusIcon />}
+            >
+              회원 등록
+            </AdminPrimaryButton>
+          </>
+        }
+      />
+
+      <div className="mb-4 flex flex-wrap items-center gap-2">
+        <AdminGhostButton onClick={() => fileRef.current?.click()}>
+          엑셀 일괄 등록
+        </AdminGhostButton>
+        <input
+          ref={fileRef}
+          type="file"
+          accept=".xlsx,.xls"
+          className="hidden"
+          onChange={handleExcelUpload}
+        />
+        <AdminGhostButton onClick={handleExportCsv}>내보내기</AdminGhostButton>
+        <HelpTip text="이름과 전화번호만으로 회원을 등록할 수 있습니다. 대량 등록은 엑셀 파일을 이용하세요." />
+      </div>
+
+      {/* removed-legacy-block-START
             const header = "이름,휴대폰,정기권,잔여,만료일,출석률,상태\n";
             const rows = members.map(m => `${m.name},${formatPhone(m.phone)},${m.activeMembership||"-"},${m.remainingInfo||"-"},${m.expiryDate||"-"},${m.attendanceRate||"-"},${m.status}`).join("\n");
             const blob = new Blob(["\uFEFF" + header + rows], { type: "text/csv;charset=utf-8;" });
@@ -154,26 +206,31 @@ export default function AdminMembersPage() {
             const a = document.createElement("a");
             a.href = url; a.download = `회원목록_${new Date().toISOString().slice(0,10)}.csv`; a.click();
             URL.revokeObjectURL(url);
-          }} className="rounded-[8px] border border-border hover:border-pilates bg-white px-4 py-2.5 text-[13px] font-semibold text-text-body transition-colors">
-            내보내기
-          </button>
-        </div>
-      </div>
+          }} className="..." > end-removed */}
 
       <PageGuide text="회원을 클릭하면 상세 정보를 확인하고 수강권을 발급할 수 있습니다. 상단 필터와 정렬을 활용하여 원하는 회원을 빠르게 찾아보세요." />
 
-      <form onSubmit={handleSearch} className="flex flex-wrap gap-3 mb-6">
-        <div className="flex-1 min-w-[200px] relative">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-text-sub" />
-          <input type="text" placeholder="이름 또는 휴대폰 번호 검색" value={search} onChange={(e) => setSearch(e.target.value)}
-            className="w-full border border-[#DDDDDD] rounded-[8px] pl-9 pr-3.5 py-2.5 text-[15px] outline-none focus:border-pilates transition-colors" />
-        </div>
-        <select value={statusFilter} onChange={(e) => { setStatusFilter(e.target.value); setPage(0); }}
-          className="border border-[#DDDDDD] rounded-[8px] px-3.5 py-2.5 text-[15px] outline-none bg-white min-w-[120px]">
-          <option value="">전체</option><option value="ACTIVE">활성</option><option value="WITHDRAWN">탈퇴</option>
+      <form onSubmit={handleSearch} className="mb-4 flex flex-wrap gap-2">
+        <select
+          value={statusFilter}
+          onChange={(e) => {
+            setStatusFilter(e.target.value);
+            setPage(0);
+          }}
+          className="min-w-[120px] rounded-full border border-[#F0EBE8] bg-white px-4 py-2 text-[13px] text-[#2A2A2C] outline-none transition-colors focus:border-[#FAD4DE]"
+        >
+          <option value="">상태 전체</option>
+          <option value="ACTIVE">활성</option>
+          <option value="WITHDRAWN">탈퇴</option>
         </select>
-        <select value={membershipFilter} onChange={(e) => { setMembershipFilter(e.target.value); setPage(0); }}
-          className="border border-[#DDDDDD] rounded-[8px] px-3.5 py-2.5 text-[15px] outline-none bg-white min-w-[140px]">
+        <select
+          value={membershipFilter}
+          onChange={(e) => {
+            setMembershipFilter(e.target.value);
+            setPage(0);
+          }}
+          className="min-w-[140px] rounded-full border border-[#F0EBE8] bg-white px-4 py-2 text-[13px] text-[#2A2A2C] outline-none transition-colors focus:border-[#FAD4DE]"
+        >
           <option value="">정기권 전체</option>
           <option value="8회권">8회권</option>
           <option value="12회권">12회권</option>

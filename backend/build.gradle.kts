@@ -71,6 +71,9 @@ dependencies {
     implementation("org.apache.poi:poi:5.2.5")
     implementation("org.apache.poi:poi-ooxml:5.2.5")
 
+    // ── 임베디드 Redis (포트폴리오/시연 프로파일 한정, JAR 단독 기동용) ──
+    implementation("com.github.codemonstur:embedded-redis:1.4.3")
+
     // ── 테스트 ──
     testImplementation("org.springframework.boot:spring-boot-starter-test")
     testImplementation("org.springframework.security:spring-security-test")

@@ -25,8 +25,15 @@ export function useAuth() {
   };
 
   const logout = () => {
+    const role = store.user?.role;
     store.logout();
-    router.push("/login");
+    if (role === "INSTRUCTOR") {
+      router.push("/instructor-login");
+    } else if (role === "ADMIN" || role === "SUPER_ADMIN") {
+      router.push("/admin-login");
+    } else {
+      router.push("/login");
+    }
   };
 
   return { ...store, redirectByRole, logout };

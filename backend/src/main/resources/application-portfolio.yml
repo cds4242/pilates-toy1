@@ -1,0 +1,86 @@
+# ── 포트폴리오/시연용 프로파일 ──
+# 의뢰인이 둘러볼 수 있도록 JAR 단독 실행이 가능한 구성.
+# - 포트 10000 (충돌 회피)
+# - H2 인메모리 DB (외부 DB 불필요)
+# - 임베디드 Redis (외부 Redis 불필요, Portfolio 프로파일에서만 자동 기동)
+# - Mock SMS / Toss / Alimtalk
+# 실행 예: java -jar pilates-backend.jar --spring.profiles.active=portfolio
+
+server:
+  port: 10000
+  servlet:
+    encoding:
+      charset: UTF-8
+      force: true
+  shutdown: graceful
+
+spring:
+  # ── H2 인메모리 DB ──
+  datasource:
+    url: jdbc:h2:mem:pilates;DB_CLOSE_DELAY=-1;MODE=MYSQL
+    username: sa
+    password:
+    driver-class-name: org.h2.Driver
+
+  # ── 포트폴리오 한정: Flyway/마이그레이션 사용하지 않고 JPA 엔티티로 스키마 생성 ──
+  # MySQL 전용 SQL 문법(ALTER ... AFTER, ON DUPLICATE KEY UPDATE)이 H2에서 호환되지 않으므로
+  # 이 프로파일에서는 ddl-auto=create-drop 으로 운영. 데이터 시드는 DemoSeedRunner(자바)에서 일괄 처리.
+  jpa:
+    hibernate:
+      ddl-auto: create-drop
+    show-sql: false
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.H2Dialect
+
+  h2:
+    console:
+      enabled: true
+      path: /h2-console
+      settings:
+        web-allow-others: false
+
+  flyway:
+    enabled: false
+
+  # ── 임베디드 Redis 사용 (host/port는 EmbeddedRedisConfig 와 일치) ──
+  data:
+    redis:
+      host: 127.0.0.1
+      port: 16379
+      timeout: 2000ms
+
+# ── 로깅 ──
+logging:
+  level:
+    root: INFO
+    com.pilates: INFO
+    org.hibernate.SQL: WARN
+
+# ── 앱 커스텀 설정 (포트폴리오 고정값) ──
+app:
+  version: 0.0.1-SNAPSHOT
+  cors:
+    allowed-origins: http://localhost:3000
+  encryption:
+    # 정확히 32바이트(base64) 테스트용 고정값
+    key: cG9ydGZvbGlvLWRlbW8tYWVzLTMyYnl0ZS1rZXktT0s=
+    key-version: v1
+  jwt:
+    # 정확히 32바이트(base64) 테스트용 고정값
+    secret: cG9ydGZvbGlvLWRlbW8tand0LTMyYnl0ZS1zZWNyZXQ=
+    access-token-expiration: 3600       # 1시간 (시연 편의)
+    refresh-token-expiration: 1209600   # 14일
+  logging:
+    masking:
+      enabled: false
+  toss:
+    secret-key: test_sk_DUMMY
+  alimtalk:
+    provider: mock
+    sender-key: portfolio
+    plus-friend-id: "@필라테스OO점"
+
+# ── 포트폴리오 데모 모드 표시 (필요시 프론트로 전달) ──
+portfolio:
+  demo-mode: true

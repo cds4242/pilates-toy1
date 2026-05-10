@@ -58,6 +58,14 @@ public class MembershipPassService {
         // 설정 유효성 검증
         pass.validate();
 
+        // 확장 필드 설정
+        java.time.LocalDate startDate = request.saleStartDate() != null ? java.time.LocalDate.parse(request.saleStartDate()) : null;
+        java.time.LocalDate endDate = request.saleEndDate() != null ? java.time.LocalDate.parse(request.saleEndDate()) : null;
+        pass.updateExtendedInfo(
+                request.visible() != null ? request.visible() : true,
+                true, startDate, endDate,
+                request.category(), request.description());
+
         membershipPassRepository.save(pass);
 
         // 수업 유형 매핑 생성
@@ -77,6 +85,12 @@ public class MembershipPassService {
 
         pass.updateInfo(request.name(), request.price(), request.totalCount(),
                 request.validityDays(), request.displayOrder());
+
+        // 확장 필드 업데이트
+        java.time.LocalDate startDate = request.saleStartDate() != null ? java.time.LocalDate.parse(request.saleStartDate()) : null;
+        java.time.LocalDate endDate = request.saleEndDate() != null ? java.time.LocalDate.parse(request.saleEndDate()) : null;
+        pass.updateExtendedInfo(request.visible(), request.active(), startDate, endDate,
+                request.category(), request.description());
 
         log.info("정기권 종류 수정: id={}", id);
 
@@ -157,8 +171,10 @@ public class MembershipPassService {
     @Transactional(readOnly = true)
     public List<PublicMembershipPassResponse> listPublic() {
         List<MembershipPass> passes = membershipPassRepository.findAllByDeletedAtIsNullOrderByDisplayOrderAsc();
+        java.time.LocalDate today = java.time.LocalDate.now();
 
         return passes.stream()
+                .filter(pass -> pass.isSellable(today))
                 .map(pass -> {
                     List<MembershipPassLessonType> mappings =
                             membershipPassLessonTypeRepository.findAllByMembershipPassId(pass.getId());
@@ -225,6 +241,12 @@ public class MembershipPassService {
                 pass.isUnlimited(),
                 pass.getMonthlyLimit(),
                 pass.getDisplayOrder(),
+                pass.isVisible(),
+                pass.isActive(),
+                pass.getSaleStartDate() != null ? pass.getSaleStartDate().toString() : null,
+                pass.getSaleEndDate() != null ? pass.getSaleEndDate().toString() : null,
+                pass.getCategory(),
+                pass.getDescription(),
                 lessonTypeInfos,
                 pass.getCreatedAt() != null ? pass.getCreatedAt().toString() : null
         );
@@ -238,6 +260,8 @@ public class MembershipPassService {
                 pass.getTotalCount(),
                 pass.getValidityDays(),
                 pass.isUnlimited(),
+                pass.getCategory(),
+                pass.getDescription(),
                 lessonTypeNames
         );
     }

@@ -2,6 +2,11 @@
 
 import { useEffect, useState } from "react";
 import { api } from "@/lib/api/client";
+import { PageGuide } from "@/components/design/HelpTip";
+import {
+  AdminPageHeader,
+  AdminPrimaryButton,
+} from "@/components/design/AdminPageHeader";
 import { toast } from "sonner";
 
 interface Setting {
@@ -137,12 +142,14 @@ export default function AdminSettingsPage() {
 
   return (
     <div>
-      <div className="flex items-center justify-between mb-6">
-        <h1 className="text-[26px] font-bold text-text-title">학원 설정</h1>
-        <button onClick={handleSave} className="rounded-[8px] bg-pilates hover:bg-pilates-dark px-4 py-2.5 text-[13px] font-semibold text-text-title transition-colors">
-          저장
-        </button>
-      </div>
+      <AdminPageHeader
+        eyebrow="SETTINGS"
+        title="학원 설정"
+        sub="예약, 정기권, 알림 등 운영 정책을 관리하세요."
+        actions={<AdminPrimaryButton onClick={handleSave}>저장</AdminPrimaryButton>}
+      />
+
+      <PageGuide text="값을 변경한 후 '저장' 버튼을 눌러야 적용됩니다. 각 항목 아래의 설명을 참고하세요." />
 
       {loading ? (
         <div className="rounded-[18px] border border-border bg-white p-6">

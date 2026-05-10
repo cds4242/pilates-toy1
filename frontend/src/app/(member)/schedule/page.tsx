@@ -35,6 +35,16 @@ export default function SchedulePage() {
   const [memberships, setMemberships] = useState<Membership[]>([]);
   const [myReservations, setMyReservations] = useState<Reservation[]>([]);
   const [selectedDate, setSelectedDate] = useState(new Date());
+
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const params = new URLSearchParams(window.location.search);
+    const dateParam = params.get("date");
+    if (dateParam && /^\d{4}-\d{2}-\d{2}$/.test(dateParam)) {
+      const d = new Date(`${dateParam}T00:00:00`);
+      if (!Number.isNaN(d.getTime())) setSelectedDate(d);
+    }
+  }, []);
   const [loading, setLoading] = useState(true);
   const [reserving, setReserving] = useState<number | null>(null);
   const [confirmClassId, setConfirmClassId] = useState<number | null>(null);

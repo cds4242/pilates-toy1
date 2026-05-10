@@ -10,19 +10,37 @@ import java.math.BigDecimal;
 @Schema(description = "정기권 종류 수정 요청")
 public record MembershipPassUpdateRequest(
 
-        @Schema(description = "정기권 이름", example = "12회권")
+        @Schema(description = "정기권 이름")
         String name,
 
-        @Schema(description = "금액", example = "250000")
+        @Schema(description = "금액")
         BigDecimal price,
 
-        @Schema(description = "총 횟수", example = "12")
+        @Schema(description = "총 횟수")
         Integer totalCount,
 
-        @Schema(description = "유효 기간 (일)", example = "90")
+        @Schema(description = "유효 기간 (일)")
         Integer validityDays,
 
-        @Schema(description = "표시 순서", example = "2")
-        Integer displayOrder
+        @Schema(description = "표시 순서")
+        Integer displayOrder,
+
+        @Schema(description = "회원 노출 여부")
+        Boolean visible,
+
+        @Schema(description = "판매 활성 상태")
+        Boolean active,
+
+        @Schema(description = "판매 시작일 (yyyy-MM-dd)")
+        String saleStartDate,
+
+        @Schema(description = "판매 종료일 (yyyy-MM-dd, null이면 무기한)")
+        String saleEndDate,
+
+        @Schema(description = "카테고리 (PERSONAL/GROUP/UNLIMITED)")
+        String category,
+
+        @Schema(description = "상품 설명")
+        String description
 ) {
 }

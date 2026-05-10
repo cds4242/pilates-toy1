@@ -1,0 +1,1298 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="color-scheme" content="light">
+<title>필라테스 OO점 — Studio Management Platform | Portfolio</title>
+<link rel="stylesheet" as="style" crossorigin href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,500;0,600;0,700;1,500&display=swap" rel="stylesheet">
+<style>
+:root {
+  --pink: #F0A0B5;
+  --pink-dark: #D88A9E;
+  --pink-deep: #9B5A72;
+  --pink-soft: #FBE9EE;
+  --pink-faint: #FDF5F7;
+  --gold: #C9A96E;
+  --gold-dark: #A8884D;
+  --blue: #7C8FD4;
+  --blue-dark: #5F75C4;
+  --ink: #2A2528;
+  --ink-2: #4A4651;
+  --ink-soft: #6B6166;
+  --ink-mute: #A39A9E;
+  --bg: #FBF7F4;
+  --bg-section: #F4F1EA;
+  --line: #ECE4E0;
+  --card: #FFFFFF;
+}
+
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+html { scroll-behavior: smooth; }
+
+body {
+  font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, sans-serif;
+  background: var(--bg);
+  color: var(--ink-soft);
+  -webkit-font-smoothing: antialiased;
+  font-size: 15px;
+  letter-spacing: -0.01em;
+  line-height: 1.7;
+}
+
+.serif {
+  font-family: 'Cormorant Garamond', Georgia, serif;
+  font-style: italic;
+  font-weight: 500;
+}
+
+img { display: block; max-width: 100%; }
+
+.container {
+  max-width: 1180px;
+  margin: 0 auto;
+  padding: 0 24px;
+}
+
+/* ---------- Top Nav ---------- */
+.topbar {
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  background: rgba(251,247,244,0.85);
+  backdrop-filter: blur(14px);
+  border-bottom: 1px solid var(--line);
+}
+.topbar-inner {
+  max-width: 1180px;
+  margin: 0 auto;
+  padding: 14px 24px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 24px;
+}
+.topbar-brand {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 15px;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  color: var(--ink);
+  text-decoration: none;
+}
+.topbar-brand .mark {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background: var(--pink-soft);
+  border: 1px dashed rgba(216,138,158,0.4);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--pink-deep);
+  font-size: 16px;
+  font-style: italic;
+  font-weight: 500;
+  font-family: 'Cormorant Garamond', Georgia, serif;
+}
+.topbar nav {
+  display: flex;
+  gap: 26px;
+}
+.topbar nav a {
+  color: var(--ink-soft);
+  text-decoration: none;
+  font-size: 13px;
+  font-weight: 500;
+  transition: color .15s;
+}
+.topbar nav a:hover { color: var(--pink-deep); }
+
+/* ---------- Hero ---------- */
+.hero {
+  position: relative;
+  padding: 90px 0 100px;
+  overflow: hidden;
+  background:
+    radial-gradient(800px 360px at 0% 0%, var(--pink-soft) 0%, transparent 60%),
+    radial-gradient(900px 400px at 110% 110%, #F5E5DC 0%, transparent 55%),
+    var(--bg);
+}
+.hero::before, .hero::after {
+  content: '';
+  position: absolute;
+  border-radius: 50%;
+  pointer-events: none;
+  filter: blur(60px);
+  opacity: 0.4;
+}
+.hero::before { width: 320px; height: 320px; background: #F8C8D4; top: -80px; right: 6%; }
+.hero::after { width: 280px; height: 280px; background: #EBD7C8; bottom: -100px; left: 4%; }
+
+.hero-inner { position: relative; z-index: 2; max-width: 920px; }
+
+.hero-eyebrow {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 14px;
+  border-radius: 100px;
+  background: rgba(255,255,255,0.7);
+  backdrop-filter: blur(8px);
+  border: 1px solid rgba(216,138,158,0.18);
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--pink-deep);
+  margin-bottom: 24px;
+}
+.hero-eyebrow .dot {
+  width: 6px; height: 6px;
+  border-radius: 50%;
+  background: var(--pink);
+  box-shadow: 0 0 0 3px rgba(232,155,176,0.25);
+}
+
+.hero h1 {
+  font-size: clamp(40px, 6vw, 64px);
+  font-weight: 700;
+  letter-spacing: -0.04em;
+  line-height: 1.1;
+  color: var(--ink);
+  margin-bottom: 24px;
+}
+.hero h1 .accent {
+  color: var(--pink-deep);
+}
+.hero h1 .ornament {
+  color: var(--pink);
+  font-size: 0.85em;
+  display: inline-block;
+  margin: 0 8px;
+}
+
+.hero p {
+  font-size: 18px;
+  line-height: 1.65;
+  color: var(--ink-soft);
+  max-width: 640px;
+  margin-bottom: 36px;
+}
+
+.hero-stats {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 16px;
+  max-width: 720px;
+  margin-top: 40px;
+}
+.hero-stat {
+  background: rgba(255,255,255,0.65);
+  backdrop-filter: blur(8px);
+  border: 1px solid rgba(216,138,158,0.14);
+  border-radius: 18px;
+  padding: 18px 20px;
+}
+.hero-stat-num {
+  font-size: 30px;
+  font-weight: 800;
+  letter-spacing: -0.03em;
+  color: var(--ink);
+  line-height: 1;
+}
+.hero-stat-num small {
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--ink-soft);
+  margin-left: 2px;
+}
+.hero-stat-label {
+  font-size: 12px;
+  color: var(--ink-mute);
+  margin-top: 6px;
+  letter-spacing: 0.04em;
+}
+
+.hero-cta {
+  display: flex;
+  gap: 12px;
+  margin-top: 8px;
+}
+.btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 12px 22px;
+  border-radius: 100px;
+  font-size: 14px;
+  font-weight: 600;
+  text-decoration: none;
+  transition: all .2s;
+  border: none;
+  cursor: pointer;
+}
+.btn-primary {
+  background: linear-gradient(135deg, #F0A8BC 0%, #D88A9E 60%, #C97D94 100%);
+  color: #fff;
+  box-shadow: 0 8px 18px -6px rgba(201, 125, 148, 0.5);
+}
+.btn-primary:hover { transform: translateY(-1px); box-shadow: 0 14px 26px -8px rgba(201, 125, 148, 0.55); }
+.btn-ghost {
+  background: rgba(255,255,255,0.7);
+  border: 1px solid var(--line);
+  color: var(--ink);
+}
+.btn-ghost:hover { background: #fff; border-color: var(--pink); color: var(--pink-deep); }
+
+/* ---------- Sections ---------- */
+section.block {
+  padding: 90px 0;
+}
+section.block.alt { background: var(--bg-section); }
+
+.section-eyebrow {
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--pink-deep);
+  margin-bottom: 8px;
+}
+.section-title {
+  font-size: clamp(28px, 4vw, 38px);
+  font-weight: 700;
+  letter-spacing: -0.03em;
+  color: var(--ink);
+  line-height: 1.2;
+  margin-bottom: 16px;
+}
+.section-sub {
+  font-size: 16px;
+  color: var(--ink-soft);
+  max-width: 720px;
+  line-height: 1.7;
+  margin-bottom: 48px;
+}
+
+/* divider */
+.divider {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100px;
+  margin: 0 0 24px;
+  color: var(--pink);
+}
+.divider .line { flex: 1; height: 1px; background: linear-gradient(90deg, var(--pink), transparent); }
+.divider .diamond { width: 5px; height: 5px; background: var(--pink); transform: rotate(45deg); }
+
+/* ---------- Personas ---------- */
+.persona-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 20px;
+}
+.persona {
+  background: var(--card);
+  border: 1px solid var(--line);
+  border-radius: 24px;
+  padding: 28px;
+  transition: transform .2s, box-shadow .2s, border-color .2s;
+}
+.persona:hover {
+  transform: translateY(-2px);
+  border-color: rgba(216,138,158,0.4);
+  box-shadow: 0 18px 36px -18px rgba(60,40,50,0.15);
+}
+.persona-icon {
+  width: 44px;
+  height: 44px;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-style: italic;
+  font-family: 'Cormorant Garamond', Georgia, serif;
+  font-weight: 600;
+  font-size: 22px;
+  margin-bottom: 18px;
+}
+.persona.member .persona-icon { background: var(--pink-soft); color: var(--pink-deep); }
+.persona.instructor .persona-icon { background: #EEF0FF; color: var(--blue-dark); }
+.persona.admin .persona-icon { background: #F5ECD7; color: var(--gold-dark); }
+
+.persona h3 {
+  font-size: 20px;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  color: var(--ink);
+  margin-bottom: 6px;
+}
+.persona .role {
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  margin-bottom: 14px;
+}
+.persona.member .role { color: var(--pink-deep); }
+.persona.instructor .role { color: var(--blue-dark); }
+.persona.admin .role { color: var(--gold-dark); }
+
+.persona ul {
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.persona li {
+  font-size: 13px;
+  color: var(--ink-soft);
+  padding-left: 18px;
+  position: relative;
+  line-height: 1.6;
+}
+.persona li::before {
+  content: '';
+  position: absolute;
+  left: 6px;
+  top: 9px;
+  width: 4px;
+  height: 4px;
+  border-radius: 50%;
+  background: var(--pink);
+}
+
+/* ---------- Feature grid ---------- */
+.feature-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 20px;
+}
+.feature {
+  background: var(--card);
+  border: 1px solid var(--line);
+  border-radius: 20px;
+  padding: 24px;
+}
+.feature-icon-wrap {
+  width: 38px;
+  height: 38px;
+  border-radius: 11px;
+  background: var(--pink-soft);
+  color: var(--pink-deep);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 14px;
+}
+.feature-icon-wrap svg { width: 18px; height: 18px; }
+.feature h4 {
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--ink);
+  margin-bottom: 6px;
+  letter-spacing: -0.02em;
+}
+.feature p {
+  font-size: 13px;
+  color: var(--ink-soft);
+  line-height: 1.65;
+}
+
+/* ---------- Showcase gallery ---------- */
+.showcase {
+  display: grid;
+  gap: 32px;
+}
+.showcase-item {
+  background: var(--card);
+  border-radius: 28px;
+  overflow: hidden;
+  border: 1px solid var(--line);
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  align-items: stretch;
+}
+.showcase-item.reverse { direction: rtl; }
+.showcase-item.reverse > * { direction: ltr; }
+.showcase-text {
+  padding: 48px 44px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+.showcase-eyebrow {
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--pink-deep);
+  margin-bottom: 8px;
+}
+.showcase-text h3 {
+  font-size: 26px;
+  font-weight: 700;
+  color: var(--ink);
+  letter-spacing: -0.03em;
+  line-height: 1.25;
+  margin-bottom: 14px;
+}
+.showcase-text p {
+  font-size: 14px;
+  color: var(--ink-soft);
+  line-height: 1.75;
+  margin-bottom: 16px;
+}
+.showcase-text ul {
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.showcase-text li {
+  font-size: 13px;
+  color: var(--ink-soft);
+  padding-left: 16px;
+  position: relative;
+}
+.showcase-text li::before {
+  content: '·';
+  position: absolute;
+  left: 4px;
+  top: -2px;
+  font-size: 18px;
+  color: var(--pink);
+  font-weight: 700;
+}
+.showcase-image {
+  background: var(--bg-section);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 32px;
+}
+.showcase-image img {
+  max-width: 100%;
+  max-height: 520px;
+  border-radius: 18px;
+  box-shadow: 0 14px 40px -16px rgba(45,30,30,0.18);
+  border: 1px solid var(--line);
+}
+
+/* ---------- Mobile preview row ---------- */
+.mobile-row {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 16px;
+  align-items: end;
+}
+.mobile-card {
+  background: var(--card);
+  border: 1px solid var(--line);
+  border-radius: 20px;
+  padding: 16px 14px 14px;
+  text-align: center;
+}
+.mobile-card img {
+  width: 100%;
+  border-radius: 12px;
+  border: 1px solid var(--line);
+  margin-bottom: 12px;
+}
+.mobile-card-title {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--ink);
+  letter-spacing: -0.01em;
+}
+.mobile-card-sub {
+  font-size: 11px;
+  color: var(--ink-mute);
+  margin-top: 2px;
+}
+
+/* ---------- Instructor 3-tab ---------- */
+.instructor-tabs {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 24px;
+}
+.instructor-tab {
+  background: var(--card);
+  border: 1px solid var(--line);
+  border-radius: 24px;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+.instructor-tab-header {
+  padding: 24px 24px 12px;
+}
+.tab-eyebrow {
+  display: inline-block;
+  font-size: 10px;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  font-weight: 600;
+  color: var(--blue-dark);
+  margin-bottom: 8px;
+}
+.instructor-tab-header h4 {
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--ink);
+  letter-spacing: -0.02em;
+  line-height: 1.3;
+  margin-bottom: 8px;
+}
+.instructor-tab-header p {
+  font-size: 13px;
+  color: var(--ink-soft);
+  line-height: 1.6;
+}
+.instructor-tab-image {
+  background: linear-gradient(180deg, #F2F4FA 0%, #FFFFFF 100%);
+  padding: 22px 22px 26px;
+  display: flex;
+  justify-content: center;
+}
+.instructor-tab-image img {
+  max-height: 480px;
+  width: auto;
+  border-radius: 18px;
+  border: 1px solid var(--line);
+  box-shadow: 0 14px 40px -16px rgba(95,117,196,0.25);
+}
+
+/* ---------- Login trio ---------- */
+.login-trio {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 20px;
+}
+.login-tile {
+  background: var(--card);
+  border: 1px solid var(--line);
+  border-radius: 22px;
+  overflow: hidden;
+}
+.login-tile-image {
+  background: var(--bg-section);
+  padding: 18px;
+}
+.login-tile-image img {
+  width: 100%;
+  border-radius: 14px;
+  border: 1px solid var(--line);
+}
+.login-tile-body {
+  padding: 18px 20px 22px;
+}
+.login-tile-eyebrow {
+  font-size: 10px;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  font-weight: 600;
+  margin-bottom: 6px;
+}
+.login-tile.member .login-tile-eyebrow { color: var(--pink-deep); }
+.login-tile.instructor .login-tile-eyebrow { color: var(--blue-dark); }
+.login-tile.admin .login-tile-eyebrow { color: var(--gold-dark); }
+.login-tile h4 {
+  font-size: 17px;
+  font-weight: 700;
+  color: var(--ink);
+  letter-spacing: -0.02em;
+  margin-bottom: 8px;
+}
+.login-tile p {
+  font-size: 13px;
+  color: var(--ink-soft);
+  line-height: 1.6;
+}
+
+/* ---------- Tech stack ---------- */
+.stack-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 12px;
+}
+.stack-card {
+  background: var(--card);
+  border: 1px solid var(--line);
+  border-radius: 16px;
+  padding: 18px;
+}
+.stack-card h5 {
+  font-size: 11px;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--pink-deep);
+  font-weight: 600;
+  margin-bottom: 10px;
+}
+.stack-card ul {
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.stack-card li {
+  font-size: 13px;
+  color: var(--ink);
+  font-weight: 500;
+  letter-spacing: -0.01em;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.stack-card li::before {
+  content: '';
+  width: 4px; height: 4px;
+  border-radius: 50%;
+  background: var(--pink);
+  flex-shrink: 0;
+}
+
+/* ---------- Highlights ---------- */
+.highlight-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 20px;
+}
+.highlight {
+  background: var(--card);
+  border: 1px solid var(--line);
+  border-radius: 22px;
+  padding: 28px;
+}
+.highlight h4 {
+  font-size: 18px;
+  font-weight: 700;
+  color: var(--ink);
+  letter-spacing: -0.02em;
+  margin-bottom: 8px;
+}
+.highlight p {
+  font-size: 14px;
+  color: var(--ink-soft);
+  line-height: 1.7;
+}
+.highlight-meta {
+  margin-top: 18px;
+  display: flex;
+  gap: 20px;
+  flex-wrap: wrap;
+  font-size: 12px;
+  color: var(--ink-mute);
+}
+.highlight-meta strong {
+  color: var(--pink-deep);
+  font-weight: 700;
+}
+
+/* ---------- Footer ---------- */
+footer {
+  padding: 60px 0;
+  text-align: center;
+  border-top: 1px solid var(--line);
+  background: var(--card);
+}
+footer .signature {
+  font-size: 14px;
+  letter-spacing: 0.16em;
+  color: var(--ink-mute);
+  margin-bottom: 12px;
+}
+footer p { font-size: 12px; color: var(--ink-mute); }
+
+/* ---------- Responsive ---------- */
+@media (max-width: 980px) {
+  .hero-stats { grid-template-columns: repeat(2, 1fr); }
+  .persona-grid { grid-template-columns: 1fr; }
+  .feature-grid { grid-template-columns: 1fr 1fr; }
+  .showcase-item { grid-template-columns: 1fr; }
+  .showcase-text { padding: 32px 28px; }
+  .mobile-row { grid-template-columns: repeat(3, 1fr); }
+  .instructor-tabs { grid-template-columns: 1fr; }
+  .login-trio { grid-template-columns: 1fr; }
+  .stack-grid { grid-template-columns: 1fr 1fr; }
+  .highlight-grid { grid-template-columns: 1fr; }
+  .topbar nav { display: none; }
+}
+@media (max-width: 560px) {
+  section.block { padding: 60px 0; }
+  .hero { padding: 70px 0 80px; }
+  .feature-grid { grid-template-columns: 1fr; }
+  .mobile-row { grid-template-columns: 1fr 1fr; }
+  .stack-grid { grid-template-columns: 1fr; }
+}
+</style>
+</head>
+<body>
+
+<!-- Top nav -->
+<header class="topbar">
+  <div class="topbar-inner">
+    <a class="topbar-brand" href="#top">
+      <span class="mark">P</span>
+      필라테스 <span class="serif" style="color:var(--pink);">·</span> OO점
+    </a>
+    <nav>
+      <a href="#about">개요</a>
+      <a href="#users">사용자</a>
+      <a href="#showcase">화면</a>
+      <a href="#features">기능</a>
+      <a href="#tech">기술스택</a>
+      <a href="#highlights">하이라이트</a>
+    </nav>
+  </div>
+</header>
+
+<!-- Hero -->
+<section id="top" class="hero">
+  <div class="container hero-inner">
+    <span class="hero-eyebrow">
+      <span class="dot"></span>
+      Pilates Studio Management Platform
+    </span>
+    <h1>
+      필라테스 스튜디오의<br>
+      <span class="accent">예약</span><span class="ornament serif">·</span><span class="accent">출석</span><span class="ornament serif">·</span><span class="accent">매출</span>을<br>
+      한 곳에서.
+    </h1>
+    <p>
+      모바일에 최적화된 회원 앱과, PC 워크스테이션을 위한 관리자 콘솔, 강사용
+      라이트 클라이언트를 하나의 백엔드로 묶었습니다. 80명의 회원, 9명의 강사,
+      12주 분량의 수업 데이터로 실제 운영 흐름을 그대로 재현했어요.
+    </p>
+    <div class="hero-cta">
+      <a href="#showcase" class="btn btn-primary">화면 둘러보기 →</a>
+      <a href="#tech" class="btn btn-ghost">기술 스택</a>
+    </div>
+
+    <div class="hero-stats">
+      <div class="hero-stat">
+        <div class="hero-stat-num">80<small>명</small></div>
+        <div class="hero-stat-label">활성 + 만료 회원</div>
+      </div>
+      <div class="hero-stat">
+        <div class="hero-stat-num">447<small>건</small></div>
+        <div class="hero-stat-label">12주간 수업</div>
+      </div>
+      <div class="hero-stat">
+        <div class="hero-stat-num">998<small>건</small></div>
+        <div class="hero-stat-label">예약 · 출석 기록</div>
+      </div>
+      <div class="hero-stat">
+        <div class="hero-stat-num">3<small>가지</small></div>
+        <div class="hero-stat-label">사용자 톤 · 회원 / 강사 / 관리자</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- About -->
+<section id="about" class="block">
+  <div class="container">
+    <div class="divider"><span class="line"></span><span class="diamond"></span></div>
+    <div class="section-eyebrow">About the project</div>
+    <h2 class="section-title">사용자별로 다른 결을 지닌, 하나의 운영 플랫폼.</h2>
+    <p class="section-sub">
+      회원에겐 부드러운 핑크 톤의 모바일 경험을, 강사에겐 차분한 블루의 일정 관리 화면을,
+      관리자에겐 다크 차콜과 골드 액센트의 PC 콘솔을 제공합니다. 동일한 디자인 시스템 위에서
+      세 페르소나의 정서를 톤으로 분리해 서로의 작업 흐름을 방해하지 않도록 설계했습니다.
+    </p>
+  </div>
+</section>
+
+<!-- Personas -->
+<section id="users" class="block alt">
+  <div class="container">
+    <div class="section-eyebrow">Three personas, three tones</div>
+    <h2 class="section-title">한 백엔드, 세 갈래의 클라이언트.</h2>
+    <p class="section-sub">
+      회원 · 강사 · 관리자 각각의 워크플로우와 디바이스 환경에 맞춰 별도의 UI를 제공합니다.
+    </p>
+
+    <div class="persona-grid">
+      <div class="persona member">
+        <div class="persona-icon">M</div>
+        <div class="role">Member · Mobile</div>
+        <h3>회원 — 가볍게, 즐겁게</h3>
+        <ul>
+          <li>핑크 그라데이션 카드, 원형 진행률 링으로 잔여 회차 직관 표현</li>
+          <li>4-그리드 퀵 액션(예약 · 시간표 · 정기권 · 출석)으로 한 손 사용 최적화</li>
+          <li>풀스크린 검색 시트로 강사 · 수업종류 · 날짜 즉시 탐색</li>
+          <li>월별 출석 내역 + 출석률/연속 출석 KPI</li>
+        </ul>
+      </div>
+      <div class="persona instructor">
+        <div class="persona-icon">T</div>
+        <div class="role">Instructor · Mobile</div>
+        <h3>강사 — 오늘 수업에 집중</h3>
+        <ul>
+          <li>차분한 블루 톤으로 회원 화면과 시각적 분리</li>
+          <li>오늘/내일/이번주 토글로 수업 빠르게 전환</li>
+          <li>출석 체크 시트: 한 명씩 또는 일괄 처리(모두 출석으로)</li>
+          <li>주간 요일별 수업 분포 차트로 본인 스케줄 가시화</li>
+        </ul>
+      </div>
+      <div class="persona admin">
+        <div class="persona-icon">A</div>
+        <div class="role">Admin · Desktop</div>
+        <h3>관리자 — 한 화면에 운영 전체</h3>
+        <ul>
+          <li>다크 차콜 + 골드 액센트, 운영자 권위 있는 톤</li>
+          <li>248px 사이드바 + KPI 4그리드 + 오늘 수업 + 알림 + 매출 차트, 풀 HD에서 한 화면</li>
+          <li>회원/강사/시간표/정기권/설정 — 통일된 page-header 패턴</li>
+          <li>주간/월간 매출 토글, 모달 기반 회원 상세 + 정기권 발급</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Login showcase -->
+<section class="block">
+  <div class="container">
+    <div class="section-eyebrow">Login pages</div>
+    <h2 class="section-title">진입점부터 톤이 달라야 한다.</h2>
+    <p class="section-sub">
+      세 로그인 페이지는 같은 카드 레이아웃을 공유하지만, 색 · 타이포 · 카피로 사용자에게
+      “지금 들어가는 곳이 어디인지”를 즉시 알립니다.
+    </p>
+
+    <div class="login-trio">
+      <div class="login-tile member">
+        <div class="login-tile-image">
+          <img src="screenshots/41_member_login_pc.png" alt="회원 로그인">
+        </div>
+        <div class="login-tile-body">
+          <div class="login-tile-eyebrow">Member Sign In</div>
+          <h4>핑크 톤 · 모바일 카드</h4>
+          <p>스튜디오 히어로 이미지 + Cormorant Garamond P 마크 + 다이아몬드 디바이더로 따뜻하게.</p>
+        </div>
+      </div>
+      <div class="login-tile instructor">
+        <div class="login-tile-image">
+          <img src="screenshots/42_instructor_login_pc.png" alt="강사 로그인">
+        </div>
+        <div class="login-tile-body">
+          <div class="login-tile-eyebrow">Instructor Sign In</div>
+          <h4>블루 톤 · 직무 모드</h4>
+          <p>회원과 시각적으로 즉시 분리, “teach · guide · inspire” 시그니처로 직무 환기.</p>
+        </div>
+      </div>
+      <div class="login-tile admin">
+        <div class="login-tile-image">
+          <img src="screenshots/40_admin_login_pc.png" alt="관리자 로그인">
+        </div>
+        <div class="login-tile-body">
+          <div class="login-tile-eyebrow">Admin Console</div>
+          <h4>차콜 + 골드 · PC 전용</h4>
+          <p>좌측 어두운 히어로 + 우측 폼의 PC 워크스테이션 레이아웃. 운영 권한의 무게감.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Showcase: Member -->
+<section id="showcase" class="block alt">
+  <div class="container">
+    <div class="section-eyebrow">Member · Mobile</div>
+    <h2 class="section-title">회원 앱 — 한 손에 들어오는 스튜디오.</h2>
+    <p class="section-sub">
+      예약 → 출석 → 갱신까지의 회원 라이프사이클을 모바일 480px 폭에 최적화했습니다.
+    </p>
+
+    <div class="showcase">
+      <div class="showcase-item">
+        <div class="showcase-text">
+          <div class="showcase-eyebrow">Home</div>
+          <h3>핑크 그라데이션 정기권 카드와<br>원형 진행률 링.</h3>
+          <p>
+            회원 이름과 잔여 회차를 한눈에. 만료 임박 시 “곧 만료돼요. 연장 혜택 보기” CTA가
+            자동으로 노출됩니다. 4-그리드 퀵 액션으로 예약 · 시간표 · 정기권 · 출석 진입을 한 번에.
+          </p>
+          <ul>
+            <li>76px 원형 SVG 링 — 잔여율을 stroke-dashoffset 으로 애니메이션</li>
+            <li>다음 예약 카드 — 첫 카드만 핑크 강조 + “오늘/내일” 배지 자동 계산</li>
+            <li>이번 달 통계 — 출석률, 잔여 회차 미니 KPI</li>
+          </ul>
+        </div>
+        <div class="showcase-image">
+          <img src="screenshots/10_member_home.png" alt="회원 홈">
+        </div>
+      </div>
+
+      <div class="mobile-row">
+        <div class="mobile-card">
+          <img src="screenshots/11_member_schedule.png" alt="시간표">
+          <div class="mobile-card-title">수업 예약</div>
+          <div class="mobile-card-sub">14일 · 종류별 컬러</div>
+        </div>
+        <div class="mobile-card">
+          <img src="screenshots/12_member_membership.png" alt="정기권">
+          <div class="mobile-card-title">정기권</div>
+          <div class="mobile-card-sub">상품 비교 · 결제</div>
+        </div>
+        <div class="mobile-card">
+          <img src="screenshots/13_member_reservations.png" alt="예약 내역">
+          <div class="mobile-card-title">예약 내역</div>
+          <div class="mobile-card-sub">취소 가능 시점 표시</div>
+        </div>
+        <div class="mobile-card">
+          <img src="screenshots/14_member_attendance.png" alt="출석 현황">
+          <div class="mobile-card-title">출석 현황</div>
+          <div class="mobile-card-sub">월별 + 출석률 90일</div>
+        </div>
+        <div class="mobile-card">
+          <img src="screenshots/15_member_profile.png" alt="마이페이지">
+          <div class="mobile-card-title">마이페이지</div>
+          <div class="mobile-card-sub">개인정보 · 탈퇴</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Showcase: Instructor -->
+<section class="block">
+  <div class="container">
+    <div class="section-eyebrow">Instructor · Mobile</div>
+    <h2 class="section-title">강사 앱 — 차분한 블루로, 오늘에 집중.</h2>
+    <p class="section-sub">
+      상단 핑크 그라데이션 대신 블루 그라데이션으로, 회원 화면과 톤을 분리합니다.
+      <strong style="color:var(--blue-dark)">오늘 / 내일 / 이번 주</strong> 세 탭으로 시야를 좁혀가며,
+      이번 주 모드에서는 요일별 수업 분포 차트가 함께 보입니다.
+    </p>
+
+    <div class="instructor-tabs">
+      <div class="instructor-tab">
+        <div class="instructor-tab-header">
+          <span class="tab-eyebrow">TODAY</span>
+          <h4>오늘 — 진행 중인 수업 한눈에</h4>
+          <p>오늘 배정된 수업과 총 수강생, 마감 수업 수가 카드 3장에 즉시. 시간대 임박/진행 중 상태가 자동 표시.</p>
+        </div>
+        <div class="instructor-tab-image">
+          <img src="screenshots/20_instructor_today.png" alt="강사 - 오늘">
+        </div>
+      </div>
+      <div class="instructor-tab">
+        <div class="instructor-tab-header">
+          <span class="tab-eyebrow">TOMORROW</span>
+          <h4>내일 — 미리 준비하는 수업</h4>
+          <p>내일 배정된 수업을 시간순으로 스크롤. 카드 펼침으로 예약 인원 / 잔여석 / 출석 체크 진입까지 2-탭.</p>
+        </div>
+        <div class="instructor-tab-image">
+          <img src="screenshots/21_instructor_tomorrow.png" alt="강사 - 내일">
+        </div>
+      </div>
+      <div class="instructor-tab">
+        <div class="instructor-tab-header">
+          <span class="tab-eyebrow">THIS WEEK</span>
+          <h4>이번 주 — 요일별 분포 차트</h4>
+          <p>월~일 요일별 수업 수를 원형 카운터로 시각화. 주간 네비로 ←/→ 이동, 날짜별 헤더로 그룹.</p>
+        </div>
+        <div class="instructor-tab-image">
+          <img src="screenshots/22_instructor_week.png" alt="강사 - 이번 주">
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Showcase: Admin Dashboard -->
+<section class="block alt">
+  <div class="container">
+    <div class="section-eyebrow">Admin · Desktop</div>
+    <h2 class="section-title">관리자 대시보드 — 하나의 시야.</h2>
+    <p class="section-sub">
+      KPI 4 그리드 (오늘 수업 / 오늘 예약 / 주간 매출 / 만료 임박) + 오늘의 수업 (리스트/캘린더 토글) +
+      알림 (노쇼 / 만료 임박 / 잔여 부족) + 매출 추이 차트가 1440px 한 화면에 들어옵니다.
+    </p>
+
+    <div class="showcase">
+      <div class="showcase-item">
+        <div class="showcase-text">
+          <div class="showcase-eyebrow">Dashboard</div>
+          <h3>오늘 한 줄, 매출 한 화면.</h3>
+          <p>
+            첫 KPI 카드는 핑크 그라데이션으로 시선을 잡고, 나머지는 화이트 카드. 오늘 수업/알림은
+            한 줄짜리 컴팩트 카드로 정리해 매출 차트까지 스크롤 없이 보이도록 설계했습니다.
+          </p>
+          <ul>
+            <li>주간/월간 토글 — 주간 시 막대 56px, 월간 시 26px로 자동 조정</li>
+            <li>피크 막대는 짙은 핑크 그라데이션으로 강조</li>
+            <li>호버 시 정확한 금액 툴팁</li>
+          </ul>
+        </div>
+        <div class="showcase-image">
+          <img src="screenshots/30_admin_dashboard.png" alt="관리자 대시보드">
+        </div>
+      </div>
+
+      <div class="showcase-item reverse">
+        <div class="showcase-text">
+          <div class="showcase-eyebrow">Members</div>
+          <h3>75명을 한 테이블에, 필터로 좁혀서.</h3>
+          <p>
+            상태 / 정기권 / 정렬 칩으로 한 번의 클릭에 “만료 임박”, “정기권 없음”, “출석률 낮은순”
+            세그먼트를 즉시 호출. 행 클릭 시 모달이 열려 정기권 발급 · 메모 · 탈퇴까지 처리합니다.
+          </p>
+          <ul>
+            <li>엑셀 일괄 등록 + CSV 내보내기</li>
+            <li>모달 안에서 기본정보 / 정기권 / 메모 탭</li>
+            <li>출석률 시각화 — 색상 코드(녹색 / 노랑 / 빨강)</li>
+          </ul>
+        </div>
+        <div class="showcase-image">
+          <img src="screenshots/31_admin_members.png" alt="회원 관리">
+        </div>
+      </div>
+
+      <div class="showcase-item">
+        <div class="showcase-text">
+          <div class="showcase-eyebrow">Schedule</div>
+          <h3>주간 캘린더 + 강사 필터 칩.</h3>
+          <p>
+            빈 셀 클릭으로 즉시 수업 추가 폼에 시간/날짜 자동 입력. 4주치 자동 생성 버튼으로 고정
+            스케줄 일괄 복제. 수업 블록 클릭 시 예약자 명단 + 휴강 처리.
+          </p>
+          <ul>
+            <li>강사별 컬러 + 칩 필터</li>
+            <li>수업 유형(개인/듀엣/그룹/체험) 컬러 인코딩</li>
+            <li>좌측 폼은 sticky 동작 — 빠른 추가 흐름</li>
+          </ul>
+        </div>
+        <div class="showcase-image">
+          <img src="screenshots/33_admin_classes.png" alt="시간표 관리">
+        </div>
+      </div>
+
+      <div class="showcase-item reverse">
+        <div class="showcase-text">
+          <div class="showcase-eyebrow">Instructors / Passes / Settings</div>
+          <h3>일관된 페이지 헤더 패턴.</h3>
+          <p>
+            모든 admin 페이지가 같은 page-header (eyebrow + 큰 제목 + 부제 + 둥근 검색/액션) 형태를
+            공유합니다. 새로운 페이지 추가 시 동일 컴포넌트 재사용으로 일관성을 보장합니다.
+          </p>
+          <ul>
+            <li>강사 관리 — 활성/비활성 통계 + 정렬</li>
+            <li>정기권 — 노출/판매기간/할인까지 상품 라이프사이클 관리</li>
+            <li>설정 — 예약/취소 정책 그룹화</li>
+          </ul>
+        </div>
+        <div class="showcase-image">
+          <img src="screenshots/32_admin_instructors.png" alt="강사 관리">
+        </div>
+      </div>
+    </div>
+
+    <div class="mobile-row" style="grid-template-columns: 1fr 1fr; max-width:880px; margin: 32px auto 0;">
+      <div class="mobile-card">
+        <img src="screenshots/34_admin_membership_passes.png" alt="정기권 관리">
+        <div class="mobile-card-title">정기권 상품 관리</div>
+      </div>
+      <div class="mobile-card">
+        <img src="screenshots/35_admin_settings.png" alt="설정">
+        <div class="mobile-card-title">학원 설정</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Features -->
+<section id="features" class="block">
+  <div class="container">
+    <div class="section-eyebrow">Feature highlights</div>
+    <h2 class="section-title">실제 운영에 필요한 것만, 그대로.</h2>
+    <p class="section-sub">
+      “있어보이는 기능”이 아니라, 한 달 운영해보면 분명히 필요해지는 작은 디테일을 채웠습니다.
+    </p>
+
+    <div class="feature-grid">
+      <div class="feature">
+        <div class="feature-icon-wrap">
+          <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8"><path stroke-linecap="round" stroke-linejoin="round" d="M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 0 1 2.25-2.25h13.5A2.25 2.25 0 0 1 21 7.5v11.25m-18 0A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75m-18 0v-7.5A2.25 2.25 0 0 1 5.25 9h13.5A2.25 2.25 0 0 1 21 11.25v7.5"/></svg>
+        </div>
+        <h4>예약 라이프사이클</h4>
+        <p>예약 → 자동 리마인더 → 출석/지각/결석/노쇼 → 정기권 차감/복원까지의 상태 머신.</p>
+      </div>
+      <div class="feature">
+        <div class="feature-icon-wrap">
+          <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75 11.25 15 15 9.75M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z"/></svg>
+        </div>
+        <h4>출석 체크</h4>
+        <p>강사가 모바일에서 한 번에 일괄 출석 처리, 회원 출석률에 즉시 반영.</p>
+      </div>
+      <div class="feature">
+        <div class="feature-icon-wrap">
+          <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8"><path stroke-linecap="round" stroke-linejoin="round" d="M16.5 6v.75m0 3v.75m0 3v.75m0 3V18m-9-5.25h5.25M7.5 15h3M3.375 5.25c-.621 0-1.125.504-1.125 1.125v3.026a3 3 0 0 1 0 5.198v3.026c0 .621.504 1.125 1.125 1.125h17.25c.621 0 1.125-.504 1.125-1.125v-3.026a3 3 0 0 1 0-5.198V6.375c0-.621-.504-1.125-1.125-1.125H3.375Z"/></svg>
+        </div>
+        <h4>정기권 라이프</h4>
+        <p>발급 · 사용 · 만료 · 갱신 · 환불 + 만료 임박 자동 알림.</p>
+      </div>
+      <div class="feature">
+        <div class="feature-icon-wrap">
+          <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8"><path stroke-linecap="round" stroke-linejoin="round" d="M2.25 18.75a60.07 60.07 0 0 1 15.797 2.101c.727.198 1.453-.342 1.453-1.096V18.75M3.75 4.5v.75A.75.75 0 0 1 3 6h-.75m0 0v-.375c0-.621.504-1.125 1.125-1.125H20.25M2.25 6v9m18-10.5v.75c0 .414.336.75.75.75h.75m-1.5-1.5h.375c.621 0 1.125.504 1.125 1.125v9.75c0 .621-.504 1.125-1.125 1.125h-.375m1.5-1.5H21a.75.75 0 0 0-.75.75v.75m0 0H3.75m0 0h-.375a1.125 1.125 0 0 1-1.125-1.125V15m1.5 1.5v-.75A.75.75 0 0 0 3 15h-.75M15 12a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z"/></svg>
+        </div>
+        <h4>매출 분석</h4>
+        <p>일별/주별 막대 차트, 결제 수단(카드/계좌이체/현금) 분포, 갱신 vs 신규 비율.</p>
+      </div>
+      <div class="feature">
+        <div class="feature-icon-wrap">
+          <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8"><path stroke-linecap="round" stroke-linejoin="round" d="M14.857 17.082a23.848 23.848 0 0 0 5.454-1.31A8.967 8.967 0 0 1 18 9.75V9A6 6 0 0 0 6 9v.75a8.967 8.967 0 0 1-2.312 6.022c1.733.64 3.56 1.085 5.455 1.31m5.714 0a24.255 24.255 0 0 1-5.714 0m5.714 0a3 3 0 1 1-5.714 0"/></svg>
+        </div>
+        <h4>알림 시스템</h4>
+        <p>예약 24h/3h 전 리마인더, 노쇼 발생, 만료 임박, 잔여 부족을 관리자/회원 양쪽에 푸시.</p>
+      </div>
+      <div class="feature">
+        <div class="feature-icon-wrap">
+          <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8"><path stroke-linecap="round" stroke-linejoin="round" d="m21 21-5.197-5.197m0 0A7.5 7.5 0 1 0 5.196 5.196a7.5 7.5 0 0 0 10.607 10.607Z"/></svg>
+        </div>
+        <h4>전사 검색</h4>
+        <p>회원/강사/수업/날짜를 풀스크린 검색 시트에서 한 번에 — 모바일 회원 앱에서도 동일.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Tech stack -->
+<section id="tech" class="block alt">
+  <div class="container">
+    <div class="section-eyebrow">Tech stack</div>
+    <h2 class="section-title">현대적이지만 검증된 기술 조합.</h2>
+    <p class="section-sub">
+      과시용 신기술 대신, 운영 신뢰성과 협업 비용을 함께 고려한 스택입니다.
+    </p>
+
+    <div class="stack-grid">
+      <div class="stack-card">
+        <h5>Frontend</h5>
+        <ul>
+          <li>Next.js 16 (Turbopack)</li>
+          <li>React 19</li>
+          <li>TypeScript 5</li>
+          <li>Tailwind CSS 4</li>
+          <li>Zustand · React Query</li>
+          <li>Pretendard · Cormorant Garamond</li>
+        </ul>
+      </div>
+      <div class="stack-card">
+        <h5>Backend</h5>
+        <ul>
+          <li>Spring Boot 3</li>
+          <li>Java 21</li>
+          <li>Spring Security · JWT</li>
+          <li>JPA / Hibernate</li>
+          <li>Flyway 마이그레이션</li>
+          <li>Redis 캐시</li>
+        </ul>
+      </div>
+      <div class="stack-card">
+        <h5>Infra</h5>
+        <ul>
+          <li>Docker Compose (MySQL · Redis)</li>
+          <li>MySQL 8 · UTF-8</li>
+          <li>로컬 개발 자동화 .bat</li>
+          <li>다환경 프로파일 (local, prod)</li>
+          <li>healthcheck 기반 부팅 순서</li>
+        </ul>
+      </div>
+      <div class="stack-card">
+        <h5>Quality</h5>
+        <ul>
+          <li>ESLint · Prettier</li>
+          <li>Playwright e2e</li>
+          <li>PII 암호화 · 해시 분리</li>
+          <li>비밀번호 BCrypt</li>
+          <li>일별 자동 시드</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Highlights -->
+<section id="highlights" class="block">
+  <div class="container">
+    <div class="section-eyebrow">Engineering highlights</div>
+    <h2 class="section-title">눈에 잘 띄지 않지만, 결과를 가르는 부분.</h2>
+
+    <div class="highlight-grid">
+      <div class="highlight">
+        <h4>1 백엔드 · 3 클라이언트 톤 분리</h4>
+        <p>
+          한 ApiClient 위에서 회원(/api/members), 강사(/api/instructor), 관리자(/api/admin)를
+          분기. UI는 같은 디자인 토큰을 공유하지만, 페르소나별 액센트(핑크 / 블루 / 골드)와
+          레이아웃(모바일 카드 / 모바일 카드 / 데스크탑 사이드바)을 분리.
+        </p>
+        <div class="highlight-meta">
+          <span><strong>3</strong> 페르소나</span>
+          <span><strong>1</strong> 디자인 시스템</span>
+          <span><strong>5</strong> 로그인 진입점</span>
+        </div>
+      </div>
+      <div class="highlight">
+        <h4>풍부한 데모 시드 — 실제 운영을 모사</h4>
+        <p>
+          DemoSeedRunner가 80명 회원 × 패턴별 분포(단골 / 만료 임박 / 신규 / 체험)와 회원별
+          출석 성향(0.55~1.0)을 부여해, 대시보드에서 “보기 좋은 평균값”이 아니라 운영자가 실제로
+          마주하는 분산된 데이터를 보여줍니다.
+        </p>
+        <div class="highlight-meta">
+          <span>회원 <strong>80</strong></span>
+          <span>수업 <strong>447</strong></span>
+          <span>예약 <strong>998</strong></span>
+          <span>결제 <strong>95</strong></span>
+        </div>
+      </div>
+      <div class="highlight">
+        <h4>도메인 상태 머신</h4>
+        <p>
+          Reservation(CONFIRMED · WAITING · CANCELLED · NO_SHOW)와 Attendance(PENDING ·
+          ATTENDED · LATE · ABSENT · NO_SHOW)를 분리해 “예약은 살아있는데 출석만 변경”
+          가능. 정기권 차감/복원이 상태 전이 규칙을 따릅니다.
+        </p>
+        <div class="highlight-meta">
+          <span>4 + 5 <strong>상태</strong></span>
+          <span><strong>idempotent</strong> 시드</span>
+        </div>
+      </div>
+      <div class="highlight">
+        <h4>모바일 우선 + PC 워크스테이션</h4>
+        <p>
+          회원/강사 페이지는 480px 폭의 모바일 프레임에서 시작했습니다. 관리자 콘솔은 1280–1440px
+          PC를 1차 타겟으로 하고, 768px 이하에서는 사이드바를 햄버거로 접습니다.
+        </p>
+        <div class="highlight-meta">
+          <span>모바일 <strong>390 / 480</strong></span>
+          <span>데스크탑 <strong>1280 / 1440</strong></span>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Footer -->
+<footer>
+  <div class="container">
+    <div class="signature serif">breathe · move · balance</div>
+    <p>© 2026 필라테스 OO점 — Studio Management Platform</p>
+  </div>
+</footer>
+
+</body>
+</html>

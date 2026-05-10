@@ -29,6 +29,12 @@ public record PublicMembershipPassResponse(
         @Schema(description = "무제한 여부")
         boolean unlimited,
 
+        @Schema(description = "카테고리")
+        String category,
+
+        @Schema(description = "상품 설명")
+        String description,
+
         @Schema(description = "수업 유형 이름 목록")
         List<String> lessonTypeNames
 ) {

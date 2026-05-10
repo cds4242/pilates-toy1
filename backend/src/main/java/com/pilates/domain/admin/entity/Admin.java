@@ -68,4 +68,9 @@ public class Admin extends BaseEntity {
     public void updateLastLoginAt() {
         this.lastLoginAt = LocalDateTime.now();
     }
+
+    /** 강사 연결 (시드용). */
+    public void linkInstructor(Instructor instructor) {
+        this.instructor = instructor;
+    }
 }

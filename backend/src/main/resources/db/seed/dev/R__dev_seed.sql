@@ -50,6 +50,37 @@ INSERT INTO instructors (public_id, name, phone, status) VALUES
     ('dev_instructor_003', '최재훈', '010-5555-6666', 'ACTIVE')
 ON DUPLICATE KEY UPDATE name = name;
 
+-- ── 강사 프로필 확장 정보 ──
+UPDATE instructors SET
+    specialty = '기구 필라테스, 매트 필라테스',
+    certification = '필라테스 지도자 1급, 운동처방사',
+    working_days = 'MON,TUE,WED,THU,FRI',
+    email = 'jiyoung@studio.com',
+    address = '서울시 강남구 테헤란로 123',
+    birth_date = '1992-03-15',
+    memo = '주력 강사. 그룹/개인 수업 모두 가능.'
+WHERE public_id = 'dev_instructor_001';
+
+UPDATE instructors SET
+    specialty = '재활 필라테스, 산전산후',
+    certification = '필라테스 지도자 2급, 물리치료사',
+    working_days = 'MON,WED,FRI',
+    email = 'soojin@studio.com',
+    address = '서울시 서초구 서초대로 456',
+    birth_date = '1995-07-22',
+    memo = '재활 전문. 월/수/금 근무.'
+WHERE public_id = 'dev_instructor_002';
+
+UPDATE instructors SET
+    specialty = '기구 필라테스, 체형교정',
+    certification = '필라테스 지도자 1급',
+    working_days = 'TUE,THU,SAT',
+    email = 'jaehoon@studio.com',
+    address = '서울시 송파구 올림픽로 789',
+    birth_date = '1990-11-08',
+    memo = '화/목/토 근무. 체형교정 전문.'
+WHERE public_id = 'dev_instructor_003';
+
 -- ── 강사 근무 가능 시간 (정리 후 삽입) ──
 DELETE FROM instructor_available_times WHERE instructor_id IN
     (SELECT id FROM instructors WHERE public_id IN ('dev_instructor_001','dev_instructor_002','dev_instructor_003'));
@@ -110,11 +141,11 @@ INSERT INTO holidays (holiday_date, name) VALUES
 ON DUPLICATE KEY UPDATE name = name;
 
 -- ── 정기권 종류 4종 ──
-INSERT INTO membership_pass (public_id, name, price, total_count, validity_days, is_unlimited, monthly_limit, display_order) VALUES
-    ('pass_8_group', '8회권', 180000, 8, 60, false, NULL, 1),
-    ('pass_12_group', '12회권', 250000, 12, 90, false, NULL, 2),
-    ('pass_unlimited', '무제한권', 350000, NULL, 30, true, 30, 3),
-    ('pass_10_private', '개인 10회권', 500000, 10, 90, false, NULL, 4)
+INSERT INTO membership_pass (public_id, name, price, total_count, validity_days, is_unlimited, monthly_limit, display_order, is_visible, is_active, category, description) VALUES
+    ('pass_8_group', '8회권', 180000, 8, 60, false, NULL, 1, 1, 1, 'GROUP', '주 2회 추천, 그룹/듀엣 수업 가능'),
+    ('pass_12_group', '12회권', 250000, 12, 90, false, NULL, 2, 1, 1, 'GROUP', '주 3회 추천, 그룹/듀엣 수업 가능'),
+    ('pass_unlimited', '무제한권', 350000, NULL, 30, true, 30, 3, 1, 1, 'UNLIMITED', '한 달 무제한 수강, 월 30회까지'),
+    ('pass_10_private', '개인 10회권', 500000, 10, 90, false, NULL, 4, 1, 1, 'PERSONAL', '1:1 개인 레슨 전용')
 ON DUPLICATE KEY UPDATE name = name, price = price;
 
 -- ── 정기권 종류-수업 유형 매핑 (정리 후 삽입) ──

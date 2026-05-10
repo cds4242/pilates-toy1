@@ -8,6 +8,13 @@ import { adminApi } from "@/lib/api/admin";
 import type { ClassSchedule } from "@/lib/types/domain";
 import { formatTime } from "@/lib/utils/format";
 import { toast } from "sonner";
+import { HelpTip, PageGuide } from "@/components/design/HelpTip";
+import {
+  AdminPageHeader,
+  AdminPrimaryButton,
+  AdminGhostButton,
+  AdminPlusIcon,
+} from "@/components/design/AdminPageHeader";
 
 const HOURS = [9, 10, 11, 14, 15, 16, 17, 18, 19];
 const DAYS = ["월", "화", "수", "목", "금", "토", "일"];
@@ -149,30 +156,52 @@ export default function AdminClassesPage() {
 
   return (
     <div>
-      <div className="flex flex-wrap items-center justify-between gap-4 mb-6">
-        <h1 className="text-[26px] font-bold text-text-title">시간표 관리</h1>
-        <button onClick={handleAutoGenerate} title="고정 스케줄 기반으로 다음 4주치 수업을 자동으로 생성합니다" className="rounded-[8px] bg-pilates hover:bg-pilates-dark px-4 py-2.5 text-[13px] font-semibold text-text-title transition-colors">
-          다음 4주치 자동 생성
-        </button>
-      </div>
+      <AdminPageHeader
+        eyebrow="SCHEDULE"
+        title="시간표 관리"
+        sub={`${format(weekDates[0], "M월 d일")} ~ ${format(weekDates[6], "M월 d일")} 주간 시간표를 관리하세요.`}
+        actions={
+          <>
+            <AdminPrimaryButton
+              onClick={handleAutoGenerate}
+              icon={<AdminPlusIcon />}
+            >
+              4주치 자동 생성
+            </AdminPrimaryButton>
+            <HelpTip text="고정 스케줄을 기반으로 다음 4주간 수업을 자동으로 생성합니다. 기존 수업은 유지됩니다." />
+          </>
+        }
+      />
 
-      <div className="flex items-center justify-center gap-4 mb-4">
-        <button onClick={() => setWeekOffset((p) => p - 1)} className="p-1.5 rounded-[8px] hover:bg-bg-section transition-colors">
-          <ChevronLeft className="w-5 h-5 text-text-title" />
+      <PageGuide text="빈 칸을 클릭하면 해당 시간에 수업을 추가할 수 있습니다. 수업 블록을 클릭하면 예약자 명단과 휴강 처리가 가능합니다." />
+
+      <div className="mb-4 flex items-center justify-center gap-3">
+        <button
+          onClick={() => setWeekOffset((p) => p - 1)}
+          className="flex h-9 w-9 items-center justify-center rounded-full border border-[#F0EBE8] bg-white text-[#6B6B6B] transition-colors hover:border-[#FAD4DE] hover:text-[#D88A9E]"
+        >
+          <ChevronLeft className="h-4 w-4" />
         </button>
-        <span className="text-[15px] font-semibold text-text-title min-w-[120px] text-center">
+        <span className="min-w-[140px] text-center text-[14px] font-semibold tracking-[-0.01em] text-[#2A2A2C]">
           {format(weekDates[0], "M/d")} ~ {format(weekDates[6], "M/d")}
         </span>
-        <button onClick={() => setWeekOffset((p) => p + 1)} className="p-1.5 rounded-[8px] hover:bg-bg-section transition-colors">
-          <ChevronRight className="w-5 h-5 text-text-title" />
+        <button
+          onClick={() => setWeekOffset((p) => p + 1)}
+          className="flex h-9 w-9 items-center justify-center rounded-full border border-[#F0EBE8] bg-white text-[#6B6B6B] transition-colors hover:border-[#FAD4DE] hover:text-[#D88A9E]"
+        >
+          <ChevronRight className="h-4 w-4" />
         </button>
       </div>
 
       {/* 강사 필터 칩 */}
-      <div className="flex flex-wrap gap-2 mb-4">
+      <div className="mb-4 flex flex-wrap gap-1.5">
         <button
           onClick={() => setFilterInstructor("")}
-          className={`px-3 py-1.5 rounded-[8px] text-[13px] transition-colors ${filterInstructor === "" ? "bg-pilates text-text-title font-semibold" : "bg-bg-section text-text-body"}`}
+          className={`rounded-full border px-3 py-1.5 text-[12px] font-medium transition-colors ${
+            filterInstructor === ""
+              ? "border-[#F0A0B5] bg-[#F0A0B5] text-white"
+              : "border-[#F0EBE8] bg-white text-[#6B6B6B] hover:border-[#FAD4DE]"
+          }`}
         >
           전체
         </button>
@@ -180,7 +209,11 @@ export default function AdminClassesPage() {
           <button
             key={inst.id}
             onClick={() => setFilterInstructor(inst.name)}
-            className={`px-3 py-1.5 rounded-[8px] text-[13px] transition-colors ${filterInstructor === inst.name ? "bg-pilates text-text-title font-semibold" : "bg-bg-section text-text-body"}`}
+            className={`rounded-full border px-3 py-1.5 text-[12px] font-medium transition-colors ${
+              filterInstructor === inst.name
+                ? "border-[#F0A0B5] bg-[#F0A0B5] text-white"
+                : "border-[#F0EBE8] bg-white text-[#6B6B6B] hover:border-[#FAD4DE]"
+            }`}
           >
             {inst.name}
           </button>

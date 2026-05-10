@@ -4,6 +4,13 @@ import { useEffect, useState } from "react";
 import { Search, X, Phone, User } from "lucide-react";
 import { api } from "@/lib/api/client";
 import { StatusBadge } from "@/components/design/StatusBadge";
+import { PageGuide } from "@/components/design/HelpTip";
+import {
+  AdminPageHeader,
+  AdminSearchBox,
+  AdminPrimaryButton,
+  AdminPlusIcon,
+} from "@/components/design/AdminPageHeader";
 import { toast } from "sonner";
 import { usePageTitle } from "@/lib/hooks/use-page-title";
 
@@ -71,32 +78,52 @@ export default function AdminInstructorsPage() {
 
   return (
     <div>
-      <div className="flex flex-wrap items-center justify-between gap-4 mb-6">
-        <div className="flex items-baseline gap-3">
-          <h1 className="text-[26px] font-bold text-text-title">강사 관리</h1>
-          {!loading && <span className="text-[14px] text-text-sub">총 {instructors.length}명 (활성 {activeCount} · 비활성 {inactiveCount})</span>}
-        </div>
-        <button onClick={() => setShowAddModal(true)} className="rounded-[8px] bg-pilates hover:bg-pilates-dark px-4 py-2.5 text-[13px] font-semibold text-text-title transition-colors">+ 강사 등록</button>
-      </div>
+      <AdminPageHeader
+        eyebrow="INSTRUCTORS"
+        title="강사 관리"
+        sub={
+          loading
+            ? "강사 정보를 불러오는 중이에요."
+            : `총 ${instructors.length}명 · 활성 ${activeCount}명 · 비활성 ${inactiveCount}명`
+        }
+        actions={
+          <>
+            <AdminSearchBox
+              value={search}
+              onChange={setSearch}
+              placeholder="이름 · 전화 검색..."
+            />
+            <AdminPrimaryButton
+              onClick={() => setShowAddModal(true)}
+              icon={<AdminPlusIcon />}
+            >
+              강사 등록
+            </AdminPrimaryButton>
+          </>
+        }
+      />
 
-      <div className="flex flex-wrap gap-3 mb-6">
-        <div className="flex-1 min-w-[200px] relative">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-text-sub" />
-          <input type="text" placeholder="이름 또는 전화번호 검색" value={search} onChange={(e) => setSearch(e.target.value)}
-            className="w-full border border-[#DDDDDD] rounded-[8px] pl-9 pr-3.5 py-2.5 text-[15px] outline-none focus:border-pilates transition-colors" />
-        </div>
-        <select value={statusFilter} onChange={(e) => setStatusFilter(e.target.value)}
-          className="border border-[#DDDDDD] rounded-[8px] px-3.5 py-2.5 text-[15px] outline-none bg-white min-w-[120px]">
-          <option value="">전체 상태</option>
+      <div className="mb-4 flex flex-wrap gap-2">
+        <select
+          value={statusFilter}
+          onChange={(e) => setStatusFilter(e.target.value)}
+          className="min-w-[120px] rounded-full border border-[#F0EBE8] bg-white px-4 py-2 text-[13px] text-[#2A2A2C] outline-none transition-colors focus:border-[#FAD4DE]"
+        >
+          <option value="">상태 전체</option>
           <option value="ACTIVE">활성</option>
           <option value="INACTIVE">비활성</option>
         </select>
-        <select value={sortBy} onChange={(e) => setSortBy(e.target.value as "name" | "createdAt")}
-          className="border border-[#DDDDDD] rounded-[8px] px-3.5 py-2.5 text-[15px] outline-none bg-white min-w-[120px]">
+        <select
+          value={sortBy}
+          onChange={(e) => setSortBy(e.target.value as "name" | "createdAt")}
+          className="min-w-[120px] rounded-full border border-[#F0EBE8] bg-white px-4 py-2 text-[13px] text-[#2A2A2C] outline-none transition-colors focus:border-[#FAD4DE]"
+        >
           <option value="name">이름순</option>
           <option value="createdAt">최근 등록순</option>
         </select>
       </div>
+
+      <PageGuide text="강사를 클릭하면 상세 정보를 수정할 수 있습니다. 전화번호를 클릭하면 바로 전화할 수 있어요." />
 
       {/* PC 테이블 */}
       <div className="hidden md:block rounded-[18px] border border-border bg-white overflow-hidden">
