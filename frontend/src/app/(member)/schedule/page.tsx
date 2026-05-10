@@ -10,9 +10,10 @@ import { ChevronLeft, Clock, User } from "lucide-react";
 import { classroomApi } from "@/lib/api/classroom";
 import { reservationApi } from "@/lib/api/reservation";
 import { memberApi } from "@/lib/api/member";
-import type { ClassSchedule, Membership } from "@/lib/types/domain";
+import type { ClassSchedule, Membership, Reservation } from "@/lib/types/domain";
 import { MobileTabBar } from "@/components/design/MobileTabBar";
 import { formatTime } from "@/lib/utils/format";
+import { PageGuide } from "@/components/design/HelpTip";
 
 const lessonDesc: Record<string, string> = {
   "개인": "1:1 맞춤 레슨",
@@ -32,6 +33,7 @@ export default function SchedulePage() {
   const router = useRouter();
   const [schedules, setSchedules] = useState<ClassSchedule[]>([]);
   const [memberships, setMemberships] = useState<Membership[]>([]);
+  const [myReservations, setMyReservations] = useState<Reservation[]>([]);
   const [selectedDate, setSelectedDate] = useState(new Date());
   const [loading, setLoading] = useState(true);
   const [reserving, setReserving] = useState<number | null>(null);
@@ -44,12 +46,14 @@ export default function SchedulePage() {
   useEffect(() => {
     async function load() {
       try {
-        const [data, ms] = await Promise.all([
+        const [data, ms, rs] = await Promise.all([
           classroomApi.getSchedules(from, to),
           memberApi.getMemberships(),
+          memberApi.getReservations(),
         ]);
         setSchedules(data);
         setMemberships(ms);
+        setMyReservations(rs);
       } catch {
         // empty
       } finally {
@@ -81,8 +85,12 @@ export default function SchedulePage() {
     try {
       await reservationApi.create(classScheduleId);
       toast.success("예약이 완료되었습니다!");
-      const data = await classroomApi.getSchedules(from, to);
+      const [data, rs] = await Promise.all([
+        classroomApi.getSchedules(from, to),
+        memberApi.getReservations(),
+      ]);
       setSchedules(data);
+      setMyReservations(rs);
     } catch (err: unknown) {
       toast.error(err instanceof Error ? err.message : "예약 실패");
     } finally {
@@ -122,6 +130,11 @@ export default function SchedulePage() {
         })}
       </div>
 
+      {/* 수업 안내 */}
+      <div className="px-6 pt-2">
+        <PageGuide text="원하는 날짜를 선택하고 '예약' 버튼을 눌러 수업을 예약하세요. 수강권 1회가 차감됩니다. 마감된 수업은 예약할 수 없습니다." />
+      </div>
+
       {/* 수업 목록 */}
       <div className="px-6 py-2 flex flex-col gap-3">
         {loading ? (
@@ -136,6 +149,7 @@ export default function SchedulePage() {
             const remaining = cs.maxCapacity - cs.currentCount;
             const classStart = new Date(`${cs.classDate}T${cs.startTime}`);
             const isPast = classStart <= now;
+            const isBooked = myReservations.some(r => r.classScheduleId === cs.id && r.status === "CONFIRMED");
             return (
               <div key={cs.id} className={`rounded-[18px] border border-[var(--color-border)] overflow-hidden flex card-elevated card-hover ${isToday && new Date(`${cs.classDate}T${cs.endTime}`) <= now ? "opacity-50" : ""}`}>
                 <div className={`w-1 self-stretch rounded-l-[18px] ${lessonColor[cs.lessonTypeName] || "bg-pilates"}`} />
@@ -161,6 +175,12 @@ export default function SchedulePage() {
                     >
                       수강권 구매 필요
                     </Link>
+                  ) : isBooked ? (
+                    <div className="flex flex-col items-end">
+                      <span className="rounded-[8px] px-4 py-2.5 text-[13px] font-semibold bg-green-50 text-green-600 border border-green-200">
+                        예약완료
+                      </span>
+                    </div>
                   ) : (
                     <div className="flex flex-col items-end">
                       <button

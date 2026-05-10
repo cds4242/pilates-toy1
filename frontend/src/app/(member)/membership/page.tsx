@@ -16,6 +16,10 @@ interface MembershipPass {
   price: number;
   totalCount: number | null;
   validityDays: number;
+  unlimited?: boolean;
+  category?: string;
+  description?: string;
+  lessonTypeNames?: string[];
   lessonTypes?: { id: number; name: string }[];
 }
 
@@ -131,16 +135,29 @@ export default function MembershipPage() {
                       className={`relative rounded-[18px] border border-[var(--color-border)] p-5 cursor-pointer hover:shadow-md transition-all ${cardCls}`}
                     >
                       {isUnlimited && (
-                        <span className="absolute top-3 right-3 bg-white text-[var(--color-pilates-dark)] text-[11px] font-bold px-2 py-0.5 rounded-full shadow-sm">BEST</span>
+                        <span className="absolute bottom-3 right-3 bg-white text-[var(--color-pilates-dark)] text-[11px] font-bold px-2 py-0.5 rounded-full shadow-sm">BEST</span>
                       )}
                       <div className="flex items-center justify-between mb-2">
-                        <p className={`text-[16px] font-bold ${textCls}`}>{p.name}</p>
+                        <div className="flex items-center gap-2">
+                          <p className={`text-[16px] font-bold ${textCls}`}>{p.name}</p>
+                          {p.category && (
+                            <span className="text-[11px] bg-[var(--color-bg-section)] px-2 py-0.5 rounded-full text-[var(--color-text-sub)]">
+                              {p.category === "PERSONAL" ? "개인" : p.category === "GROUP" ? "그룹" : p.category === "UNLIMITED" ? "무제한" : p.category}
+                            </span>
+                          )}
+                        </div>
                         <p className={`text-[16px] font-bold ${priceCls}`}>{p.price.toLocaleString()}원</p>
                       </div>
                       <div className="flex items-center gap-3">
                         <span className={`text-[13px] ${isUnlimited || isPersonal10 ? "text-white/90" : "text-[var(--color-text-body)]"}`}>{p.totalCount ? `${p.totalCount}회` : "무제한"}</span>
                         <span className={`text-[13px] ${subCls}`}>유효기간 {p.validityDays}일</span>
                       </div>
+                      {p.lessonTypeNames && p.lessonTypeNames.length > 0 && (
+                        <p className={`text-[11px] mt-1 ${subCls}`}>{p.lessonTypeNames.join(", ")}</p>
+                      )}
+                      {p.description && (
+                        <p className={`text-[12px] mt-1 ${subCls}`}>{p.description}</p>
+                      )}
                     </div>
                   );
                 })}

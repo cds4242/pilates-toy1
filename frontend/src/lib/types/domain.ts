@@ -34,6 +34,7 @@ export interface ClassSchedule {
 
 export interface Reservation {
   id: number;
+  classScheduleId: number;
   classDate: string;
   startTime: string;
   endTime: string;
