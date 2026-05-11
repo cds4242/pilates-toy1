@@ -1,0 +1,325 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+  <title>dschoi · Prototypes</title>
+  <link rel="preload" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css" as="style" crossorigin="anonymous">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css" crossorigin="anonymous">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,500;0,600;1,500&display=swap">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; }
+    html, body { margin: 0; padding: 0; }
+    body {
+      font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background:
+        radial-gradient(1200px 600px at 20% -10%, #FCE6EC 0%, transparent 60%),
+        radial-gradient(900px 500px at 110% 110%, #F5E5DC 0%, transparent 55%),
+        #F7F2EE;
+      color: #2A2528;
+      min-height: 100vh;
+      letter-spacing: -0.01em;
+    }
+    .wrap {
+      max-width: 880px;
+      margin: 0 auto;
+      padding: 80px 24px 24px;
+      min-height: 100vh;
+      min-height: 100dvh; /* 모바일 주소창 변동 대응 */
+      display: flex;
+      flex-direction: column;
+    }
+    .content { flex: 1 0 auto; }
+    .bottom { flex-shrink: 0; margin-top: 64px; }
+
+    /* Header */
+    .hero { text-align: center; margin-bottom: 64px; }
+    .hero .mark {
+      display: inline-flex; align-items: center; justify-content: center;
+      width: 56px; height: 56px;
+      border-radius: 999px;
+      background: #FBE9EE;
+      border: 1px solid #F4D7DF;
+      color: #9B5A72;
+      font-family: 'Cormorant Garamond', Georgia, serif;
+      font-style: italic; font-weight: 500; font-size: 28px; line-height: 1;
+      margin-bottom: 18px;
+      box-shadow: 0 8px 24px -12px rgba(155,90,114,0.25);
+    }
+    .hero h1 {
+      margin: 0 0 8px;
+      font-size: 30px; font-weight: 700;
+      letter-spacing: -0.025em;
+    }
+    .hero .sub {
+      font-size: 13px;
+      color: #A39A9E;
+      font-weight: 500;
+      text-transform: uppercase;
+      letter-spacing: 0.16em;
+    }
+    .divider {
+      display: flex; align-items: center; gap: 10px;
+      width: 60%; margin: 22px auto 0;
+      color: #E89BB0;
+    }
+    .divider .line {
+      flex: 1; height: 1px;
+      background: linear-gradient(90deg, transparent, rgba(201,125,148,0.35), transparent);
+    }
+    .divider .dot {
+      width: 5px; height: 5px;
+      background: #E89BB0;
+      transform: rotate(45deg);
+    }
+
+    /* Section title */
+    .section-title {
+      font-size: 11px;
+      font-weight: 700;
+      color: #A39A9E;
+      letter-spacing: 0.16em;
+      text-transform: uppercase;
+      margin: 0 0 18px;
+      padding-left: 4px;
+    }
+
+    /* Card list */
+    .cards { display: flex; flex-direction: column; gap: 14px; }
+    .card {
+      position: relative;
+      display: flex; align-items: center; gap: 18px;
+      padding: 22px 24px;
+      background: #fff;
+      border: 1px solid #ECE4E0;
+      border-radius: 18px;
+      text-decoration: none;
+      color: inherit;
+      transition: transform 0.15s ease, box-shadow 0.2s ease, border-color 0.2s ease;
+      box-shadow: 0 1px 2px rgba(45,30,30,0.03);
+      overflow: hidden;
+      isolation: isolate; /* ::before가 카드 밖으로 안 새도록 */
+    }
+    /* 카드 내부 액션 버튼이 있는 경우, 호버 트랜스폼만 적용 (전체가 링크가 아니므로) */
+    .card.with-actions { cursor: default; }
+    .card.with-actions:hover { transform: none; }
+    /* 카드 배경 이미지 (연하게 깔림) — data-bg 있는 경우만 적용 */
+    .card[data-bg]::before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      background-image: var(--card-bg);
+      background-size: cover;
+      background-position: center;
+      opacity: 0.5;
+      z-index: -1;
+      transition: opacity 0.25s ease, transform 0.4s ease;
+    }
+    /* 좌측 텍스트 영역만 흰 마스크, 우측은 이미지 더 잘 보이게 */
+    .card[data-bg]::after {
+      content: "";
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(90deg, rgba(255,255,255,0.85) 0%, rgba(255,255,255,0.55) 45%, rgba(255,255,255,0.15) 100%);
+      z-index: -1;
+    }
+    .card:hover {
+      transform: translateY(-1px);
+      border-color: #E89BB0;
+      box-shadow:
+        0 16px 30px -12px rgba(155,90,114,0.18),
+        0 2px 6px -2px rgba(45,30,30,0.06);
+    }
+    .card[data-bg]:hover::before {
+      opacity: 0.65;
+      transform: scale(1.04);
+    }
+    .card .index {
+      flex-shrink: 0;
+      width: 44px; height: 44px;
+      display: inline-flex; align-items: center; justify-content: center;
+      border-radius: 12px;
+      background: linear-gradient(135deg, #F8C8D4 0%, #E89BB0 100%);
+      color: #fff;
+      font-weight: 700;
+      font-size: 16px;
+      box-shadow: 0 4px 10px -4px rgba(232,155,176,0.5);
+    }
+    .card .body { flex: 1; min-width: 0; }
+    .card .title {
+      display: block;
+      font-size: 16px; font-weight: 700;
+      letter-spacing: -0.015em;
+      margin-bottom: 4px;
+    }
+    .card .desc {
+      font-size: 13px; color: #6B6166;
+      line-height: 1.5;
+    }
+    .card .arrow {
+      flex-shrink: 0;
+      width: 28px; height: 28px;
+      display: inline-flex; align-items: center; justify-content: center;
+      border-radius: 999px;
+      background: #FBF2F4;
+      color: #9B5A72;
+      font-size: 14px;
+      transition: transform 0.2s ease, background 0.2s ease;
+    }
+    .card:hover .arrow {
+      background: #E89BB0;
+      color: #fff;
+      transform: translateX(2px);
+    }
+
+    /* 카드 우측 액션 버튼 2개 (시연 / 메뉴얼) */
+    .card .actions {
+      flex-shrink: 0;
+      display: flex;
+      gap: 8px;
+      align-items: center;
+    }
+    .card .action {
+      display: inline-flex; align-items: center; gap: 5px;
+      padding: 9px 16px;
+      border-radius: 999px;
+      font-size: 13px;
+      font-weight: 600;
+      letter-spacing: -0.01em;
+      text-decoration: none;
+      transition: transform 0.15s ease, box-shadow 0.2s ease, background 0.2s ease, color 0.2s ease;
+      white-space: nowrap;
+    }
+    .card .action.primary {
+      background: linear-gradient(135deg, #F8C8D4 0%, #E89BB0 100%);
+      color: #fff;
+      box-shadow: 0 4px 10px -4px rgba(232,155,176,0.5);
+    }
+    .card .action.primary:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 8px 16px -6px rgba(232,155,176,0.6);
+    }
+    .card .action.ghost {
+      background: #FBF2F4;
+      color: #9B5A72;
+      border: 1px solid #F4D7DF;
+    }
+    .card .action.ghost:hover {
+      background: #fff;
+      border-color: #E89BB0;
+      color: #7C4C61;
+    }
+    .card .action svg { width: 14px; height: 14px; }
+
+    /* Footer (build · ship · iterate) — notice 바로 위에 붙음 */
+    .foot {
+      margin: 0 0 10px;
+      text-align: center;
+      font-size: 11px;
+      color: #A39A9E;
+      letter-spacing: 0.1em;
+      font-family: 'Cormorant Garamond', Georgia, serif;
+      font-style: italic;
+      font-weight: 500;
+    }
+
+    /* Notice */
+    .notice {
+      padding: 16px 20px;
+      background: rgba(255,255,255,0.55);
+      border: 1px solid #ECE4E0;
+      border-left: 3px solid #E89BB0;
+      border-radius: 12px;
+      font-size: 12.5px;
+      line-height: 1.6;
+      color: #6B6166;
+      letter-spacing: -0.005em;
+    }
+    .notice strong {
+      display: block;
+      margin-bottom: 4px;
+      color: #9B5A72;
+      font-size: 11px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.12em;
+    }
+
+    @media (max-width: 600px) {
+      .wrap { padding: 56px 18px 20px; }
+      .hero h1 { font-size: 24px; }
+      .hero { margin-bottom: 48px; }
+      .card { padding: 18px; gap: 14px; flex-wrap: wrap; }
+      .card .index { width: 38px; height: 38px; font-size: 14px; }
+      .card .title { font-size: 15px; }
+      .card .desc { font-size: 12.5px; }
+      .card .body { flex: 1 1 calc(100% - 56px); min-width: 0; }
+      .card .actions {
+        flex: 1 1 100%;
+        margin-left: 52px;
+        margin-top: 4px;
+        gap: 6px;
+      }
+      .card .action {
+        flex: 1;
+        justify-content: center;
+        padding: 9px 12px;
+        font-size: 12.5px;
+      }
+      .bottom { margin-top: 48px; }
+    }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+   <div class="content">
+    <header class="hero">
+      <div class="mark">d</div>
+      <h1>dschoi · Prototypes</h1>
+      <p class="sub">Live Demo Index</p>
+      <div class="divider">
+        <span class="line"></span>
+        <span class="dot"></span>
+        <span class="line"></span>
+      </div>
+    </header>
+
+    <p class="section-title">Prototypes</p>
+    <div class="cards">
+
+      <div class="card with-actions" data-bg style="--card-bg: url('/_assets/p1-card-bg.jpg')">
+        <span class="index">P1</span>
+        <div class="body">
+          <span class="title">필라테스 회원 / 강사 / 관리페이지</span>
+          <span class="desc">예약 관리 시스템 시연 + 작업 소개. 시연 페이지로 직접 둘러보거나, 메뉴얼로 기능·구성을 한눈에 확인할 수 있어요.</span>
+        </div>
+        <div class="actions">
+          <a class="action primary" href="/p1">
+            시연
+            <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.2"><path stroke-linecap="round" stroke-linejoin="round" d="M13.5 4.5 21 12m0 0-7.5 7.5M21 12H3"/></svg>
+          </a>
+          <a class="action ghost" href="/portfolio/">
+            메뉴얼
+            <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.2"><path stroke-linecap="round" stroke-linejoin="round" d="M13.5 4.5 21 12m0 0-7.5 7.5M21 12H3"/></svg>
+          </a>
+        </div>
+      </div>
+
+      <!-- 새 프로토타입 추가 시 위와 같은 카드 블록을 복제해 사용 -->
+
+    </div>
+
+   </div><!-- /.content -->
+
+    <div class="bottom">
+      <div class="foot">build · ship · iterate</div>
+      <p class="notice">
+        <strong>Notice</strong>
+        이 페이지는 데모용으로 실제 동작되는 페이지가 아닙니다. 모든 버튼들이 동작되는 건 아니니 참고용으로 확인해주시기 바랍니다.
+      </p>
+    </div>
+  </div>
+</body>
+</html>
