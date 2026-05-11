@@ -24,10 +24,11 @@ spring:
     locations: classpath:db/migration, classpath:db/seed/dev
 
   # ── Redis (로컬 Docker) ──
+  # 6379는 Windows 동적 포트 예약 범위(6312-6711)와 충돌해 6800 사용
   data:
     redis:
       host: localhost
-      port: 6379
+      port: 6800
 
   # ── H2 콘솔 비활성화 (MySQL 사용) ──
   h2:

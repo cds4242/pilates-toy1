@@ -329,7 +329,7 @@ export default function AdminDashboardPage() {
 
         {/* Expiring */}
         <Link
-          href="/members"
+          href="/members?quick=expiring"
           className="group relative overflow-hidden rounded-[16px] border border-[#F0EBE8] bg-white p-4 no-underline transition-all hover:-translate-y-0.5 hover:border-[#FAD4DE] hover:shadow-[0_1px_2px_rgba(45,30,30,0.04),0_4px_16px_rgba(45,30,30,0.04)]"
         >
           <div className="mb-2 flex items-center justify-between">

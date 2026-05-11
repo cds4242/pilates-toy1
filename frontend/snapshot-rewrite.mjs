@@ -12,7 +12,7 @@ const PREFIX = "/p1";
 // 박제한 페이지 경로 목록 (snapshot-pages.mjs와 동일)
 const PAGE_PATHS = [
   "/login", "/admin-login", "/instructor-login", "/signup", "/reset-password",
-  "/home", "/schedule", "/reservations", "/membership", "/notifications", "/profile", "/attendance",
+  "/home", "/schedule", "/timetable", "/reservations", "/membership", "/notifications", "/profile", "/attendance",
   "/dashboard", "/classes", "/instructors", "/members", "/membership-passes", "/settings", "/statistics",
   "/instructor/schedule", "/instructor/attendance",
 ];
@@ -158,6 +158,7 @@ const LOGOUT_TARGETS = {
   "classes.html": `${PREFIX}/admin-login.html`,
   "instructors.html": `${PREFIX}/admin-login.html`,
   "members.html": `${PREFIX}/admin-login.html`,
+  "members-expiring.html": `${PREFIX}/admin-login.html`,
   "membership-passes.html": `${PREFIX}/admin-login.html`,
   "settings.html": `${PREFIX}/admin-login.html`,
   "statistics.html": `${PREFIX}/admin-login.html`,
@@ -253,6 +254,24 @@ for (const relPath of SCHEDULE_TAB_FILES) {
   if (modified) {
     writeFileSync(file, html, "utf-8");
     console.log(`  탭 링크화: ${relPath}`);
+  }
+}
+
+// 2-6. dashboard의 만료 임박 카드 링크를 별도 박제본 members-expiring.html로 치환
+//      (위 일반 치환에서는 /p1/members.html?quick=expiring이 되므로 별도 처리)
+{
+  const file = join(OUT_DIR, "dashboard.html");
+  if (existsSync(file)) {
+    let html = readFileSync(file, "utf-8");
+    const before = html;
+    html = html.replace(
+      /href="\/p1\/members\.html\?quick=expiring"/g,
+      `href="${PREFIX}/members-expiring.html"`,
+    );
+    if (html !== before) {
+      writeFileSync(file, html, "utf-8");
+      console.log(`  dashboard.html: 만료 임박 링크 → /p1/members-expiring.html`);
+    }
   }
 }
 

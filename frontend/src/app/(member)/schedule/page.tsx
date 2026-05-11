@@ -6,7 +6,7 @@ import { toast } from "sonner";
 import { format, addDays } from "date-fns";
 import { ko } from "date-fns/locale";
 import Link from "next/link";
-import { ChevronLeft, Clock, User } from "lucide-react";
+import { CalendarDays, ChevronLeft, Clock, User } from "lucide-react";
 import { classroomApi } from "@/lib/api/classroom";
 import { reservationApi } from "@/lib/api/reservation";
 import { memberApi } from "@/lib/api/member";
@@ -111,11 +111,19 @@ export default function SchedulePage() {
   return (
     <div className="max-w-[560px] mx-auto min-h-screen bg-white pb-20">
       {/* Header */}
-      <header className="sticky top-0 z-50 bg-gradient-to-r from-white to-[#FFF5F7] px-6 py-4 flex items-center gap-4 border-b border-[var(--color-border)]">
+      <header className="sticky top-0 z-50 bg-gradient-to-r from-white to-[#FFF5F7] px-6 py-4 flex items-center gap-3 border-b border-[var(--color-border)]">
         <button onClick={() => router.push("/home")} className="text-[var(--color-text-title)]">
           <ChevronLeft className="h-6 w-6" />
         </button>
-        <h1 className="text-[20px] font-bold text-[var(--color-text-title)]">수업 예약</h1>
+        <h1 className="flex-1 text-[20px] font-bold text-[var(--color-text-title)]">수업 예약</h1>
+        <Link
+          href="/timetable"
+          aria-label="주간 시간표 보기"
+          className="inline-flex items-center gap-1 rounded-full border border-[#F0EBE8] bg-white px-2.5 py-1.5 text-[12px] font-medium text-[#6B6B6B] no-underline hover:border-[#FAD4DE] hover:text-[#D88A9E]"
+        >
+          <CalendarDays className="h-4 w-4" />
+          시간표
+        </Link>
       </header>
 
       {/* 날짜 선택 */}

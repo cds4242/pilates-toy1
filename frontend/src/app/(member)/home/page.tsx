@@ -408,7 +408,7 @@ export default function MemberHomePage() {
             </Link>
 
             <Link
-              href="/schedule"
+              href="/timetable"
               className="flex cursor-pointer flex-col items-center gap-2 rounded-[18px] border border-[#F0EBE8] bg-white px-1.5 py-3.5 no-underline transition-[transform,border-color] duration-150 hover:-translate-y-0.5 hover:border-[#FAD4DE]"
             >
               <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-[#FDEDF2] text-[#D88A9E]">
@@ -423,7 +423,7 @@ export default function MemberHomePage() {
                   <path
                     strokeLinecap="round"
                     strokeLinejoin="round"
-                    d="M12 6v6h4.5m4.5 0a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z"
+                    d="M3.75 3v18m16.5-18v18M3.75 7.5h16.5M3.75 12h16.5M3.75 16.5h16.5"
                   />
                 </svg>
               </div>

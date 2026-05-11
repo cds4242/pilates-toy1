@@ -87,10 +87,12 @@ export default function AdminMembersPage() {
   const searchRef = useRef(search);
   searchRef.current = search;
 
+  // 만료 임박 빠른 필터(클라이언트 필터링)일 때는 충분히 많이 가져와야 30일 이내 만료자가 다 모임
+  const expiringMode = sortKey === "expiryDate" && sortDir === "asc" && statusFilter === "ACTIVE" && !membershipFilter;
   const load = async () => {
     setLoading(true);
     try {
-      const params: Record<string, unknown> = { search: searchRef.current, page, size: 10 };
+      const params: Record<string, unknown> = { search: searchRef.current, page, size: expiringMode ? 100 : 10 };
       if (statusFilter) params.status = statusFilter;
       const res = await api<PageResponse<AdminMember>>("get", "/api/admin/members", params);
       setMembers(res.content); setTotal(res.totalElements);
@@ -104,7 +106,19 @@ export default function AdminMembersPage() {
     return () => clearTimeout(timer);
   }, [search]); // eslint-disable-line react-hooks/exhaustive-deps
 
-  useEffect(() => { load(); }, [page, statusFilter]); // eslint-disable-line react-hooks/exhaustive-deps
+  useEffect(() => { load(); }, [page, statusFilter, expiringMode]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  // URL ?quick=expiring 진입 시 만료 임박 빠른 필터 자동 적용
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const params = new URLSearchParams(window.location.search);
+    if (params.get("quick") === "expiring") {
+      setSortKey("expiryDate");
+      setSortDir("asc");
+      setMembershipFilter("");
+      setStatusFilter("ACTIVE");
+    }
+  }, []);
   const handleSearch = (e: React.FormEvent) => { e.preventDefault(); setPage(0); load(); };
 
   const handleSort = (key: string) => {
@@ -117,8 +131,16 @@ export default function AdminMembersPage() {
       ? members.filter(m => !m.activeMembership || m.activeMembership === "-")
       : members.filter(m => m.activeMembership === membershipFilter)
     : members;
+  // 만료 임박 빠른 필터일 때: 만료일이 7일 이내인 활성 회원만 (대시보드 기준과 동일)
+  const expiringOnlyMembers = expiringMode
+    ? filteredByMembership.filter(m => {
+        if (!m.expiryDate) return false;
+        const diff = Math.ceil((new Date(m.expiryDate).getTime() - Date.now()) / 86400000);
+        return diff >= 0 && diff <= 7;
+      })
+    : filteredByMembership;
 
-  const sortedMembers = [...filteredByMembership].sort((a, b) => {
+  const sortedMembers = [...expiringOnlyMembers].sort((a, b) => {
     if (!sortKey) return 0;
     let va: string | number = (a as any)[sortKey] || "";
     let vb: string | number = (b as any)[sortKey] || "";
@@ -182,6 +204,24 @@ export default function AdminMembersPage() {
           </>
         }
       />
+
+      {expiringMode && (
+        <div className="mb-4 flex items-center justify-between gap-3 rounded-[12px] border border-[#F4A261]/40 bg-[#FFF4E6] px-4 py-3">
+          <div className="flex items-center gap-2 text-[13px] text-[#7A4A0E]">
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.8} stroke="currentColor" className="h-4 w-4 text-[#F4A261]">
+              <path strokeLinecap="round" strokeLinejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" />
+            </svg>
+            <span className="font-semibold">만료 임박 회원만 표시 중</span>
+            <span className="text-[#A0A0A0]">· 7일 이내 만료 예정인 활성 회원 {sortedMembers.length}명</span>
+          </div>
+          <button
+            onClick={() => { setSortKey(""); setSortDir("asc"); setStatusFilter(""); setMembershipFilter(""); }}
+            className="rounded-full border border-[#F4A261]/50 bg-white px-3 py-1 text-[12px] font-semibold text-[#7A4A0E] hover:bg-[#FFF1D6]"
+          >
+            전체 회원 보기
+          </button>
+        </div>
+      )}
 
       <div className="mb-4 flex flex-wrap items-center gap-2">
         <AdminGhostButton onClick={() => fileRef.current?.click()}>
@@ -324,7 +364,7 @@ export default function AdminMembersPage() {
         })}
       </div>
 
-      {total > 10 && (
+      {!expiringMode && total > 10 && (
         <div className="flex justify-center gap-2 mt-6">
           <button onClick={()=>setPage(Math.max(0,page-1))} disabled={page===0} className="rounded-[8px] border border-border px-3 py-1.5 text-[13px] disabled:opacity-40">이전</button>
           <span className="px-3 py-1.5 text-[13px] text-text-body">{page+1} / {Math.ceil(total/10)}</span>

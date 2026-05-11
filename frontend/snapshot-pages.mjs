@@ -30,6 +30,7 @@ const PAGES = {
   member: [
     "/home",
     "/schedule",
+    "/timetable",
     "/reservations",
     "/membership",
     "/notifications",
@@ -184,6 +185,28 @@ async function main() {
   console.log("=== 관리자 페이지 박제 ===");
   for (const p of PAGES.admin) {
     await snapshotPage(page, p);
+  }
+
+  // 관리자 members 만료 임박 변형 박제 (admin은 위에서 로그인됨, 강사 로그인 전에 박제)
+  console.log("=== 관리자 members 만료 임박 변형 박제 ===");
+  {
+    await page.goto(`${BASE}/members?quick=expiring`, { waitUntil: "networkidle", timeout: 30000 });
+    await page.waitForTimeout(1200);
+    const html = await page.evaluate(() => {
+      const doc = document.documentElement.cloneNode(true);
+      doc.querySelectorAll("script").forEach((s) => s.remove());
+      doc.querySelectorAll('link[rel="preload"][as="script"]').forEach((l) => l.remove());
+      doc.querySelectorAll("nextjs-portal, next-route-announcer, [data-nextjs-dialog-overlay]").forEach((el) => el.remove());
+      doc.querySelectorAll('[role="region"][aria-live="polite"]').forEach((el) => el.remove());
+      doc.querySelectorAll('[role="alert"][aria-live="assertive"]').forEach((el) => el.remove());
+      doc.querySelectorAll('button[aria-label*="Next.js"]').forEach((el) => el.remove());
+      return "<!DOCTYPE html>\n" + doc.outerHTML;
+    });
+    const cleaned = html.replace(/http:\/\/localhost:3000/g, "");
+    const outPath = join(OUT_DIR, "members-expiring.html");
+    ensureDir(outPath);
+    writeFileSync(outPath, cleaned, "utf-8");
+    console.log(`  saved: members-expiring.html (${cleaned.length} bytes)`);
   }
 
   console.log("=== 강사 로그인 ===");
