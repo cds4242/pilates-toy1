@@ -2,11 +2,15 @@
 
 import axios, { AxiosError } from "axios";
 import type { ApiResponse } from "@/lib/types/api";
+import { demoMockAdapter } from "./demo-mock";
+
+const IS_DEMO = process.env.NEXT_PUBLIC_DEMO_MODE === "true";
 
 const apiClient = axios.create({
   baseURL: process.env.NEXT_PUBLIC_API_URL || "http://localhost:8080",
   headers: { "Content-Type": "application/json" },
   timeout: 15000,
+  ...(IS_DEMO ? { adapter: demoMockAdapter } : {}),
 });
 
 // 요청 인터셉터: Authorization 헤더

@@ -90,7 +90,7 @@ export default function AdminLoginPage() {
           }}
         >
           <img
-            src="/studio3.jpg"
+            src={`${process.env.NEXT_PUBLIC_BASE_PATH || ""}/studio3.jpg`}
             alt="STUDIO"
             className="pointer-events-none absolute inset-0 h-full w-full object-cover object-center opacity-25"
             style={{ filter: "saturate(0.7)" }}

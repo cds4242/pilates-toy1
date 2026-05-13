@@ -22,10 +22,21 @@ dist/
 # === Environment / Secrets ===
 .env
 .env.local
+.env.local.bak
 .env.*.local
 *.key
 *.pem
 application-secret.yml
+
+# === Local scratch (NAS export/박제 작업 임시 파일) ===
+/_apache_*.py
+/_demo_*.png
+/_export_*.png
+/_inst_*.png
+/_scan_*.png
+/_verify_*.png
+/_tmp_*.html
+/_mock_data/
 
 # === OS ===
 .DS_Store

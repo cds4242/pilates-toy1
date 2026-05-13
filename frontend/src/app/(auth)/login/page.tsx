@@ -190,7 +190,7 @@ export default function LoginPage() {
           style={{ background: "linear-gradient(135deg, #F0A0B5, #D88A9E)" }}
         >
           <img
-            src="/studio.jpg"
+            src={`${process.env.NEXT_PUBLIC_BASE_PATH || ""}/studio.jpg`}
             alt="필라테스 스튜디오"
             className="h-full w-full object-cover"
           />
