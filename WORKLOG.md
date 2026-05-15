@@ -131,6 +131,52 @@
 
 ---
 
+## 2026-05-15 — Docker 검수 세션 (교육 모드)
+
+**한 것**:
+- backend/Dockerfile + frontend/Dockerfile + docker-compose.prod.yml + .env.example 검수
+- 종합 점수 6/10 (경우 2: 1~2시간 보강 후 Step 2 진입)
+- backend: curl 부재(HEALTHCHECK 깨짐), -Xmx 미설정, .dockerignore 없음 (3건)
+- frontend: **CRITICAL** — next.config.ts(export) ↔ Dockerfile(standalone) 정면 충돌 (1건)
+- compose: version 3.8 deprecated, frontend NEXT_PUBLIC_API_URL 런타임 주입 오류 (2건)
+
+**발견 (동기화 누락 사례 3호)**:
+- D-006(NAS 박제 → Railway 전환) 결정 이후 `frontend/next.config.ts`가 NAS 박제 모드 그대로 남음
+- → 풀스택 빌드 즉시 실패하는 결함
+- → D-009로 정식 결정화 (다음 보강 작업에서 처리)
+
+**다음 결정 필요 (사전 기록)**:
+- [x] Next.js 빌드 모드 옵션 A 채택 → D-009로 기록
+- [x] NEXT_PUBLIC_* 빌드 시점 주입 → D-010으로 기록
+- [ ] 보강 작업 1~5순위 실행 (다음 세션, docker_fix_prompt.md 기반)
+
+**미완료**:
+- 보강 작업 자체 (코드 변경 0건, 검수만 — 다음 세션에서 실행)
+- Step 2(로컬 docker compose up) 진입 대기
+
+---
+
+## 2026-05-16 — NAS 박제 동결 + 스냅샷 보관
+
+**한 것**:
+- NAS(`192.168.0.30:22311`)에서 시연(`/p1` 3.6M) + 매뉴얼(`/portfolio` 7.7M) + 랜딩(`index.html`) + Apache 설정 SSH로 다운로드
+- `nas-snapshot/nas-snapshot-pilates-20260516.tar.gz` (8.1M) + 압축 풀어둔 사본 보관
+- `nas-snapshot/README.md` 작성 (복구 절차 A/B/C)
+- DECISIONS.md에 D-008 (NAS 박제 동결) 추가
+- 메인 필라테스 코드는 Railway 풀스택용 진화, NAS 박제는 동결로 분리
+
+**중요 단서 (보고용)**:
+- NAS 루트 index.html에 5개 프로젝트(p1~p5) 각각 "시연+메뉴얼" 쌍 — 필라테스는 `/p1` + `/portfolio`
+- Synology SCP는 OpenSSH 신버전과 호환 안 됨 → `scp -O` (legacy) 필수
+- next.config.ts는 여전히 NAS 박제 모드(export+basePath) — D-008에 따라 의식적으로 손대지 않음
+
+**다음 결정 필요**:
+- [ ] Railway 배포 진입 시 next.config.ts standalone 전환 — 별도 시점에 결정
+
+**미완료**: 없음 (박제 동결 작업 종결)
+
+---
+
 ## 2026-05-15 — claude.ai 세션 (Phase A 재설계)
 
 **한 것**:

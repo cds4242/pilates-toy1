@@ -70,3 +70,6 @@ frontend/screenshots/
 
 # === Claude Code ephemera ===
 .claude/scheduled_tasks.lock
+
+# NAS snapshot — keep only the tarball, ignore the extracted mirror
+nas-snapshot/nas-snapshot-pilates-*/

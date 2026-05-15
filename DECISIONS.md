@@ -54,6 +54,40 @@
 **이유**: NAS 박제로 정적 호스팅 경험 완료, 다음 단계는 풀스택
 **순서**: 시드 → 로컬 QA → Docker 검증 → Railway 배포
 
+## D-008: NAS 박제 동결 (2026-05-16)
+**결정**: NAS 박제용 추가 작업 종료. 현 시점 NAS 배포본을 `nas-snapshot/`에 박제하고 그것으로만 복구 가능하게 유지.
+**이유**:
+- D-006으로 호스팅 전략이 Railway 풀스택으로 전환됨 → NAS 박제는 보조 자산
+- 필라테스 메인 코드가 Railway용으로 진화하면 NAS 박제 모드(export + basePath)와 충돌 누적
+- "박제는 동결, 메인은 진화" 분리가 두 노선 모두 안전
+**범위**:
+- 박제 대상: `/p1` (시연) + `/portfolio` (매뉴얼) + 루트 `index.html` + Apache `apache2.conf`
+- 박제 위치: `D:/ai/toy1/nas-snapshot/nas-snapshot-pilates-20260516.tar.gz` (+ 압축 푼 사본)
+- 복구 절차: `nas-snapshot/README.md` 참조
+**금지 사항**:
+- 박제 디렉토리를 더 이상 덮어쓰지 않음 (재빌드·재배포 X)
+- 메인 코드가 박제 호환을 위해 양보하지 않음 (next.config.ts의 export 모드 잔재는 그대로 두되 손대지 않음)
+**복구 트리거**: NAS의 /p1 또는 /portfolio가 깨졌을 때만. 그 외 상황에서는 박제본을 건드리지 않는다.
+
+## D-009: Next.js 빌드 모드 — Railway용 standalone 전환 (옵션 A 채택)
+**결정**: `frontend/next.config.ts`의 `output: "export"` + `basePath: "/p1"` 잔재를 standalone으로 전환. NAS 박제 모드는 폐기.
+**이유**:
+- Docker 검수에서 frontend/Dockerfile(standalone 가정)과 next.config.ts(export 모드)가 정면 충돌 발견 (동기화 누락 사례 3호)
+- D-008로 NAS 배포본은 이미 박제되어 보존됨 → 소스 박제 모드를 유지할 필요 없음
+- Railway 풀스택 배포가 메인 노선 (D-006)
+**대안 검토**:
+- B: 환경변수 분기 (DEPLOY_TARGET=nas/railway) → 코드 복잡도 ↑, 박제 추가 작업 없다는 D-008과 모순 → 기각
+- C: export 유지 + nginx 정적 서빙으로 Railway 배포 → 동적 라우팅 불가, 백엔드 연결 패턴 변경 → 기각
+**연계 작업**: docker_fix_prompt.md 실행 시 함께 처리
+
+## D-010: NEXT_PUBLIC_* 환경변수 빌드 시점 주입
+**결정**: `NEXT_PUBLIC_API_URL` 등 클라이언트 노출 환경변수는 docker-compose의 `build.args` + Dockerfile의 `ARG`로 빌드 시점에 주입. 런타임 `environment:` 사용 안 함.
+**이유**:
+- Next.js의 `NEXT_PUBLIC_*`은 빌드 시점에 JS 번들에 박힘 → 런타임 environment는 효과 없음
+- 현재 docker-compose.prod.yml:80은 런타임 주입이라 브라우저가 backend URL 못 찾음
+- Railway 배포 시에도 동일 함정 — 빌드 시점에 frontend 서비스가 backend public URL을 알아야 함
+**연계 작업**: docker_fix_prompt.md 실행 시 함께 처리
+
 ---
 
 (앞으로 결정 사항 추가 시 D-XXX 번호 부여)
