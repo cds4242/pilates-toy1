@@ -1,0 +1,32 @@
+# Build outputs
+.gradle/
+build/
+out/
+
+# IDE
+.idea/
+.vscode/
+*.iml
+*.ipr
+*.iws
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Git
+.git/
+.gitignore
+
+# Logs
+logs/
+*.log
+
+# Test outputs
+test-results/
+coverage/
+
+# Env (절대 이미지에 포함 안 됨)
+.env
+.env.local
+.env.*.local

@@ -1,7 +1,6 @@
-version: '3.8'
-
 # 운영 배포용 Docker Compose
-# 사용법: docker-compose -f docker-compose.prod.yml --env-file .env up -d
+# 사용법: docker compose -f docker-compose.prod.yml --env-file .env up -d
+# (Compose V2 — top-level version 키는 deprecated)
 
 services:
   mysql:
@@ -69,7 +68,12 @@ services:
       ALIMTALK_PFID: ${ALIMTALK_PFID:-}
 
   frontend:
-    build: ./frontend
+    build:
+      context: ./frontend
+      args:
+        # NEXT_PUBLIC_* 은 빌드 시점에 JS 번들에 박힘 → build.args로 주입 필수
+        # 브라우저가 호출할 backend 공개 URL (컨테이너 내부 호스트명 X)
+        NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL:-http://localhost:8080}
     container_name: pilates-frontend
     restart: always
     depends_on:
@@ -77,7 +81,8 @@ services:
     ports:
       - "3000:3000"
     environment:
-      NEXT_PUBLIC_API_URL: http://backend:8080
+      # 서버사이드(SSR/Route Handler) 코드용 — 컨테이너 내부 통신
+      BACKEND_INTERNAL_URL: http://backend:8080
 
 volumes:
   mysql-data:

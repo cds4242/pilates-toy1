@@ -1,6 +1,11 @@
 # ── Stage 1: Build ──
 FROM node:20-alpine AS builder
 WORKDIR /app
+
+# 빌드 시점 환경변수 (NEXT_PUBLIC_* 은 next build 시 JS 번들에 박힘)
+ARG NEXT_PUBLIC_API_URL
+ENV NEXT_PUBLIC_API_URL=$NEXT_PUBLIC_API_URL
+
 COPY package.json package-lock.json ./
 RUN npm ci
 COPY . .

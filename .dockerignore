@@ -1,0 +1,9 @@
+# 모노레포 루트 — backend/frontend로 빌드 컨텍스트 들어갈 때 보조
+.git/
+.idea/
+.vscode/
+node_modules/
+docs/
+*.md
+!README.md
+design-samples/
