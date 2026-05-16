@@ -177,6 +177,43 @@
 
 ---
 
+## 2026-05-16 — D-008 표현 보강 (의도적 동결 명시)
+
+**한 것**:
+- D-008 톤 보정: "보조 자산" → "의도적·영구 동결 시연 슬롯"
+- "Railway는 NAS 폐기가 아닌 다음 단계 (별도 트랙 병행)" 명시
+- "NAS를 구버전·곧 폐기 취급 금지" 금지 항목 추가
+- 두 트랙 역할 분리 명문화 (NAS=정적 시연 영속 / Railway=동적 풀스택 경험)
+
+**미완료**: 없음
+
+---
+
+## 2026-05-16 — Docker 파일 보강 실행 (D-009 + D-010 적용)
+
+**한 것** (검수 결과 1~5순위 모두 적용):
+1. `frontend/next.config.ts`: export/basePath/trailingSlash/images.unoptimized/env 제거 → `output: "standalone"` 만 남김 (D-009 실행)
+2. `backend/Dockerfile`: curl 설치(HEALTHCHECK 정상화) + JVM `-XX:MaxRAMPercentage=75.0 -XX:+UseG1GC`
+3. `.dockerignore` 3개 신규 (`backend/`, `frontend/`, 루트)
+4. `docker-compose.prod.yml`: frontend `build.args.NEXT_PUBLIC_API_URL` + 런타임 `BACKEND_INTERNAL_URL` 분리 (D-010 실행)
+5. `frontend/Dockerfile` builder stage: `ARG NEXT_PUBLIC_API_URL` + `ENV` 추가
+6. `.env.example`: `NEXT_PUBLIC_API_URL` 항목 추가
+7. `docker-compose.prod.yml`: deprecated `version: '3.8'` 줄 제거
+
+**자가 감지**:
+- 프롬프트가 신규 D-008/D-009 추가를 요청했으나, 같은 내용이 이미 D-009/D-010으로 기록되어 있음 → 중복 추가 X. 본 세션은 "실행"으로 기록.
+- `NEXT_PUBLIC_BASE_PATH`를 참조하는 코드 3곳 (admin-login/instructor-login/(auth)login의 studio*.jpg src)은 `|| ""` fallback 덕에 변수 미정의 상태에서도 안전 → 코드 수정 불필요 (basePath="" 와 동일 결과)
+- `frontend/snapshot-rewrite.mjs` 존재 — NAS 박제 전용 후처리 스크립트. D-008 동결 결정으로 더 이상 재실행 안 함. **삭제 여부는 본인 결정 대기** (일단 보존)
+
+**미완료**:
+- 작업 7: docker build 실제 검증 (다음 단계)
+
+**다음 결정 필요**:
+- [ ] `snapshot-rewrite.mjs` + `snapshot-pages.mjs` 등 NAS 박제 전용 스크립트 삭제 여부 (박제는 동결됐고 재생성 안 함 → 삭제 후보. 단 박제본 복구 절차에서 참조하지 않는지 확인 필요)
+- [ ] `frontend/.gitignore`에 `snapshot/` 디렉토리 추가 여부
+
+---
+
 ## 2026-05-15 — claude.ai 세션 (Phase A 재설계)
 
 **한 것**:

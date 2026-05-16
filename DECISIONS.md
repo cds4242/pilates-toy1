@@ -54,11 +54,14 @@
 **이유**: NAS 박제로 정적 호스팅 경험 완료, 다음 단계는 풀스택
 **순서**: 시드 → 로컬 QA → Docker 검증 → Railway 배포
 
-## D-008: NAS 박제 동결 (2026-05-16)
-**결정**: NAS 박제용 추가 작업 종료. 현 시점 NAS 배포본을 `nas-snapshot/`에 박제하고 그것으로만 복구 가능하게 유지.
+## D-008: NAS 박제 의도적 동결 (2026-05-16)
+**결정**: NAS 박제(https://dsjh.synology.me:8443/p1)를 **의도적으로 동결**하여 시연용 영구 보존. 폐기 아님. Railway 풀스택 배포는 별도 트랙으로 병행 진행.
 **이유**:
-- D-006으로 호스팅 전략이 Railway 풀스택으로 전환됨 → NAS 박제는 보조 자산
-- 필라테스 메인 코드가 Railway용으로 진화하면 NAS 박제 모드(export + basePath)와 충돌 누적
+- NAS 박제는 정적 시연 자산으로서 **고유 가치 유지** — 의뢰인·포트폴리오 시연용 영구 슬롯 (URL 안정성)
+- Railway 풀스택은 "다음 단계"이지 NAS의 대체재가 아님 — 두 트랙은 서로 다른 목적
+  - NAS 박제: 정적 시연, 무한 운영비 0, URL 영속
+  - Railway: 동적 풀스택, 백엔드+DB, 실 호스팅 경험
+- 메인 코드가 Railway용으로 진화하면 NAS 박제 모드(export + basePath)와 충돌 누적 → 분리 보존 필수
 - "박제는 동결, 메인은 진화" 분리가 두 노선 모두 안전
 **범위**:
 - 박제 대상: `/p1` (시연) + `/portfolio` (매뉴얼) + 루트 `index.html` + Apache `apache2.conf`
@@ -66,8 +69,10 @@
 - 복구 절차: `nas-snapshot/README.md` 참조
 **금지 사항**:
 - 박제 디렉토리를 더 이상 덮어쓰지 않음 (재빌드·재배포 X)
-- 메인 코드가 박제 호환을 위해 양보하지 않음 (next.config.ts의 export 모드 잔재는 그대로 두되 손대지 않음)
+- 메인 코드가 박제 호환을 위해 양보하지 않음 (next.config.ts의 export 모드 잔재는 D-009로 standalone 전환 — 박제본은 이미 분리 보존됨)
+- NAS 박제를 "구버전·곧 폐기" 취급 금지 — 의도적·영구 동결 자산
 **복구 트리거**: NAS의 /p1 또는 /portfolio가 깨졌을 때만. 그 외 상황에서는 박제본을 건드리지 않는다.
+**상태**: 영구 활성 시연 슬롯 (Railway 가동 후에도 병행 운영)
 
 ## D-009: Next.js 빌드 모드 — Railway용 standalone 전환 (옵션 A 채택)
 **결정**: `frontend/next.config.ts`의 `output: "export"` + `basePath: "/p1"` 잔재를 standalone으로 전환. NAS 박제 모드는 폐기.
