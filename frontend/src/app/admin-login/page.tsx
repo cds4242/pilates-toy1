@@ -151,7 +151,7 @@ export default function AdminLoginPage() {
               >
                 ·
               </span>{" "}
-              OO점
+              DS점
             </h1>
             <p
               className="mt-1.5 text-[12px] font-medium uppercase tracking-[0.18em]"

@@ -155,7 +155,7 @@ export default function InstructorLoginPage() {
             >
               ·
             </span>{" "}
-            OO점
+            DS점
           </h1>
           <div className="text-[13px] font-medium uppercase tracking-[0.16em] text-[#A39A9E]">
             Instructor Sign In
