@@ -9,6 +9,57 @@
 
 ---
 
+## 2026-05-16 — NAS 박제 잔재 전수 검사 + 운영 정리 (완료 ✅, Railway 배포 직전 점검)
+
+본인 의도: NAS 박제는 nas-snapshot/으로 백업 완료, 메인 코드는 실제 운영(Railway) 준비.
+
+**발견 버그 2건 (브라우저 QA 중)**:
+- 회원관리 → 정기권 발급 시도 시 "Cannot read properties (map)" — 원인: `frontend/.env.production`의 `NEXT_PUBLIC_DEMO_MODE=true`가 mock adapter를 활성, 모든 API 호출이 mock에 가로채여 백엔드 호출 0건. mock 데이터의 lessonTypes 누락에서 .map() undefined
+- 시간표 김하늘 박스 클릭 시 페이지 로드 실패 — 위와 동일 원인 (mock adapter가 처리 못함). 추가로 강사 1~3(박지영/이수진/최재훈)의 phone_encrypted가 이전 키로 암호화돼 있어 `/api/admin/instructors` 500 ENC_001
+
+**조치**:
+1. `frontend/.env.production` 삭제 (NAS 박제 시절 잔재 — DEMO_MODE=true). compose build.args가 NEXT_PUBLIC_API_URL 제대로 주입
+2. `frontend/.env.local`, `.env.local.bak`, `snapshot-rewrite.mjs`, `snapshot-pages.mjs` 삭제 — 박제 후처리 스크립트 (D-008 박제 동결로 더 이상 사용 X)
+3. 코드 3곳 `NEXT_PUBLIC_BASE_PATH` 참조 제거 → `/studio*.jpg` 직접 참조 (admin-login/instructor-login/(auth)login)
+4. `client.ts` IS_DEMO 분기에 "NAS 박제 한정 + 운영 자동 비활성" 명시 주석
+5. `InstructorPhoneMigrationRunner` @Profile에 `demo` 추가 + 키 불일치 재암호화 로직 보강 → 기존 60바이트 잘못된 phone_encrypted 3건 자동 재암호화
+
+**검증**:
+- 컨테이너 4개 전부 healthy
+- QA 자동: admin 7/7, instructor 1/1, member 1/3(2건은 API 경로 변경 가능성, 핵심 OK) HTTP 200
+- 브라우저 QA: 정기권 발급 200 OK + 회원 상세 갱신, 김하늘 박스 클릭 → 수업 상세 모달 정상 표시
+- backend Gradle test: 121건 중 118 pass / 2 fail (AdminMemberE2ETest masking expects + ReservationConcurrencyIT MySQL 외부 DB 의존 — 두 건 모두 인프라 의존, 핵심 비즈니스 로직 무관)
+
+**다음**: Step 3 Railway 배포 진입 가능
+
+---
+
+## 2026-05-16 — Step 2 로컬 docker compose 실기동 검증 (완료 ✅)
+
+- compose build 1차 실패 (C 드라이브 100% 만석 → npm ci EIO + buildkit EOF)
+- 메이플 50GB 삭제 + docker prune + pip cache + Temp 정리로 ~44GB 여유 확보
+- compose build 2차 성공 (backend 659MB, frontend 250MB, ~10분)
+- backend `/app/logs/` 디렉토리 부재로 Restarting 루프 — logback 파일 appender 3개가 디렉토리 자동 생성 실패
+- → stdout 단일화로 12-Factor App 정렬 (**D-011**): logback-spring.xml 전면 개편, FILE/REQUEST_FILE/ERROR_FILE 전부 제거, prod는 JSON 콘솔
+- backend 재기동했더니 또 12회 재시작 — Spring Boot 부팅 중 `No qualifying bean of type 'SmsService'`
+- → **동기화 누락 사례 4호**: docker-compose에서 `SPRING_PROFILES_ACTIVE=prod` 사용한 것 자체가 의도 불일치
+  - prod = 실 NHN Toast/Toss 키 필요한 운영 환경 (Mock 빈 없음)
+  - 시뮬레이션·Railway 시연용 별도 프로파일 필요
+- → demo 프로파일 신규 (**D-012**): application-demo.yml + Mock 빈 4개 @Profile에 demo 추가
+- → docker-compose.prod.yml 파일명 유지, 내부만 `demo` 프로파일로 변경 (**D-013**)
+- frontend unhealthy 20분 지속 — wget이 IPv6 `::1` 시도, Next.js는 `0.0.0.0`(IPv4)만 바인딩
+- → frontend Dockerfile HEALTHCHECK: `localhost` → `127.0.0.1` 명시
+- **최종 검증**: 4컨테이너 전부 healthy (mysql/redis/backend/frontend)
+- **통신 검증 5종 전부 200 OK** (health, root, instructors API+시드, actuator/health, frontend→backend 컨테이너 통신)
+- 자원 사용량: backend 517MB · frontend 36MB · mysql 503MB · redis 3MB (Railway 512MB 한계 시 backend 비등비등 — JVM MaxRAMPercentage=75 효과 확인)
+
+다음 결정 필요:
+- Step 3 Railway 배포 진입 OK
+- prune으로 사라진 빌드 캐시 재구축 필요 시 다음 빌드 다시 ~10분
+- 변경 파일 git status: backend/Dockerfile-(어제 다른 변경)... 8개 (logback-spring.xml, application-demo.yml 신규, Mock 4종 @Profile, docker-compose.prod.yml, frontend Dockerfile, WORKLOG, DECISIONS)
+
+---
+
 ## 2026-05-15 — STEP 0~14 완료 시점 (소급 정리)
 
 지금까지의 진행 상황을 역순으로 정리.

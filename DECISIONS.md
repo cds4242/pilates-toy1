@@ -93,6 +93,56 @@
 - Railway 배포 시에도 동일 함정 — 빌드 시점에 frontend 서비스가 backend public URL을 알아야 함
 **연계 작업**: docker_fix_prompt.md 실행 시 함께 처리
 
+## D-011: 로깅 전략 — stdout 단일화 (12-Factor App §XI)
+**결정**: 모든 환경(local/prod/default)에서 로그를 stdout으로만 출력. 파일 기반 RollingFileAppender(`./logs/application.log`, `request.log`, `error.log`) 전부 제거.
+**이유**:
+- 12-Factor App §XI Logs: 앱은 로그를 event stream으로 stdout에 쓰고, 수집/회전/저장은 실행 환경(Docker/Railway/CloudWatch)에 위임한다
+- 컨테이너는 일회용 — 컨테이너 내부 파일 로그는 컨테이너 소멸 시 손실
+- Railway 무료 티어/Heroku/Cloud Run 등 PaaS는 파일 로그 안 보고 stdout만 수집
+- 직전 docker compose 검증에서 `/app/logs/` 디렉토리 부재로 backend Restarting 루프 발생 — 환경 의존적 사이드이펙트
+- prod 프로파일은 `LogstashEncoder`로 JSON 구조화 출력 → docker logs / Railway 대시보드 / 외부 수집기와 자연 연동
+**대안 검토**:
+- 옵션 A (Dockerfile에 `mkdir /app/logs + chown`): 로컬은 되지만 Railway 등 PaaS에서 무의미, 환경별 분기 발생 — 기각
+- 옵션 B (docker-compose named volume): 로컬 한정 해결, Railway 환경과 격차 — 기각
+**트레이드오프**:
+- 로그 회전 자동 관리 불가 → Docker/Railway 위임 (docker logs 옵션 `--max-size`)
+- 파일 grep 불가 → `docker compose logs backend | grep`로 우회
+- 영속성은 실행 환경 의존 (Railway 무료 티어 보관 기간 단기)
+**시뮬레이션 의도와 일치**: 운영 환경과 동일한 12-Factor 패턴 익히기
+
+## D-012: 시뮬레이션·Railway용 demo 프로파일 분리
+**결정**: `prod`와 별개로 `demo` 프로파일 신규. Mock 통합 + MySQL + 시드 데이터 조합.
+**배경**:
+- Step 2 로컬 docker compose 검증 중 `SPRING_PROFILES_ACTIVE=prod`로 부팅 시 `No qualifying bean of type 'SmsService'`로 12회 재시작 (2026-05-16 발견)
+- 원인: `MockSmsService`/`MockTossPaymentClient`는 `@Profile({"local","local-h2","test","portfolio"})` 한정 — prod에 구현체 없음
+- prod = 실 NHN Toast/Toss 키 필요한 실 운영용. 시뮬레이션·Railway 시연은 Mock으로 충분
+- "docker compose에서 prod 프로파일 사용" 자체가 의도 불일치 — 본인 동기화 누락 사례 4호
+**새 프로파일 구조**:
+| 프로파일 | DB | SMS/카카오/토스 | 시드 | 용도 |
+|---|---|---|---|---|
+| `local` | MySQL (Docker) | Mock | ✅ | 개발자 PC |
+| `local-h2` | H2 | Mock | ✅ | DB 없이 단독 실행 |
+| `test` | H2 | Mock | — | 자동화 테스트 |
+| `portfolio` | H2 + 임베디드 Redis | Mock | ✅ | NAS 박제 시연 (단독 JAR) |
+| `demo` | MySQL (외부) + Redis (외부) | Mock | ✅ | **Railway 풀스택 시연 (NEW)** |
+| `prod` | MySQL + Redis | 실 통합 (실 키 필요) | — | 실 운영 |
+**시뮬레이션 의도와 일치**: 포트폴리오 풀스택 시연 시 실 SMS 발송·실 결제 X
+**구현 변경**:
+- `application-demo.yml` 신규
+- `MockSmsService`/`MockKakaoAlimtalkClient`/`MockTossPaymentClient`/`DemoSeedRunner` `@Profile`에 `demo` 추가
+
+## D-013: docker-compose 파일명 컨벤션
+**결정**: `docker-compose.prod.yml` 파일명 유지, 내부 `SPRING_PROFILES_ACTIVE`만 demo로 운용.
+**이유**:
+- 파일명 `prod` = production-grade 구동 방식 (Docker Compose 업계 컨벤션)
+- Spring `prod` 프로파일과 같은 단어지만 다른 개념
+- 6개 문서(WORKLOG, REUSABLE_NOTES, PROJECT_STRUCTURE, STEP14, etc) 참조 동기화 회피
+- 실 운영 진입 시점에 환경변수만 `prod`로 바꾸면 됨 (파일 변경 X)
+**명명 충돌 완화책**: docker-compose.prod.yml 상단에 명시적 주석 추가 + 본 D-013 참조
+**대안 검토**:
+- 옵션 A (`docker-compose.demo.yml`로 리네임): 6개 문서 동기화 필요 — 기각
+- 옵션 C (.prod.yml + .demo.yml 분리): YAGNI, 진짜 prod 운영 시점에 분리 — 기각
+
 ---
 
 (앞으로 결정 사항 추가 시 D-XXX 번호 부여)
