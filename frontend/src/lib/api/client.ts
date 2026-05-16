@@ -4,6 +4,7 @@ import axios, { AxiosError } from "axios";
 import type { ApiResponse } from "@/lib/types/api";
 import { demoMockAdapter } from "./demo-mock";
 
+// NAS 박제 한정 플래그. 운영 빌드(Railway 등)에서는 NEXT_PUBLIC_DEMO_MODE 미설정 → IS_DEMO=false → mock adapter 비활성
 const IS_DEMO = process.env.NEXT_PUBLIC_DEMO_MODE === "true";
 
 const apiClient = axios.create({

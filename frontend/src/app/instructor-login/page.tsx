@@ -91,7 +91,7 @@ export default function InstructorLoginPage() {
           style={{ background: "linear-gradient(135deg, #7C8FD4, #5F75C4)" }}
         >
           <img
-            src={`${process.env.NEXT_PUBLIC_BASE_PATH || ""}/studio2.jpg`}
+            src="/studio2.jpg"
             alt="필라테스 스튜디오"
             className="h-full w-full object-cover object-[center_30%]"
           />
