@@ -4,6 +4,35 @@
 
 > 🎬 **시연 모드(demo 프로파일)**: 외부 결제·SMS·카카오 알림톡은 Mock으로 동작합니다. 실 결제·발송 X.
 
+## 🌐 Live Demo
+
+| 단계 | 환경 | URL | 상태 |
+|---|---|---|---|
+| 1단계 | NAS 박제 (정적 export) | https://dsjh.synology.me:8443/p1 | 동결 |
+| 2단계 | Railway 풀스택 | https://frontend-production-8081.up.railway.app | 활성 |
+
+**Backend API**: https://backend-production-81c77.up.railway.app
+
+> Railway Trial Workspace에서 운영 중 ([D-014](./DECISIONS.md)). 크레딧 소진 시 일시 정지될 수 있음.
+> 시연용 계정은 아래 **[시연용 테스트 계정](#-시연용-테스트-계정)** 참조.
+
+## 📚 Tech Stack
+- **Backend**: Spring Boot 3 · Java 21 · MySQL 8 · Redis 7
+- **Frontend**: Next.js 16 · React 19 · TypeScript · TailwindCSS · Pretendard
+- **Infrastructure**: Docker · Railway · GitHub Actions
+- **Architecture**: Monorepo · 12-Factor App · Multi-stage Build
+
+## 📊 Tests & Quality
+- Backend: 118 / 121 tests passed (인프라 의존 2건 제외)
+- Frontend: Playwright 14 visual tests
+- CI/CD: GitHub Actions (auto build & test)
+
+## 🛠 Documentation
+- [개발 회고 (WORKLOG)](./WORKLOG.md)
+- [의사결정 기록 (DECISIONS)](./DECISIONS.md)
+- [미완료 항목 (DEFERRED)](./DEFERRED_ITEMS.md)
+- 핸드오버 체크리스트: `docs/HANDOVER_CHECKLIST.md`
+
 ---
 
 ## 🚀 빠른 시작
