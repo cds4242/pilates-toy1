@@ -1,0 +1,28 @@
+# ── Environment ──
+.env
+.env.*
+*.local
+
+# ── Build outputs ──
+build/
+out/
+.gradle/
+
+# ── Logs ──
+logs/
+*.log
+
+# ── IDE ──
+.idea/
+.vscode/
+*.iml
+*.ipr
+*.iws
+
+# ── OS ──
+.DS_Store
+Thumbs.db
+
+# ── Test outputs ──
+test-results/
+coverage/

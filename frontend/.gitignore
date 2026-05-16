@@ -44,3 +44,6 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# 운영 환경변수 (Railway 등 환경별 주입)
+.env.production
