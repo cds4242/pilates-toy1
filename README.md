@@ -1,128 +1,182 @@
-# Pilates Studio - 예약 관리 시스템
+# Pilates Studio · 예약 관리 시스템
 
-소규모 필라테스 스튜디오를 위한 예약 관리 + 회원 관리 + 수강권 관리 웹 시스템.
+소규모 필라테스 스튜디오를 위한 예약 · 회원 · 수강권 · 결제 · 알림 통합 관리 웹 시스템.
 
-## 빠른 시작 (5분)
+> 🎬 **시연 모드(demo 프로파일)**: 외부 결제·SMS·카카오 알림톡은 Mock으로 동작합니다. 실 결제·발송 X.
+
+---
+
+## 🚀 빠른 시작
+
+### 옵션 A — Docker Compose 풀스택 (권장)
 
 ```bash
-# 1. Docker (MySQL + Redis)
-docker-compose up -d
+# 1) 환경변수 준비 (한 번만)
+cp .env.example .env
+# .env 안의 change_me_* 값을 채우거나, 로컬 검증용 더미로 둬도 동작
 
-# 2. 백엔드
+# 2) 빌드 + 기동 (백엔드 + 프론트엔드 + MySQL + Redis)
+docker compose -f docker-compose.prod.yml --env-file .env up -d --build
+
+# 3) 접속
+# 프론트엔드:  http://localhost:3000
+# 백엔드 API: http://localhost:8080
+# Swagger UI: http://localhost:8080/swagger-ui.html
+```
+
+### 옵션 B — 로컬 개발 모드
+
+```bash
+# 인프라만 Docker로
+docker compose up -d mysql redis
+
+# 백엔드 (local 프로파일 — DB는 Docker MySQL)
 cd backend
 ./gradlew bootRun --args='--spring.profiles.active=local'
-# http://localhost:8080 (Swagger: http://localhost:8080/swagger-ui.html)
 
-# 3. 프론트엔드
-cd frontend
+# 프론트엔드
+cd ../frontend
 npm install
 npm run dev
-# http://localhost:3000
 ```
 
-**기본 관리자 계정:** `admin` / `admin1234`
-
-## 기술 스택
-
-| 영역 | 기술 |
-|------|------|
-| Backend | Java 21, Spring Boot 3.3, JPA, QueryDSL, Flyway |
-| Frontend | Next.js 16, React 19, TypeScript, TailwindCSS, shadcn/ui |
-| Database | MySQL 8.0, Redis 7 |
-| 인증 | JWT (Access 30분 + Refresh 14일) |
-| 결제 | 토스페이먼츠 |
-| 알림 | 카카오 알림톡 + SMS 폴백 |
-| 테스트 | JUnit 5 + MockMvc (백엔드), Playwright (프론트엔드) |
-
-## 프로젝트 구조
-
-```
-pilates-studio/
-├── backend/          # Spring Boot API 서버
-├── frontend/         # Next.js 웹 클라이언트
-├── docs/             # 문서
-│   ├── SPEC.md              # 확정 명세
-│   ├── ARCHITECTURE.md      # 아키텍처 설계
-│   ├── DB_DESIGN_DECISIONS.md
-│   ├── OPERATION_MANUAL.md  # 운영 매뉴얼 (의뢰인용)
-│   └── TROUBLESHOOTING.md   # 트러블슈팅 가이드
-└── docker-compose.yml
-```
-
-## 도메인 (10개)
-
-| 도메인 | 설명 | API 경로 |
-|--------|------|----------|
-| auth | SMS 인증, 회원가입, 로그인 | /api/auth/** |
-| member | 회원 프로필, 탈퇴 | /api/members/** |
-| instructor | 강사 관리, 근무시간 | /api/admin/instructors/** |
-| classroom | 수업유형, 고정스케줄, 시간표 | /api/class-schedules/** |
-| membership | 정기권 발급, 조회, 홀딩 | /api/memberships/** |
-| payment | 결제, 환불 (토스) | /api/payments/** |
-| reservation | 예약, 취소, 대기 | /api/reservations/** |
-| attendance | 출석, 노쇼 | /api/instructor/attendances/** |
-| notification | 알림톡, SMS | /api/notifications/** |
-| admin | 대시보드, 통계, 엑셀 | /api/admin/** |
-
-## 테스트
+### 옵션 C — DB 없이 단독 실행 (H2 인메모리)
 
 ```bash
-# 백엔드 (JUnit 5)
+cd backend
+./gradlew bootRun --args='--spring.profiles.active=local-h2'
+```
+
+---
+
+## 🔑 시연용 테스트 계정
+
+> 모든 비밀번호: **`demo1234`**
+
+### 관리자
+
+로그인 페이지: `http://localhost:3000/admin-login`
+
+| 아이디 | 이름 | 역할 | 비고 |
+|---|---|---|---|
+| `admin_demo` | 데모관리자 | SUPER_ADMIN | 시연 메인 계정 — 모든 메뉴 접근 |
+| `admin` | 관리자 | SUPER_ADMIN | 기본 초기 계정 |
+
+### 강사
+
+로그인 페이지: `http://localhost:3000/instructor-login`
+
+| 아이디 | 이름 | 비고 |
+|---|---|---|
+| `instructor_demo` | 박데모 | 시연 메인 강사 — 담당 수업 + 예약자 풍부 |
+| `instructor1` | 박지영 | 주력 강사 · 그룹/개인 |
+| `instructor2` | 이수진 | 재활 전문 · 월/수/금 |
+| `instructor3` | 최재훈 | 체형교정 · 화/목/토 |
+| `instructor4`~`9` | 김하늘 외 | 기타 강사 |
+
+### 회원
+
+로그인 페이지: `http://localhost:3000/login`
+
+| 전화번호 | 이름 | 보유 정기권 | 비고 |
+|---|---|---|---|
+| `010-0000-0001` | 김데모 | 12회권 (잔여 9/12) | 시연 메인 회원 · 미래 예약 + 과거 출석 풍부 |
+
+> 그 외 시드 회원은 관리자 페이지에서 76명 일괄 조회 가능 (전화번호로 직접 로그인 불가 — 비밀번호 미설정).
+
+---
+
+## 🛠️ 기술 스택
+
+| 영역 | 사용 기술 |
+|---|---|
+| Backend | Java 21 · Spring Boot 3.3 · JPA · QueryDSL · Flyway |
+| Frontend | Next.js 16 · React 19 · TypeScript · TailwindCSS |
+| Database | MySQL 8.0 · Redis 7 |
+| 인증 | JWT (Access 30분 + Refresh 14일) |
+| 결제 | 토스페이먼츠 (demo 프로파일에서는 Mock) |
+| 알림 | 카카오 알림톡 (NHN Toast) + SMS 폴백 (demo에서는 Mock) |
+| 빌드 | Gradle 8.10 · npm |
+| 배포 | Docker Compose · Railway (예정) |
+| 테스트 | JUnit 5 + MockMvc + Testcontainers · Playwright |
+
+---
+
+## 📁 프로젝트 구조
+
+```
+pilates-toy1/
+├── backend/                   # Spring Boot API 서버
+│   └── src/main/resources/
+│       ├── application.yml           # 공통
+│       ├── application-local.yml     # 로컬 (Docker MySQL)
+│       ├── application-local-h2.yml  # 로컬 (H2 인메모리)
+│       ├── application-portfolio.yml # NAS 박제 시연
+│       ├── application-demo.yml      # Railway·풀스택 시연 (Mock 통합)
+│       └── application-prod.yml      # 실 운영 (실 키 필요)
+├── frontend/                  # Next.js 웹 클라이언트
+├── infra/                     # MySQL my.cnf 등 인프라 설정
+├── nas-snapshot/              # NAS 박제본 (참고 보존, D-008 동결)
+├── docs/                      # 명세·아키텍처·운영 매뉴얼
+├── docker-compose.yml         # 로컬 개발용 (MySQL + Redis만)
+├── docker-compose.prod.yml    # 풀스택 + Mock 통합 (demo 프로파일)
+├── SPEC.md
+├── STANDARDS.md
+├── DECISIONS.md               # 주요 의사결정 (D-001 ~ D-013)
+├── WORKLOG.md                 # 세션 간 작업 로그
+└── DEFERRED_ITEMS.md          # 알면서 미루는 작업
+```
+
+---
+
+## 🧩 도메인 (10개)
+
+| 도메인 | 책임 | 주요 API |
+|---|---|---|
+| `auth` | SMS 인증 · 회원가입 · 로그인 | `/api/auth/**` |
+| `member` | 회원 프로필 · 탈퇴 · 메모 | `/api/admin/members/**` |
+| `instructor` | 강사 관리 · 근무시간 | `/api/admin/instructors/**` |
+| `classroom` | 수업 유형 · 시간표 | `/api/admin/class-schedules/**` |
+| `membership` | 정기권 발급 · 홀딩 · 조회 | `/api/admin/memberships/**` |
+| `payment` | 토스 결제 · 환불 | `/api/payments/**` |
+| `reservation` | 예약 · 취소 · 대기 | `/api/reservations/**` |
+| `attendance` | 출석 · 노쇼 | `/api/instructor/attendances/**` |
+| `notification` | 알림톡 · SMS | `/api/notifications/**` |
+| `admin` | 대시보드 · 통계 · 엑셀 | `/api/admin/**` |
+
+---
+
+## 🧭 Spring 프로파일
+
+| 프로파일 | DB | 외부 통합 | 시드 | 용도 |
+|---|---|---|---|---|
+| `local` | MySQL (Docker) | Mock | ✅ | 개발자 PC |
+| `local-h2` | H2 (인메모리) | Mock | ✅ | DB 없이 단독 실행 |
+| `test` | H2 | Mock | — | 자동화 테스트 |
+| `portfolio` | H2 + 임베디드 Redis | Mock | ✅ | NAS 박제 (단독 JAR) |
+| `demo` | MySQL + Redis | **Mock** | ✅ | **Railway 풀스택 시연** |
+| `prod` | MySQL + Redis | 실 통합 | — | 실 운영 (실 키 필요) |
+
+`docker-compose.prod.yml`은 `demo` 프로파일을 사용합니다. 실 운영은 환경변수 `SPRING_PROFILES_ACTIVE=prod` + 실 NHN Toast/토스 키 주입.
+
+---
+
+## 🧪 테스트 실행
+
+```bash
+# 백엔드 (JUnit 5) — H2 기반
 cd backend && ./gradlew clean test
 
 # 프론트엔드 (Playwright)
 cd frontend && npx playwright test
 ```
 
+---
 
-● 테스트 계정 목록
+## 📚 추가 문서
 
-  비밀번호 모두: test1234
-
-  ---
-  관리자 (로그인: http://localhost:3000/admin-login)
-
-  ┌────────────┬────────────┬─────────────┬───────────────────┐
-  │   아이디   │    이름    │    역할     │     페르소나      │
-  ├────────────┼────────────┼─────────────┼───────────────────┤
-  │ admin      │ 관리자     │ SUPER_ADMIN │ 한달+ (전체 권한) │
-  ├────────────┼────────────┼─────────────┼───────────────────┤
-  │ admin-new  │ 신규관리자 │ ADMIN       │ 신규 (첫 사용)    │
-  ├────────────┼────────────┼─────────────┼───────────────────┤
-  │ admin-week │ 김주임     │ ADMIN       │ 1주차             │
-  ├────────────┼────────────┼─────────────┼───────────────────┤
-  │ admin-pro  │ 원장님     │ SUPER_ADMIN │ 한달+ (경영 관점) │
-  └────────────┴────────────┴─────────────┴───────────────────┘
-
-  ---
-  강사 (로그인: http://localhost:3000/instructor-login)
-
-
-  ┌─────────────┬────────┬──────────┬───────────────────┐
-  │   아이디    │  이름  │ 페르소나 │     수업 배정     │
-  ├─────────────┼────────┼──────────┼───────────────────┤
-  │ instructor1 │ 박지영 │ 1주차    │ 주 6일, 수업 많음 │
-  ├─────────────┼────────┼──────────┼───────────────────┤
-  │ instructor2 │ 이수진 │ 한달+    │ 주 3일, 중간      │
-  ├─────────────┼────────┼──────────┼───────────────────┤
-  │ instructor3 │ 최재훈 │ 신규     │ 주 3일, 수업 적음 │
-  └─────────────┴────────┴──────────┴───────────────────┘
-
-  ---
-  회원 (로그인: http://localhost:3000/login)
-
-  ┌───────────────┬────────┬──────────┬──────────────────────────────┐
-  │   전화번호    │  이름  │ 페르소나 │            수강권            │
-  ├───────────────┼────────┼──────────┼──────────────────────────────┤
-  │ 010-9023-1023 │ 남은서 │ 신규     │ 8회권 (방금 구매)            │
-  ├───────────────┼────────┼──────────┼──────────────────────────────┤
-  │ 010-9024-1024 │ 황채림 │ 신규     │ 없음                         │
-  ├───────────────┼────────┼──────────┼──────────────────────────────┤
-  │ 010-9025-1025 │ 노유나 │ 1주차    │ 12회권 (3/12)                │
-  ├───────────────┼────────┼──────────┼──────────────────────────────┤
-  │ 010-9019-1019 │ 전소미 │ 1주차    │ 개인10회권 (4/10, 만료 D-1)  │
-  ├───────────────┼────────┼──────────┼──────────────────────────────┤
-  │ 010-9026-1026 │ 구보라 │ 한달+    │ 무제한권, 출석률 100%        │
-  ├───────────────┼────────┼──────────┼──────────────────────────────┤
-  │ 010-9027-1027 │ 양시은 │ 한달+    │ 개인10회권 (1/10, 잔여 적음) │
-  └───────────────┴────────┴──────────┴──────────────────────────────┘
+- [`SPEC.md`](./SPEC.md) — 확정 기능 명세
+- [`DECISIONS.md`](./DECISIONS.md) — 주요 의사결정 로그
+- [`WORKLOG.md`](./WORKLOG.md) — 세션 작업 기록
+- [`DEFERRED_ITEMS.md`](./DEFERRED_ITEMS.md) — 보류 항목
+- [`docs/`](./docs/) — SPEC · ARCHITECTURE · OPERATION_MANUAL · TROUBLESHOOTING
