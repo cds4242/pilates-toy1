@@ -1,6 +1,11 @@
 # 운영 배포용 Docker Compose
 # 사용법: docker compose -f docker-compose.prod.yml --env-file .env up -d
 # (Compose V2 — top-level version 키는 deprecated)
+#
+# ── 파일명 vs Spring 프로파일 (D-013) ──
+# 파일명 ".prod.yml" = production-grade 구동 방식 (Docker Compose 컨벤션)
+# SPRING_PROFILES_ACTIVE=demo = Mock 통합으로 시연·Railway용 (외부 SMS/카카오/토스 호출 X)
+# 실 운영 시: SPRING_PROFILES_ACTIVE 만 prod로 변경 + 실 NHN Toast/Toss 키 환경변수 주입
 
 services:
   mysql:
@@ -51,7 +56,7 @@ services:
     ports:
       - "8080:8080"
     environment:
-      SPRING_PROFILES_ACTIVE: prod
+      SPRING_PROFILES_ACTIVE: demo
       DB_HOST: mysql
       DB_PORT: 3306
       DB_NAME: ${DB_NAME:-pilates}

@@ -54,7 +54,7 @@ import java.util.*;
  */
 @Slf4j
 @Component
-@Profile({"local", "local-h2", "portfolio"})
+@Profile({"local", "local-h2", "portfolio", "demo"})
 @RequiredArgsConstructor
 public class DemoSeedRunner implements ApplicationRunner {
 

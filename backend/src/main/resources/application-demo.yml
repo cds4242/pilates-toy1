@@ -1,0 +1,68 @@
+# ── Demo 프로파일 (Railway/풀스택 시연용, D-012) ──
+# - DB: MySQL (운영과 동일 스택)
+# - 외부 통합(SMS/카카오/토스): Mock (실 발송·결제 X)
+# - 시드 데이터: DemoSeedRunner 활성
+#
+# prod와의 차이: 외부 통합이 Mock. 실 운영 키 불필요.
+# portfolio와의 차이: H2 인메모리가 아니라 MySQL. 임베디드 Redis 대신 외부 Redis.
+
+spring:
+  # ── MySQL (운영과 동일 스택) ──
+  datasource:
+    url: jdbc:mysql://${DB_HOST}:${DB_PORT:3306}/${DB_NAME}?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=Asia/Seoul&characterEncoding=UTF-8
+    username: ${DB_USERNAME}
+    password: ${DB_PASSWORD}
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    hikari:
+      maximum-pool-size: 10
+      minimum-idle: 5
+      connection-timeout: 5000
+
+  # ── JPA (Flyway가 스키마 관리) ──
+  jpa:
+    hibernate:
+      ddl-auto: none
+    show-sql: false
+
+  # ── Flyway (migration + dev 시드) ──
+  flyway:
+    locations: classpath:db/migration, classpath:db/seed/dev
+
+  # ── Redis (외부 컨테이너) ──
+  data:
+    redis:
+      host: ${REDIS_HOST}
+      port: ${REDIS_PORT:6379}
+      password: ${REDIS_PASSWORD:}
+
+# ── Swagger UI 활성 (시연 편의) ──
+springdoc:
+  api-docs:
+    enabled: true
+  swagger-ui:
+    enabled: true
+
+# ── 앱 커스텀 설정 ──
+app:
+  cors:
+    allowed-origins: ${CORS_ALLOWED_ORIGINS}
+  encryption:
+    key: ${ENCRYPTION_KEY}
+    key-version: ${ENCRYPTION_KEY_VERSION:v1}
+  jwt:
+    secret: ${JWT_SECRET}
+    access-token-expiration: 1800
+    refresh-token-expiration: 1209600
+  logging:
+    masking:
+      enabled: true
+  toss:
+    secret-key: ${TOSS_SECRET_KEY:test_sk_DUMMY}
+  alimtalk:
+    provider: mock
+    sender-key: ${ALIMTALK_SENDER_KEY:mock_sender}
+    plus-friend-id: ${ALIMTALK_PFID:@mock_pf}
+
+# ── 데모 모드 표시 (필요 시 프론트로 전달) ──
+portfolio:
+  demo-mode: true

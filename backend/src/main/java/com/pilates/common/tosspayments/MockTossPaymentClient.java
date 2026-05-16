@@ -20,7 +20,7 @@ import java.util.concurrent.atomic.AtomicInteger;
  */
 @Slf4j
 @Component
-@Profile({"local", "local-h2", "test", "portfolio"})
+@Profile({"local", "local-h2", "test", "portfolio", "demo"})
 public class MockTossPaymentClient implements TossPaymentClient {
 
     /** cancelPayment 호출 카운트 (테스트 검증용) */

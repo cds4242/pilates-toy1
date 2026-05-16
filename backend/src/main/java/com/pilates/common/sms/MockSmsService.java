@@ -15,7 +15,7 @@ import java.util.concurrent.atomic.AtomicInteger;
  */
 @Slf4j
 @Service
-@Profile({"local", "local-h2", "test", "portfolio"})
+@Profile({"local", "local-h2", "test", "portfolio", "demo"})
 public class MockSmsService implements SmsService {
 
     private final AtomicInteger sendCallCount = new AtomicInteger(0);

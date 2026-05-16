@@ -16,7 +16,7 @@ import java.util.concurrent.atomic.AtomicInteger;
  */
 @Slf4j
 @Component
-@Profile({"local", "local-h2", "test", "portfolio"})
+@Profile({"local", "local-h2", "test", "portfolio", "demo"})
 public class MockKakaoAlimtalkClient implements KakaoAlimtalkClient {
 
     private final AtomicInteger sendCallCount = new AtomicInteger(0);
