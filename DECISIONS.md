@@ -143,6 +143,21 @@
 - 옵션 A (`docker-compose.demo.yml`로 리네임): 6개 문서 동기화 필요 — 기각
 - 옵션 C (.prod.yml + .demo.yml 분리): YAGNI, 진짜 prod 운영 시점에 분리 — 기각
 
+## D-014: Railway Trial Workspace 채택 (무료 크레딧 + 카드 미등록)
+**결정**: Railway 무료 Trial 사용, 신용카드 등록 X.
+**이유**:
+- 본인 목적 = 배포 경험 + 납품 연습 (24시간 운영 X)
+- $5 크레딧으로 4~6주 운영 가능 (idle 기준)
+- 카드 미등록 = 한도 초과 시 자동 정지 (안전망)
+**대안 검토**:
+- Render (MySQL 미지원, PG 마이그레이션 부담) (기각)
+- Fly.io (셋업 복잡, 256MB RAM 빡빡) (기각)
+- Vercel (백엔드 별도 배포 필요) (기각)
+- AWS Free Tier (1년 후 유료, 셋업 복잡) (기각)
+**비용 관리 정책**:
+- 시연 후 Pause 또는 Delete (본인 결정)
+- 진짜 외주 시 의뢰인 비용으로 Hobby Plan 전환
+
 ---
 
 (앞으로 결정 사항 추가 시 D-XXX 번호 부여)

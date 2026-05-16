@@ -9,6 +9,41 @@
 
 ---
 
+## 2026-05-16 — Railway 풀스택 배포 완료 🎉
+
+**한 것**:
+- Railway Trial Workspace 셋업 (무료 크레딧 $5, 카드 미등록)
+- MySQL + Redis 플러그인 추가 (자동 reference variable 발급)
+- backend 서비스 배포 (Root Directory: `backend`, Internal Port: 8080)
+- frontend 서비스 배포 (Root Directory: `frontend`, 자동 포트 감지)
+- CORS 정정: `*` → `http://localhost:3000` → 최종 frontend public URL
+- 공개 URL 발급:
+  * Backend: https://backend-production-81c77.up.railway.app
+  * Frontend: https://frontend-production-8081.up.railway.app
+- 풀스택 통신 정상 + 강사 시드 데이터(박지영/이수진 등) 노출 확인 + HTTPS 자동
+
+**시뮬레이션 통과 함정 (외주 가서 만날 패턴 미리 경험)**:
+1. C 드라이브 100% 만석 → 메이플 50GB 회수로 복구
+2. monorepo Root Directory 명시 필수 (Railway 자동 처리 X — Railpack 빌더가 backend/frontend 둘 다 보고 충돌)
+3. CORS 와일드카드(`*`) + `allowCredentials=true` 충돌 (Spring Security)
+4. Railway Shared Variable 우선순위 함정 (서비스 Variables 변경이 Shared로 무력화)
+5. Railway 자동 포트 감지 모드 (frontend, 명시 입력 UI 없음 — 컨테이너의 `EXPOSE`로 감지)
+6. Healthcheck Timeout 300초 (Spring Boot 부팅 대기 시간 — backend Flyway + JPA 초기화)
+
+**시뮬레이션 자산 검증**:
+- 본인 Dockerfile 2개 (backend/frontend) Railway에서 무수정 동작
+- demo 프로파일 정상 적용 (Mock SMS/카카오/토스, MySQL 실 DB)
+- Flyway migration + 시드 데이터 자동 실행
+- D-009 (standalone) · D-010 (NEXT_PUBLIC build-time) · D-011 (stdout 로깅) · D-012 (demo 프로파일) 전부 Railway에서 효과 확인
+- D-014 결정 추가 (Trial Workspace 채택 정책)
+
+**다음**:
+- 시드 데이터 보강 (DEFERRED #1)
+- 본격 QA (B 전략 후속) — Chrome MCP로 Railway URL 대상 회귀
+- Railway 서비스 처리 (Pause 시점 본인 결정 — Trial $5 크레딧 소진 관리)
+
+---
+
 ## 2026-05-16 — NAS 박제 잔재 전수 검사 + 운영 정리 (완료 ✅, Railway 배포 직전 점검)
 
 본인 의도: NAS 박제는 nas-snapshot/으로 백업 완료, 메인 코드는 실제 운영(Railway) 준비.
